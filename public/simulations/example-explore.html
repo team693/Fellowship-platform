@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>AI Governance Signals — Explore</title>
+
+    <!--
+      NOTE: This example intentionally references third-party CDNs the way a
+      real, pre-built Heal dashboard would. The platform's /embed wrapper
+      transparently rewrites these to self-hosted paths (/vendor, /fonts) at
+      serve time, so the module works unchanged on locked-down networks.
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Inter:wght@400;500;600&family=IBM+Plex+Mono&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+
+    <style>
+      :root {
+        --teal: #0f8b80;
+        --mint: #45c887;
+        --coral: #fb5f3d;
+        --blue: #3163fb;
+        --gold: #e6a92f;
+        --ink: #0b1f1d;
+        --muted: #5c6b69;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "Inter", system-ui, sans-serif;
+        color: var(--ink);
+        background: #f6faf9;
+        padding: 28px;
+      }
+      h1 {
+        font-family: "Bricolage Grotesque", sans-serif;
+        font-weight: 800;
+        font-size: 26px;
+        margin: 0;
+        letter-spacing: -0.02em;
+      }
+      .sub { color: var(--muted); margin: 4px 0 22px; }
+      .cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 14px;
+        margin-bottom: 24px;
+      }
+      .card {
+        background: #fff;
+        border: 1px solid #eef4f3;
+        border-radius: 16px;
+        padding: 16px;
+        box-shadow: 0 8px 24px rgba(11, 31, 29, 0.05);
+      }
+      .card .k { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+      .card .v { font-family: "Bricolage Grotesque", sans-serif; font-weight: 800; font-size: 28px; margin-top: 6px; }
+      .panel {
+        background: #fff;
+        border: 1px solid #eef4f3;
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow: 0 8px 24px rgba(11, 31, 29, 0.05);
+      }
+      .panel h2 { font-family: "Bricolage Grotesque", sans-serif; font-size: 18px; margin: 0 0 6px; }
+      .legend { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+      .bar text { font-size: 12px; fill: var(--ink); font-family: "Inter", sans-serif; }
+      .axis text { fill: var(--muted); font-size: 11px; }
+      .axis path, .axis line { stroke: #dbe7e5; }
+      .hint { margin-top: 20px; font-size: 13px; color: var(--muted); }
+    </style>
+  </head>
+  <body>
+    <h1>AI Governance Signals</h1>
+    <p class="sub">
+      An explore-only dashboard. Hover the bars to inspect readiness across
+      jurisdictions. This module reports nothing about completion — the platform
+      tracks your engagement.
+    </p>
+
+    <div class="cards" id="cards"></div>
+
+    <div class="panel">
+      <h2>Governance readiness index</h2>
+      <div class="legend">Composite of institutional capacity, transparency, and enforcement (0–100).</div>
+      <svg id="chart" width="100%" height="320" role="img" aria-label="Bar chart of governance readiness by jurisdiction"></svg>
+    </div>
+
+    <p class="hint">Tip: this is where your real Three.js / D3 dashboards live — dropped in unchanged.</p>
+
+    <script>
+      const data = [
+        { name: "Region A", value: 78, color: "var(--teal)" },
+        { name: "Region B", value: 64, color: "var(--mint)" },
+        { name: "Region C", value: 52, color: "var(--blue)" },
+        { name: "Region D", value: 41, color: "var(--gold)" },
+        { name: "Region E", value: 33, color: "var(--coral)" }
+      ];
+
+      // Summary cards
+      const cards = [
+        { k: "Jurisdictions", v: data.length },
+        { k: "Avg readiness", v: Math.round(d3.mean(data, (d) => d.value)) },
+        { k: "Top score", v: d3.max(data, (d) => d.value) },
+        { k: "Spread", v: d3.max(data, (d) => d.value) - d3.min(data, (d) => d.value) }
+      ];
+      d3.select("#cards")
+        .selectAll("div.card")
+        .data(cards)
+        .join("div")
+        .attr("class", "card")
+        .html((d) => `<div class="k">${d.k}</div><div class="v">${d.v}</div>`);
+
+      // Bar chart
+      const svg = d3.select("#chart");
+      const width = svg.node().clientWidth || 720;
+      const height = 320;
+      const margin = { top: 10, right: 20, bottom: 30, left: 90 };
+
+      const x = d3.scaleLinear().domain([0, 100]).range([margin.left, width - margin.right]);
+      const y = d3
+        .scaleBand()
+        .domain(data.map((d) => d.name))
+        .range([margin.top, height - margin.bottom])
+        .padding(0.25);
+
+      svg
+        .append("g")
+        .attr("class", "axis")
+        .attr("transform", `translate(0,${height - margin.bottom})`)
+        .call(d3.axisBottom(x).ticks(5));
+
+      svg
+        .append("g")
+        .attr("class", "axis")
+        .attr("transform", `translate(${margin.left},0)`)
+        .call(d3.axisLeft(y));
+
+      const bars = svg
+        .append("g")
+        .attr("class", "bar")
+        .selectAll("g")
+        .data(data)
+        .join("g");
+
+      bars
+        .append("rect")
+        .attr("x", x(0))
+        .attr("y", (d) => y(d.name))
+        .attr("height", y.bandwidth())
+        .attr("width", 0)
+        .attr("rx", 7)
+        .attr("fill", (d) => d.color)
+        .transition()
+        .duration(800)
+        .attr("width", (d) => x(d.value) - x(0));
+
+      bars
+        .append("text")
+        .attr("x", (d) => x(d.value) + 6)
+        .attr("y", (d) => y(d.name) + y.bandwidth() / 2)
+        .attr("dy", "0.35em")
+        .text((d) => d.value);
+    </script>
+  </body>
+</html>
