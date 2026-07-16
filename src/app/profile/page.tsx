@@ -1,6 +1,8 @@
 import { AppHeader } from "@/components/app-header";
 import { requireUser, getProfile } from "@/lib/auth";
 import { AccountForm } from "./account-form";
+import { SpotlightSection } from "./spotlight-section";
+import { getSpotlightProfile } from "./spotlight-data";
 
 export const metadata = { title: "Your profile" };
 
@@ -8,6 +10,8 @@ export default async function ProfilePage() {
   await requireUser();
   const profile = await getProfile();
   if (!profile) return null;
+
+  const { spotlight, photoUrl } = await getSpotlightProfile();
 
   return (
     <div className="min-h-dvh">
@@ -26,7 +30,11 @@ export default async function ProfilePage() {
           <AccountForm profile={profile} />
         </section>
 
-        {/* The opt-in participant spotlight section is added in step 9. */}
+        <SpotlightSection
+          initial={spotlight}
+          initialPhotoUrl={photoUrl}
+          fallbackName={profile.full_name}
+        />
       </main>
     </div>
   );
