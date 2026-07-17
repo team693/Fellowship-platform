@@ -52,3 +52,25 @@ cross join (values
 ) as m(title, description, type, order_index, asset_path, completion_rule, completion_config, is_required, sdgs)
 where f.slug = 'ai-governance'
 on conflict (fellowship_id, order_index) do nothing;
+
+-- Example native, server-graded case study. Requires 0007_activities.sql.
+with fw as (
+  select id from public.fellowships where slug = 'ai-governance'
+),
+ins as (
+  insert into public.modules
+    (fellowship_id, title, description, type, kind, order_index, asset_path,
+     completion_rule, completion_config, is_required, sdgs)
+  select fw.id,
+         'Case Study: Safe Water for Every Home',
+         'Apply what you explored in the Water Intelligence dashboard. Answer the questions and write a short response — graded on our servers.',
+         'case_study', 'activity', 4, '',
+         'reported', '{"pass_score": 70}'::jsonb, true, array[6,3]::smallint[]
+  from fw
+  on conflict (fellowship_id, order_index) do nothing
+  returning id
+)
+insert into public.activities (module_id, spec)
+select id, '{"intro":"Scenario: a low-income neighbourhood reports rising waterborne illness. You advise the city water authority, using what you explored in the Water Intelligence dashboard.","pass_score":70,"questions":[{"id":"q1","type":"mcq","prompt":"Which indicator most directly signals unsafe drinking water?","options":["Average household income","Fecal coliform (E. coli) count","Number of streetlights"],"answer":1},{"id":"q2","type":"multi","prompt":"Which actions reduce waterborne disease risk? (choose all that apply)","options":["Chlorination of supply","Fixing leaking sewage lines","Raising water tariffs only","Public handwashing campaigns"],"answers":[0,1,3]},{"id":"q3","type":"matching","prompt":"Match each UN SDG to its focus.","left":["SDG 6","SDG 3"],"right":["Good Health and Well-being","Clean Water and Sanitation"],"pairs":{"0":1,"1":0}},{"id":"q4","type":"numeric","prompt":"A shared tank serves 4 homes of 5 people each. How many people rely on it?","answer":20,"tolerance":0},{"id":"q5","type":"order","prompt":"Order the response steps from first to last.","items":["Treat the water source","Detect the contamination","Confirm cases drop"],"correctOrder":[1,0,2]},{"id":"q6","type":"essay","prompt":"In 60+ words, propose one intervention and how you would measure its impact.","minWords":60}]}'::jsonb
+from ins
+on conflict (module_id) do nothing;

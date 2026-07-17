@@ -190,17 +190,41 @@ export async function createModule(formData: FormData) {
   const fellowshipId = String(formData.get("fellowship_id") ?? "");
   const title = String(formData.get("title") ?? "").trim();
   const assetPath = String(formData.get("asset_path") ?? "").trim();
-  if (!fellowshipId || !title || !assetPath) {
-    return { ok: false, error: "Title and asset file are required." };
+  const kind =
+    String(formData.get("kind") ?? "embed") === "activity" ? "activity" : "embed";
+
+  if (!fellowshipId || !title) {
+    return { ok: false, error: "Title is required." };
   }
-  if (!/^[a-zA-Z0-9._-]+\.html$/.test(assetPath)) {
-    return { ok: false, error: "Asset must be a .html filename under public/simulations." };
+
+  // Validate + parse an activity spec when authoring a native activity.
+  let activitySpec: { questions?: unknown; pass_score?: number } | null = null;
+  if (kind === "activity") {
+    const raw = String(formData.get("spec_json") ?? "").trim();
+    if (!raw) return { ok: false, error: "Paste the activity JSON spec." };
+    try {
+      activitySpec = JSON.parse(raw);
+    } catch {
+      return { ok: false, error: "Activity JSON is invalid — check the syntax." };
+    }
+    if (!activitySpec || !Array.isArray(activitySpec.questions)) {
+      return { ok: false, error: "Activity JSON needs a \"questions\" array." };
+    }
+  } else {
+    if (!assetPath) {
+      return { ok: false, error: "Asset file is required for an embedded sim." };
+    }
+    if (!/^[a-zA-Z0-9._-]+\.html$/.test(assetPath)) {
+      return { ok: false, error: "Asset must be a .html filename under public/simulations." };
+    }
   }
 
   const completionRule =
-    String(formData.get("completion_rule") ?? "engagement") === "reported"
+    kind === "activity"
       ? "reported"
-      : "engagement";
+      : String(formData.get("completion_rule") ?? "engagement") === "reported"
+        ? "reported"
+        : "engagement";
   const minSeconds = parseInt(String(formData.get("min_seconds") ?? ""), 10);
   const passScore = parseInt(String(formData.get("pass_score") ?? ""), 10);
   const completionConfig: Record<string, number> = {};
@@ -230,19 +254,40 @@ export async function createModule(formData: FormData) {
     .limit(1);
   const nextIndex = existing && existing.length ? existing[0].order_index + 1 : 0;
 
-  const { error } = await gate.supabase.from("modules").insert({
-    fellowship_id: fellowshipId,
-    title,
-    description: String(formData.get("description") ?? "").trim() || null,
-    type: String(formData.get("type") ?? "explore"),
-    asset_path: assetPath,
-    completion_rule: completionRule,
-    completion_config: completionConfig,
-    is_required: formData.get("is_required") !== "off",
-    sdgs,
-    order_index: nextIndex,
-  });
+  // For activities, the pass score comes from the spec (default 70).
+  if (kind === "activity") {
+    const ps =
+      typeof activitySpec?.pass_score === "number" ? activitySpec.pass_score : 70;
+    completionConfig.pass_score = Math.max(0, Math.min(100, ps));
+  }
+
+  const { data: inserted, error } = await gate.supabase
+    .from("modules")
+    .insert({
+      fellowship_id: fellowshipId,
+      title,
+      description: String(formData.get("description") ?? "").trim() || null,
+      type: String(formData.get("type") ?? "explore"),
+      kind,
+      asset_path: kind === "activity" ? "" : assetPath,
+      completion_rule: completionRule,
+      completion_config: completionConfig,
+      is_required: formData.get("is_required") !== "off",
+      sdgs,
+      order_index: nextIndex,
+    })
+    .select("id")
+    .maybeSingle();
   if (error) return { ok: false, error: error.message };
+
+  // Store the activity spec (with answer keys) in the admin-only table.
+  if (kind === "activity" && inserted) {
+    const { error: specError } = await gate.supabase
+      .from("activities")
+      .insert({ module_id: inserted.id, spec: activitySpec });
+    if (specError) return { ok: false, error: specError.message };
+  }
+
   revalidatePath(`/admin/fellowships/${fellowshipId}`);
   return { ok: true };
 }

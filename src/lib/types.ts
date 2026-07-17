@@ -77,7 +77,9 @@ export interface Module {
   description: string | null;
   type: ModuleType;
   order_index: number;
-  /** Path to the self-contained HTML asset under public/simulations/. */
+  /** 'embed' = iframe HTML sim; 'activity' = native server-graded activity. */
+  kind: "embed" | "activity";
+  /** Path to the self-contained HTML asset under public/simulations/ (embed). */
   asset_path: string;
   completion_rule: CompletionRule;
   completion_config: CompletionConfig;

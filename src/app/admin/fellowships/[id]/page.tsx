@@ -153,16 +153,38 @@ export default async function AdminFellowshipDetailPage({
                   </div>
                 </div>
                 <div>
+                  <label className="label" htmlFor="m_kind">Module kind</label>
+                  <select id="m_kind" name="kind" className="input">
+                    <option value="embed">Embedded sim (HTML)</option>
+                    <option value="activity">Native activity (MCQ / essay / matching…)</option>
+                  </select>
+                </div>
+                <div>
                   <label className="label" htmlFor="m_asset">
-                    Asset file (in public/simulations) *
+                    Asset file (embedded sim) — in public/simulations
                   </label>
                   <input
                     id="m_asset"
                     name="asset_path"
                     className="input font-mono"
                     placeholder="my-simulation.html"
-                    required
                   />
+                </div>
+                <div>
+                  <label className="label" htmlFor="m_spec">
+                    Activity JSON (native activity)
+                  </label>
+                  <textarea
+                    id="m_spec"
+                    name="spec_json"
+                    rows={5}
+                    className="input font-mono text-xs"
+                    placeholder={'{"pass_score":70,"questions":[{"id":"q1","type":"mcq","prompt":"…","options":["A","B"],"answer":1}]}'}
+                  />
+                  <p className="mt-1 text-xs text-ink-muted">
+                    Types: mcq, multi, matching, order, numeric, essay. Answer keys
+                    stay server-side.
+                  </p>
                 </div>
                 <div className="grid grid-cols-2 gap-3">
                   <div>

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AppHeader } from "@/components/app-header";
 import { ModuleEmbed } from "@/components/module-embed";
+import { ActivityRunner } from "@/components/activity-runner";
 import { requireUser, getProfile } from "@/lib/auth";
 import { ensureOpenAccessEnrollments } from "@/lib/access";
 import { createClient } from "@/lib/supabase/server";
@@ -78,17 +79,26 @@ export default async function ModulePage({
           )}
         </div>
 
-        <ModuleEmbed
-          moduleId={mod.id}
-          title={mod.title}
-          completionRule={mod.completion_rule}
-          minSeconds={minSeconds}
-          passScore={passScore}
-          initialStatus={progress?.status ?? null}
-          initialScore={progress?.score ?? null}
-          nextHref={nextModule ? `/modules/${nextModule.id}` : null}
-          fellowshipHref={fellowshipHref}
-        />
+        {mod.kind === "activity" ? (
+          <ActivityRunner
+            moduleId={mod.id}
+            nextHref={nextModule ? `/modules/${nextModule.id}` : null}
+            fellowshipHref={fellowshipHref}
+            alreadyCompleted={progress?.status === "completed"}
+          />
+        ) : (
+          <ModuleEmbed
+            moduleId={mod.id}
+            title={mod.title}
+            completionRule={mod.completion_rule}
+            minSeconds={minSeconds}
+            passScore={passScore}
+            initialStatus={progress?.status ?? null}
+            initialScore={progress?.score ?? null}
+            nextHref={nextModule ? `/modules/${nextModule.id}` : null}
+            fellowshipHref={fellowshipHref}
+          />
+        )}
       </main>
     </div>
   );
