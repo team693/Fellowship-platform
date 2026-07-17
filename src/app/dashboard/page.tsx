@@ -9,6 +9,7 @@ export const metadata = { title: "Dashboard" };
 
 export default async function DashboardPage() {
   const user = await requireUser();
+  const isGuest = !!user.is_anonymous;
   // Launch phase: auto-enroll signed-in users into published internships.
   await ensureOpenAccessEnrollments(user.id);
   const profile = await getProfile();
@@ -46,8 +47,21 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-dvh">
-      <AppHeader profile={profile} />
+      <AppHeader profile={profile} isGuest={isGuest} />
       <main className="mx-auto max-w-6xl px-6 py-10">
+        {isGuest && (
+          <div className="mb-6 flex flex-wrap items-center gap-3 rounded-2xl border border-gold-200 bg-gold-50 p-4">
+            <span className="text-xl">👋</span>
+            <p className="flex-1 text-sm text-gold-900">
+              You&apos;re exploring as a <strong>guest</strong>. Look around
+              freely — but your progress won&apos;t be saved and you can&apos;t
+              earn a certificate until you sign in.
+            </p>
+            <Link href="/login" className="btn-primary">
+              Sign in to save
+            </Link>
+          </div>
+        )}
         <div className="flex flex-wrap items-end justify-between gap-4">
           <div>
             <h1 className="text-3xl font-extrabold">

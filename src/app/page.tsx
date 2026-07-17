@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { HealLogo } from "@/components/brand";
+import { GuestButton } from "@/components/guest-button";
 import { getCurrentUser } from "@/lib/auth";
 
 export default async function LandingPage() {
@@ -50,9 +51,10 @@ export default async function LandingPage() {
               <Link href="/login" className="btn-primary px-5 py-3 text-base">
                 Start your internship
               </Link>
-              <Link href="/verify" className="btn-ghost px-5 py-3 text-base">
-                Verify a certificate
-              </Link>
+              <GuestButton
+                className="btn-ghost px-5 py-3 text-base"
+                label="Explore as guest"
+              />
             </div>
             <p className="mt-4 text-sm text-ink-muted">
               Sign in with email or Google to begin. A verifiable certificate is

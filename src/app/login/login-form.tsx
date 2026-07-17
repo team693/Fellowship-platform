@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { GuestButton } from "@/components/guest-button";
 import { env } from "@/lib/env";
 
 export function LoginForm() {
@@ -107,6 +108,12 @@ export function LoginForm() {
         <GoogleIcon />
         Continue with Google
       </button>
+
+      <GuestButton className="btn-ghost w-full py-3" next={next} />
+      <p className="text-center text-xs text-ink-muted">
+        Guest lets you look around without an account. Sign in to save your
+        progress and earn a certificate.
+      </p>
 
       {status === "error" && (
         <p className="text-sm text-coral-600" role="alert">
