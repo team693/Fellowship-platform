@@ -4,18 +4,18 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Heal Digital Fellowships",
-    template: "%s · Heal Fellowships",
+    default: "Heal Digital Internships",
+    template: "%s · Heal Digital Internships",
   },
   description:
-    "Paid, verifiable digital fellowships. Work through immersive simulations on real-world macro problems and earn an independently verifiable certificate.",
+    "Paid, verifiable digital internships — impact simulations, case studies, and real-world applications. Earn an independently verifiable certificate.",
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
   ),
   openGraph: {
-    title: "Heal Digital Fellowships",
+    title: "Heal Digital Internships",
     description:
-      "Immersive fellowships on AI governance, ethics, and sustainability — with verifiable certificates.",
+      "Impact simulations, case studies & real-world applications in applied AI, ethics, and the UN SDGs — with verifiable certificates.",
     type: "website",
   },
 };

@@ -1,5 +1,4 @@
 import { Suspense } from "react";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { HealLogo } from "@/components/brand";
 import { getCurrentUser } from "@/lib/auth";
@@ -22,7 +21,7 @@ export default async function LoginPage() {
             Learn deeply. Earn a certificate the world can verify.
           </h1>
           <p className="mt-4 max-w-md text-white/80">
-            Sign in to continue your fellowship, track your progress, and
+            Sign in to continue your internship, track your progress, and
             download your verifiable certificate.
           </p>
         </div>
@@ -49,11 +48,8 @@ export default async function LoginPage() {
           </Suspense>
 
           <p className="mt-6 text-center text-sm text-ink-muted">
-            Have a seat code but no account?{" "}
-            <Link href="/redeem" className="font-semibold text-teal-600 hover:underline">
-              Redeem it
-            </Link>{" "}
-            after signing in.
+            New here? Signing in creates your account automatically and unlocks
+            your internships.
           </p>
         </div>
       </div>

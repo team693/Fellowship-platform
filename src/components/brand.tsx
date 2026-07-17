@@ -17,14 +17,14 @@ export function HealLogo({
         <span className="font-display text-lg font-extrabold leading-none">H</span>
       </span>
       <span className="font-display text-lg font-extrabold tracking-tight text-ink">
-        Heal <span className="text-teal-600">Fellowships</span>
+        Heal <span className="text-teal-600">Internships</span>
       </span>
     </span>
   );
 
   if (!href) return inner;
   return (
-    <Link href={href} aria-label="Heal Fellowships home">
+    <Link href={href} aria-label="Heal Digital Internships home">
       {inner}
     </Link>
   );

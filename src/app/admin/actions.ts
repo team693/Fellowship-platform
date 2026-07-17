@@ -93,7 +93,7 @@ export async function generateCodes(formData: FormData) {
   const fellowshipId = String(formData.get("fellowship_id") ?? "");
   const count = Math.min(500, Math.max(1, parseInt(String(formData.get("count") ?? "1"), 10) || 1));
   if (!partnerId || !fellowshipId) {
-    return { ok: false, error: "Choose a partner and a fellowship." };
+    return { ok: false, error: "Choose a partner and an internship." };
   }
 
   // Generate unique codes; retry the whole batch a few times on the (rare)

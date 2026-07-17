@@ -95,7 +95,7 @@ function ValidCard({ cert }: { cert: PublicCertificate }) {
       </StatusBanner>
       <dl className="space-y-5 p-8">
         <Row label="Recipient" value={cert.recipient_name} big />
-        <Row label="Fellowship" value={cert.fellowship_title} />
+        <Row label="Internship" value={cert.fellowship_title} />
         <Row label="Issued" value={issued} />
         <Row label="Certificate ID" value={cert.id} mono />
       </dl>
@@ -119,7 +119,7 @@ function RevokedCard({ cert }: { cert: PublicCertificate }) {
       </StatusBanner>
       <dl className="space-y-5 p-8">
         <Row label="Recipient" value={cert.recipient_name} big />
-        <Row label="Fellowship" value={cert.fellowship_title} />
+        <Row label="Internship" value={cert.fellowship_title} />
         <Row label="Certificate ID" value={cert.id} mono />
       </dl>
     </div>

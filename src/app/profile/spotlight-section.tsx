@@ -27,9 +27,9 @@ export function SpotlightSection({
         <div>
           <h2 className="text-lg font-bold">Participant spotlight</h2>
           <p className="mt-1 text-sm text-ink-soft">
-            Optional. Let Heal feature you as a fellowship participant. This has
-            no effect on your fellowship or certificate, and you can withdraw
-            anytime.
+            Optional. Let Heal feature you as a digital internship participant.
+            This has no effect on your internship or certificate, and you can
+            withdraw anytime.
           </p>
         </div>
         <ConsentPill status={status} />
@@ -211,7 +211,7 @@ function ConsentBlock({
   const withdraw = useAction();
 
   const name = initial?.display_name || fallbackName || "Your name";
-  const role = initial?.headline || "Fellowship Participant";
+  const role = initial?.headline || "Internship Participant";
 
   if (status === "granted") {
     return (
@@ -254,7 +254,7 @@ function ConsentBlock({
       <ul className="mt-3 space-y-1.5 text-sm text-ink-soft">
         <li>• <strong>What we publish:</strong> your photo, name, and role/headline.</li>
         <li>• <strong>Where:</strong> LinkedIn and Heal&apos;s own channels.</li>
-        <li>• <strong>It&apos;s optional:</strong> it won&apos;t affect your fellowship or certificate.</li>
+        <li>• <strong>It&apos;s optional:</strong> it won&apos;t affect your internship or certificate.</li>
         <li>• <strong>You&apos;re in control:</strong> you can withdraw consent at any time.</li>
         <li>• Heal posts manually — nothing is auto-posted anywhere.</li>
       </ul>
@@ -276,7 +276,7 @@ function ConsentBlock({
               <p className="font-semibold text-ink">{name}</p>
               <p className="text-sm text-ink-muted">{role}</p>
             </div>
-            <span className="ml-auto text-xs text-ink-muted">via Heal Fellowships</span>
+            <span className="ml-auto text-xs text-ink-muted">via Heal Internships</span>
           </div>
           {initial?.quote && (
             <p className="mt-3 text-sm italic text-ink-soft">“{initial.quote}”</p>
@@ -287,7 +287,7 @@ function ConsentBlock({
             </p>
           )}
           <p className="mt-3 text-xs text-ink-muted">
-            🎓 Featured as a Heal fellowship participant
+            🎓 Featured as a Heal digital internship participant
           </p>
         </div>
         <p className="mt-2 text-xs text-ink-muted">

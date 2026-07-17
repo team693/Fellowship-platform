@@ -9,8 +9,8 @@
 insert into public.fellowships (slug, title, description, locale, cover_color, is_published)
 values (
   'ai-governance',
-  'AI Governance Fellowship',
-  'An immersive introduction to the institutions, trade-offs, and hard choices of governing advanced AI. Explore a live policy dashboard, then apply what you learned in a short assessed scenario.',
+  'Applied AI Digital Internship',
+  'An immersive introduction to applied AI, ethics, and the UN SDGs through impact simulations, case studies, and real-world applications. Explore a live data dashboard, then apply what you learned in a short assessed scenario.',
   'en',
   '#0f8b80',
   true

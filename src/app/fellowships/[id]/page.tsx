@@ -2,10 +2,11 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { AppHeader } from "@/components/app-header";
 import { requireUser, getProfile } from "@/lib/auth";
+import { ensureOpenAccessEnrollments } from "@/lib/access";
 import { createClient } from "@/lib/supabase/server";
 import type { Certificate, Fellowship, Module, Progress } from "@/lib/types";
 
-export const metadata = { title: "Fellowship" };
+export const metadata = { title: "Internship" };
 
 const TYPE_LABEL: Record<Module["type"], string> = {
   explore: "Explore",
@@ -20,7 +21,8 @@ export default async function FellowshipPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  await requireUser();
+  const user = await requireUser();
+  await ensureOpenAccessEnrollments(user.id);
   const profile = await getProfile();
   const supabase = await createClient();
 
@@ -40,7 +42,8 @@ export default async function FellowshipPage({
     .maybeSingle();
 
   if (!enrollment && profile?.role !== "admin") {
-    redirect("/redeem");
+    // Not enrolled (e.g. an unpublished internship under open access).
+    redirect("/dashboard");
   }
 
   const [{ data: moduleRows }, { data: progressRows }, { data: certRow }] =
@@ -166,7 +169,7 @@ export default async function FellowshipPage({
           })}
           {modules.length === 0 && (
             <li className="card text-center text-ink-muted">
-              No modules have been added to this fellowship yet.
+              No modules have been added to this internship yet.
             </li>
           )}
         </ol>

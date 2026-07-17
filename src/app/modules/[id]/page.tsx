@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { AppHeader } from "@/components/app-header";
 import { ModuleEmbed } from "@/components/module-embed";
 import { requireUser, getProfile } from "@/lib/auth";
+import { ensureOpenAccessEnrollments } from "@/lib/access";
 import { createClient } from "@/lib/supabase/server";
 import type { CompletionConfig, Fellowship, Module, Progress } from "@/lib/types";
 
@@ -14,7 +15,8 @@ export default async function ModulePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  await requireUser();
+  const user = await requireUser();
+  await ensureOpenAccessEnrollments(user.id);
   const profile = await getProfile();
   const supabase = await createClient();
 
@@ -66,7 +68,7 @@ export default async function ModulePage({
       <AppHeader profile={profile} />
       <main className="mx-auto max-w-4xl px-6 py-8">
         <Link href={fellowshipHref} className="text-sm text-ink-muted hover:text-ink">
-          ← {fellowship?.title ?? "Fellowship"}
+          ← {fellowship?.title ?? "Internship"}
         </Link>
 
         <div className="mb-6 mt-3">

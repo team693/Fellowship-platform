@@ -36,7 +36,7 @@ export default async function AdminFellowshipDetailPage({
   return (
     <div>
       <Link href="/admin/fellowships" className="text-sm text-ink-muted hover:text-ink">
-        ← Fellowships
+        ← Internships
       </Link>
       <h1 className="mt-2 text-2xl font-extrabold">{fellowship.title}</h1>
       <p className="mt-1 text-ink-soft">

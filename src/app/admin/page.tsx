@@ -28,7 +28,7 @@ export default async function AdminOverviewPage() {
 
   const stats = [
     { label: "Partners", value: partners, href: "/admin/partners", accent: "text-teal-600" },
-    { label: "Fellowships", value: fellowships, href: "/admin/fellowships", accent: "text-brandblue-600" },
+    { label: "Internships", value: fellowships, href: "/admin/fellowships", accent: "text-brandblue-600" },
     { label: "Enrollments", value: enrollments, href: "/admin/partners", accent: "text-mint-600" },
     { label: "Codes redeemed", value: `${codesRedeemed}/${codesTotal}`, href: "/admin/partners", accent: "text-gold-600" },
     { label: "Certificates issued", value: certificates, href: "/admin/fellowships", accent: "text-coral-500" },
@@ -56,9 +56,9 @@ export default async function AdminOverviewPage() {
           </p>
         </Link>
         <Link href="/admin/fellowships" className="card hover:shadow-lift">
-          <h2 className="font-bold">Fellowships &amp; modules →</h2>
+          <h2 className="font-bold">Internships &amp; modules →</h2>
           <p className="mt-1 text-sm text-ink-soft">
-            Create fellowships, add/reorder modules, and publish content.
+            Create internships, add/reorder modules, and publish content.
           </p>
         </Link>
       </div>

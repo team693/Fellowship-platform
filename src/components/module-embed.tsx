@@ -241,7 +241,7 @@ function CompletedPanel({
           </Link>
         ) : (
           <Link href={fellowshipHref} className="btn-primary">
-            Back to fellowship
+            Back to internship
           </Link>
         )}
       </div>

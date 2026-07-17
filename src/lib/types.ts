@@ -149,4 +149,4 @@ export interface SpotlightProfile {
 /** The exact scope string students consent to. Kept in one place so the UI
  * preview and the stored consent_scope always match. */
 export const SPOTLIGHT_CONSENT_SCOPE =
-  "My photo, name, and role/headline may be published by Heal on LinkedIn and Heal's own channels to feature me as a fellowship participant.";
+  "My photo, name, and role/headline may be published by Heal on LinkedIn and Heal's own channels to feature me as a digital internship participant.";

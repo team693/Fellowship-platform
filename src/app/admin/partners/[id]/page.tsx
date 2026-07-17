@@ -92,7 +92,7 @@ export default async function PartnerDetailPage({
               <thead className="bg-surface-subtle text-left text-ink-muted">
                 <tr>
                   <th className="px-4 py-3 font-semibold">Code</th>
-                  <th className="px-4 py-3 font-semibold">Fellowship</th>
+                  <th className="px-4 py-3 font-semibold">Internship</th>
                   <th className="px-4 py-3 font-semibold">Status</th>
                   <th className="px-4 py-3 font-semibold">Redeemed by</th>
                   <th className="px-4 py-3"></th>
@@ -149,7 +149,7 @@ export default async function PartnerDetailPage({
           <div className="card">
             <h2 className="text-lg font-bold">Generate codes</h2>
             <p className="mt-1 text-sm text-ink-soft">
-              Create a batch of unused seat codes for a fellowship.
+              Create a batch of unused seat codes for an internship.
             </p>
             <ActionForm
               action={generateCodes}
@@ -160,7 +160,7 @@ export default async function PartnerDetailPage({
               <input type="hidden" name="partner_id" value={partner.id} />
               <div className="space-y-3">
                 <div>
-                  <label className="label" htmlFor="fellowship_id">Fellowship</label>
+                  <label className="label" htmlFor="fellowship_id">Internship</label>
                   <select id="fellowship_id" name="fellowship_id" className="input" required>
                     <option value="">Choose…</option>
                     {fellowships.map((f) => (

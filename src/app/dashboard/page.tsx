@@ -1,13 +1,16 @@
 import Link from "next/link";
 import { AppHeader } from "@/components/app-header";
 import { requireUser, getProfile } from "@/lib/auth";
+import { ensureOpenAccessEnrollments } from "@/lib/access";
 import { createClient } from "@/lib/supabase/server";
 import type { Certificate, Enrollment, Fellowship, Module, Progress } from "@/lib/types";
 
 export const metadata = { title: "Dashboard" };
 
 export default async function DashboardPage() {
-  await requireUser();
+  const user = await requireUser();
+  // Launch phase: auto-enroll signed-in users into published internships.
+  await ensureOpenAccessEnrollments(user.id);
   const profile = await getProfile();
   const supabase = await createClient();
 
@@ -50,11 +53,8 @@ export default async function DashboardPage() {
             <h1 className="text-3xl font-extrabold">
               Welcome{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}
             </h1>
-            <p className="mt-1 text-ink-soft">Your fellowships and progress.</p>
+            <p className="mt-1 text-ink-soft">Your internships and progress.</p>
           </div>
-          <Link href="/redeem" className="btn-ghost">
-            + Redeem a seat code
-          </Link>
         </div>
 
         {(enrollments ?? []).length === 0 ? (
@@ -83,14 +83,11 @@ function EmptyState() {
       <div className="grid h-14 w-14 place-items-center rounded-2xl bg-heal-gradient text-2xl text-white">
         🎓
       </div>
-      <h2 className="mt-4 text-xl font-bold">No fellowships yet</h2>
+      <h2 className="mt-4 text-xl font-bold">No internships available yet</h2>
       <p className="mt-1 max-w-md text-ink-soft">
-        Redeem the seat code your partner gave you to unlock your first
-        fellowship. Access is fully sponsored — no payment required.
+        Your internships will appear here as soon as they&apos;re published.
+        Check back soon.
       </p>
-      <Link href="/redeem" className="btn-primary mt-6">
-        Redeem a seat code
-      </Link>
     </div>
   );
 }

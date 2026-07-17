@@ -20,8 +20,8 @@ export default async function LandingPage() {
               <Link href="/login" className="btn-ghost">
                 Sign in
               </Link>
-              <Link href="/redeem" className="btn-primary">
-                Redeem a code
+              <Link href="/login" className="btn-primary">
+                Get started
               </Link>
             </>
           )}
@@ -33,30 +33,30 @@ export default async function LandingPage() {
         <div className="mx-auto grid max-w-6xl gap-10 px-6 pb-16 pt-10 lg:grid-cols-2 lg:pt-20">
           <div className="flex flex-col justify-center">
             <span className="badge w-fit bg-mint-100 text-mint-800">
-              Paid · Verifiable · Independent
+              Applied AI · Ethics · UN SDGs
             </span>
             <h1 className="mt-4 text-4xl font-extrabold leading-[1.05] sm:text-5xl lg:text-6xl">
-              Digital fellowships for the{" "}
+              Digital internships for the{" "}
               <span className="bg-heal-gradient bg-clip-text text-transparent">
-                world&apos;s hardest problems
+                clinician who codes
               </span>
             </h1>
             <p className="mt-5 max-w-xl text-lg text-ink-soft">
-              Work through immersive simulations and case studies on AI
-              governance, ethics, and sustainability. Finish and earn a credible
+              Impact simulations, case studies, and real-world applications in
+              applied AI, ethics, and the UN SDGs. Finish and earn a credible
               certificate that anyone can independently verify.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/redeem" className="btn-primary px-5 py-3 text-base">
-                Redeem your seat code
+              <Link href="/login" className="btn-primary px-5 py-3 text-base">
+                Start your internship
               </Link>
-              <Link href="/login" className="btn-ghost px-5 py-3 text-base">
-                Sign in
+              <Link href="/verify" className="btn-ghost px-5 py-3 text-base">
+                Verify a certificate
               </Link>
             </div>
             <p className="mt-4 text-sm text-ink-muted">
-              Access is sponsored by our partners — no individual payment needed.
-              Just redeem the code your partner gave you.
+              Sign in with email or Google to begin. A verifiable certificate is
+              waiting at the finish line.
             </p>
           </div>
 
@@ -69,7 +69,7 @@ export default async function LandingPage() {
                     Certificate of completion
                   </p>
                   <p className="mt-6 font-display text-2xl font-bold">
-                    AI Governance Fellowship
+                    Applied AI Digital Internship
                   </p>
                   <p className="mt-1 text-white/80">Heal Social Foundation</p>
                 </div>

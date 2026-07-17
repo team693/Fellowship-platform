@@ -48,7 +48,7 @@ export function RedeemForm() {
         className="btn-primary w-full py-3"
         disabled={isPending || code.trim().length === 0}
       >
-        {isPending ? "Redeeming…" : "Redeem & unlock fellowship"}
+        {isPending ? "Redeeming…" : "Redeem & unlock internship"}
       </button>
       {error && (
         <p className="rounded-lg bg-coral-50 px-3 py-2 text-sm text-coral-700" role="alert">
