@@ -1,6 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { signAiToken } from "@/lib/ai-token";
 import type { Module } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -68,7 +67,7 @@ export async function GET(
   }
   let html = await assetRes.text();
 
-  html = injectHealBridge(html, mod.id, signAiToken(mod.id));
+  html = injectHealBridge(html, mod.id);
   html = selfHostCdnAssets(html);
 
   return new NextResponse(html, {
@@ -88,14 +87,9 @@ export async function GET(
  * Injects the module id and the Heal completion helpers into the document
  * <head> so they are defined before the module's own scripts run.
  */
-function injectHealBridge(
-  html: string,
-  moduleId: string,
-  aiToken: string,
-): string {
+function injectHealBridge(html: string, moduleId: string): string {
   const bridge = `<script>(function(){
   window.__HEAL_MODULE_ID__ = ${JSON.stringify(moduleId)};
-  window.__HEAL_AI_TOKEN__ = ${JSON.stringify(aiToken)};
   window.healComplete = function(score, meta){
     parent.postMessage({
       type: "HEAL_MODULE_COMPLETE",
@@ -111,20 +105,6 @@ function injectHealBridge(
       percent: percent
     }, "*");
   };
-  // Attach the AI token to any request routed to our server-side AI proxy.
-  var _fetch = window.fetch ? window.fetch.bind(window) : null;
-  if (_fetch) {
-    window.fetch = function(input, init){
-      try {
-        var u = (typeof input === "string") ? input : (input && input.url) || "";
-        if (u.indexOf("/api/ai") !== -1) {
-          init = init || {};
-          init.headers = Object.assign({}, init.headers, { "x-heal-ai-token": window.__HEAL_AI_TOKEN__ });
-        }
-      } catch (e) {}
-      return _fetch(input, init);
-    };
-  }
 })();</script>`;
 
   if (/<head[^>]*>/i.test(html)) {
@@ -173,7 +153,5 @@ function selfHostCdnAssets(html: string): string {
         "/vendor/three.min.js",
       )
       .replace(/https?:\/\/unpkg\.com\/three[^"']*?three(?:\.min)?\.js/g, "/vendor/three.min.js")
-      // Route direct Anthropic API calls through our token-gated server proxy.
-      .replace(/https?:\/\/api\.anthropic\.com\/v1\/messages/g, "/api/ai")
   );
 }

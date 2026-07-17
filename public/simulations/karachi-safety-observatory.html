@@ -329,7 +329,7 @@ footer b{color:var(--muted)}
       <div class="card ai-card">
         <div class="card-h"><h2>
           <svg width="17" height="17" viewBox="0 0 17 17"><path d="M8.5 1l1.7 4.6 4.8.3-3.7 3 1.2 4.7-4-2.6-4 2.6 1.2-4.7-3.7-3 4.8-.3z" fill="#dd9f3a"/></svg>
-          AI area brief</h2></div>
+          Area brief</h2></div>
         <div class="ai-body">
           <div class="ai-scope">Scope: <span class="pill" id="aiScope">All Karachi</span><span class="pill" id="aiCat">All categories</span></div>
           <div class="ai-text" id="aiText">Select a district, areas, or a lasso region — then generate a briefing for that slice of the city.</div>
@@ -1217,23 +1217,10 @@ function composeBrief(list){
   s+=`\n\n— Modelled demonstration data around real CPLC/Sindh Police anchors.`;
   return s;
 }
-async function liveBrief(list){
-  const agg={scope:scopeName(),window:MONTHS[S.m0].lab+'–'+MONTHS[S.m1].lab,
-    hours:S.h0+'-'+S.h1,total:list.length,fatal:list.filter(r=>r.sev===3).length,
-    byCat:Object.fromEntries(CATKEYS.map(k=>[k,list.filter(r=>r.cat===k).length])),
-    topAreas:Object.entries(list.reduce((m,r)=>{if(r.area)m[r.area]=(m[r.area]||0)+1;return m;},{})).sort((a,b)=>b[1]-a[1]).slice(0,5)};
-  const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:
-      `You are the safety analyst for Heal Social Foundation's Mahfooz Karachi platform. Write a crisp 120–160 word field brief (plain text, no markdown) for this slice of Karachi safety data, ending with one concrete community action. Data: ${JSON.stringify(agg)}. Context: real 2025 anchors — 64,323 street-crime FIRs, 17,706 phone snatchings, ~800 road deaths incl. 169 by heavy vehicles. Note the data is modelled for demonstration.`}]})});
-  const data=await resp.json();
-  return data.content.filter(b=>b.type==='text').map(b=>b.text).join('\n');
-}
-document.getElementById('aiBtn').addEventListener('click',async function(){
+document.getElementById('aiBtn').addEventListener('click',function(){
   const list=filtered();const box=document.getElementById('aiText');
   this.disabled=true;box.innerHTML='Analysing slice… <span class="cursor"></span>';
-  let text;
-  try{ text=await Promise.race([liveBrief(list),new Promise((_,rej)=>setTimeout(()=>rej('timeout'),9000))]); }
-  catch(e){ text=composeBrief(list); }
+  const text=composeBrief(list); // fully local/offline — no external AI call
   this.disabled=false;
   /* typewriter */
   box.textContent='';let i=0;
