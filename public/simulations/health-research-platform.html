@@ -1,0 +1,1421 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Heal Health Research Platform — Shaoor aur Shifa</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Nastaliq+Urdu:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f8f9; --card:#ffffff; --ink:#14333e; --muted:#5c7884; --faint:#8aa4ae;
+  --teal:#1b9ec9; --teal-deep:#0e7196; --teal-soft:#dff0f7;
+  --mint:#3cb794; --mint-soft:#e2f5ee;
+  --red:#d9535f; --red-deep:#b93c48; --red-soft:#fbe9ea;
+  --amber:#dd9f3a; --amber-soft:#faf1de;
+  --line:#dfe9ec; --shadow:0 1px 2px rgba(20,51,62,.05), 0 8px 24px -12px rgba(20,51,62,.14);
+  --r:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.mono{font-family:'IBM Plex Mono',monospace}
+.urdu{font-family:'Noto Nastaliq Urdu',serif;direction:rtl}
+
+/* ---------- header ---------- */
+header{background:linear-gradient(180deg,#ffffff 0%,#f8fcfd 100%);border-bottom:1px solid var(--line);padding:18px 28px 0;position:relative;overflow:hidden}
+.hd-top{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding-bottom:14px}
+.hd-logo{display:flex;align-items:center;gap:12px}
+.hd-title h1{font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(20px,3vw,30px);font-weight:700;letter-spacing:-.02em;line-height:1.05}
+.hd-title h1 em{font-style:normal;color:var(--teal)}
+.hd-sub{display:flex;align-items:baseline;gap:12px;color:var(--muted);font-size:12.5px;margin-top:2px}
+.hd-sub .urdu{font-size:16px;color:var(--teal-deep)}
+.hd-badge{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pill{border:1px solid var(--line);background:#fff;border-radius:999px;padding:5px 12px;font-size:11.5px;color:var(--muted);display:inline-flex;gap:6px;align-items:center}
+.pill b{color:var(--ink);font-weight:600}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--mint);display:inline-block}
+.hd-petals{position:absolute;right:-60px;top:-70px;opacity:.10;pointer-events:none;transform:rotate(12deg)}
+
+/* ---------- tabs ---------- */
+nav.tabs{display:flex;gap:4px;overflow-x:auto;padding-bottom:0}
+nav.tabs button{appearance:none;border:none;background:transparent;font-family:'Bricolage Grotesque',sans-serif;font-size:14px;font-weight:600;color:var(--muted);padding:10px 16px;border-radius:12px 12px 0 0;cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent;transition:color .15s}
+nav.tabs button:hover{color:var(--ink)}
+nav.tabs button.on{color:var(--teal-deep);border-bottom-color:var(--teal);background:linear-gradient(180deg,rgba(27,158,201,.06),transparent)}
+nav.tabs button .u{display:block;font-family:'Noto Nastaliq Urdu',serif;font-size:11px;font-weight:400;color:var(--faint);margin-top:-2px}
+
+/* ---------- filter bar ---------- */
+.filters{position:sticky;top:0;z-index:40;background:rgba(244,248,249,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);padding:10px 28px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.filters label{font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);display:block;margin-bottom:2px}
+.f-group{display:flex;flex-direction:column}
+select,input[type=text],input[type=number]{border:1px solid var(--line);background:#fff;border-radius:10px;padding:6px 10px;font-family:'Inter',sans-serif;font-size:12.5px;color:var(--ink);outline:none;min-width:110px}
+select:focus,input:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(27,158,201,.14)}
+.btn{appearance:none;border:none;cursor:pointer;border-radius:10px;padding:8px 14px;font-family:'Inter',sans-serif;font-size:12.5px;font-weight:600;transition:transform .1s, box-shadow .15s}
+.btn:active{transform:scale(.97)}
+.btn-ghost{background:#fff;border:1px solid var(--line);color:var(--muted)}
+.btn-ghost:hover{color:var(--ink);border-color:var(--faint)}
+.btn-teal{background:var(--teal);color:#fff;box-shadow:0 4px 12px -4px rgba(27,158,201,.5)}
+.btn-teal:hover{background:var(--teal-deep)}
+.btn-red{background:var(--red);color:#fff}
+.btn-mint{background:var(--mint);color:#fff}
+.count-chip{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:12px;color:var(--teal-deep);background:var(--teal-soft);border-radius:999px;padding:6px 14px;font-weight:600}
+
+/* ---------- layout ---------- */
+main{padding:22px 28px 60px;max-width:1480px;margin:0 auto}
+section.view{display:none;animation:fadeIn .3s ease}
+section.view.on{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.grid{display:grid;gap:16px}
+.g-kpi{grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-bottom:16px}
+.g-2{grid-template-columns:repeat(auto-fit,minmax(420px,1fr))}
+.g-3{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:18px 20px;position:relative;overflow:hidden}
+.card h3{font-family:'Bricolage Grotesque',sans-serif;font-size:15.5px;font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+.card .sub{font-size:11.5px;color:var(--muted);margin:2px 0 12px}
+.petal-mark{width:14px;height:14px;flex:none}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:10px;height:10px;border-radius:3px;display:inline-block}
+
+/* KPI */
+.kpi{padding:16px 18px}
+.kpi .k-label{font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--faint)}
+.kpi .k-val{font-family:'Bricolage Grotesque',sans-serif;font-size:30px;font-weight:800;letter-spacing:-.03em;margin-top:2px}
+.kpi .k-note{font-size:11px;color:var(--muted);margin-top:2px}
+.kpi.red .k-val{color:var(--red)}
+.kpi.teal .k-val{color:var(--teal-deep)}
+.kpi.mint .k-val{color:var(--mint)}
+.kpi .spark{position:absolute;right:10px;bottom:8px;opacity:.85}
+
+/* charts */
+svg text{font-family:'Inter',sans-serif}
+.axis{font-size:10px;fill:var(--faint)}
+.tick{stroke:var(--line);stroke-width:1}
+.chart-tip{position:fixed;pointer-events:none;background:#14333e;color:#fff;font-size:11.5px;padding:7px 10px;border-radius:8px;z-index:100;max-width:260px;opacity:0;transition:opacity .12s;line-height:1.45}
+.chart-tip b{color:#8fd6e8}
+.chart-tip .r{color:#f4a9b0}
+
+/* heatmap */
+.hm{display:grid;gap:3px;font-size:10.5px}
+.hm .hm-cell{border-radius:6px;display:flex;align-items:center;justify-content:center;height:34px;color:#fff;font-family:'IBM Plex Mono',monospace;font-weight:600;cursor:default;transition:transform .1s}
+.hm .hm-cell:hover{transform:scale(1.08);z-index:2;box-shadow:0 4px 10px rgba(20,51,62,.25)}
+.hm .hm-lab{display:flex;align-items:center;font-weight:600;color:var(--muted);font-size:11px}
+.hm .hm-col{writing-mode:initial;display:flex;align-items:flex-end;justify-content:center;color:var(--muted);font-size:10px;text-align:center;padding-bottom:4px}
+
+/* patients */
+.p-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.p-card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;cursor:pointer;transition:box-shadow .15s, transform .15s, border-color .15s}
+.p-card:hover{box-shadow:var(--shadow);transform:translateY(-2px);border-color:var(--teal)}
+.p-head{display:flex;gap:11px;align-items:center}
+.p-name{font-weight:700;font-size:13.5px;letter-spacing:-.01em}
+.p-meta{font-size:11px;color:var(--muted)}
+.chips{display:flex;gap:5px;flex-wrap:wrap;margin-top:9px}
+.chip{font-size:10px;font-weight:600;border-radius:999px;padding:3px 8px;background:var(--teal-soft);color:var(--teal-deep)}
+.chip.red{background:var(--red-soft);color:var(--red-deep)}
+.chip.mint{background:var(--mint-soft);color:#1e7c60}
+.chip.amber{background:var(--amber-soft);color:#9a6c1c}
+.sev{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:8px}
+
+/* modal */
+.modal-bg{position:fixed;inset:0;background:rgba(20,51,62,.45);backdrop-filter:blur(3px);z-index:60;display:none;align-items:flex-start;justify-content:center;padding:5vh 16px;overflow-y:auto}
+.modal-bg.on{display:flex}
+.modal{background:#fff;border-radius:22px;max-width:860px;width:100%;padding:26px;box-shadow:0 30px 80px -20px rgba(20,51,62,.4);animation:fadeIn .25s ease}
+.modal .x{position:absolute;top:16px;right:18px}
+.m-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:720px){.m-grid{grid-template-columns:1fr}}
+.fact{display:flex;justify-content:space-between;border-bottom:1px dashed var(--line);padding:6px 0;font-size:12.5px}
+.fact b{font-weight:600}
+.flag-list{display:flex;flex-direction:column;gap:6px;margin-top:8px}
+.flag{display:flex;gap:8px;align-items:center;background:var(--red-soft);border:1px solid #f3ccd0;color:var(--red-deep);border-radius:10px;padding:7px 10px;font-size:12px;font-weight:500}
+
+/* data entry */
+.form-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.form-grid .f-group input,.form-grid .f-group select{width:100%}
+.schema{width:100%;border-collapse:collapse;font-size:12px}
+.schema th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);border-bottom:1px solid var(--line);padding:7px 8px}
+.schema td{border-bottom:1px solid #eef4f6;padding:7px 8px;vertical-align:top}
+.schema td:first-child{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--teal-deep);white-space:nowrap}
+.req{color:var(--red);font-weight:700}
+
+/* report */
+.rep{max-width:900px;margin:0 auto}
+.rep-block{margin-bottom:22px}
+.rep h2{font-family:'Bricolage Grotesque',sans-serif;font-size:22px;letter-spacing:-.02em;margin-bottom:4px}
+.rep .ai-out{white-space:pre-wrap;font-size:13px;line-height:1.7;background:#fbfdfe;border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+.rep .ai-out h4{font-family:'Bricolage Grotesque',sans-serif;margin:10px 0 4px}
+.spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:-2px;margin-right:6px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.note-banner{background:var(--mint-soft);border:1px solid #c3ead9;color:#1e7c60;border-radius:12px;padding:10px 14px;font-size:12px;margin-bottom:14px}
+
+footer{border-top:1px solid var(--line);padding:20px 28px;color:var(--faint);font-size:11.5px;display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+footer .urdu{font-size:14px}
+
+@media(max-width:760px){
+  main{padding:16px 14px 50px} .filters{padding:10px 14px} header{padding:14px 14px 0}
+  .g-2{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+
+/* print: report only */
+@media print{
+  body{background:#fff}
+  header,nav.tabs,.filters,footer,.no-print{display:none!important}
+  main{padding:0;max-width:none}
+  section.view{display:none!important}
+  #view-report{display:block!important}
+  .card{box-shadow:none;border-color:#ccc;break-inside:avoid}
+}
+</style>
+</head>
+<body>
+
+<div class="chart-tip" id="tip"></div>
+
+<header>
+  <svg class="hd-petals" width="360" height="360" viewBox="0 0 200 200">
+    <path d="M100,180 C40,150 30,80 55,30 C110,55 130,120 100,180Z" fill="#3cb794"/>
+    <path d="M100,180 C160,150 175,75 145,25 C90,50 70,120 100,180Z" fill="#1b9ec9"/>
+    <path d="M100,180 C50,175 15,135 15,90 C70,88 105,125 100,180Z" fill="#d9535f"/>
+  </svg>
+  <div class="hd-top">
+    <div class="hd-logo">
+      <svg width="52" height="52" viewBox="0 0 200 200" aria-label="Heal logo">
+        <path d="M100,185 C45,180 8,140 10,92 C68,88 106,126 100,185Z" fill="#d9535f" opacity=".88"/>
+        <path d="M100,185 C42,152 32,78 60,24 C118,52 136,122 100,185Z" fill="#7fd0b4" opacity=".72"/>
+        <path d="M100,185 C162,152 178,72 146,20 C88,46 68,122 100,185Z" fill="#2aa9d2" opacity=".92"/>
+      </svg>
+      <div class="hd-title">
+        <h1>Heal <em>Health Research Platform</em></h1>
+        <div class="hd-sub"><span>Epidemiology &amp; Root-Cause Intelligence · Government Hospitals, Karachi</span><span class="urdu">شعور اور شفا</span></div>
+      </div>
+    </div>
+    <div class="hd-badge">
+      <span class="pill"><span class="dot"></span><b id="hd-n">—</b>&nbsp;patient records</span>
+      <span class="pill">Phase 3 · <b>CPHI Workstream</b></span>
+      <span class="pill mono" id="hd-date"></span>
+    </div>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button data-v="overview" class="on">Overview<span class="u">جائزہ</span></button>
+    <button data-v="causes">Cause &amp; Effect<span class="u">اسباب و اثرات</span></button>
+    <button data-v="geo">Geography &amp; Equity<span class="u">جغرافیہ</span></button>
+    <button data-v="map">Map &amp; Patient Flow<span class="u">نقشہ اور رسائی</span></button>
+    <button data-v="patients">Patient Profiles<span class="u">مریض</span></button>
+    <button data-v="entry">Data Entry<span class="u">اندراج</span></button>
+    <button data-v="report">Report &amp; AI<span class="u">رپورٹ</span></button>
+  </nav>
+</header>
+
+<div class="filters" id="filterbar">
+  <div class="f-group"><label>Disease</label><select id="f-disease"><option value="">All</option></select></div>
+  <div class="f-group"><label>Town / UC</label><select id="f-town"><option value="">All</option></select></div>
+  <div class="f-group"><label>Hospital</label><select id="f-hospital"><option value="">All</option></select></div>
+  <div class="f-group"><label>Gender</label><select id="f-gender"><option value="">All</option><option>Male</option><option>Female</option></select></div>
+  <div class="f-group"><label>Age band</label><select id="f-age"><option value="">All</option></select></div>
+  <div class="f-group"><label>Socio-economic</label><select id="f-ses"><option value="">All</option></select></div>
+  <div class="f-group"><label>Root cause</label><select id="f-cause"><option value="">All</option></select></div>
+  <div class="f-group"><label>Attitude</label><select id="f-att"><option value="">All</option></select></div>
+  <div class="f-group"><label>&nbsp;</label><button class="btn btn-ghost" id="f-reset">Reset</button></div>
+  <span class="count-chip" id="f-count">— records</span>
+</div>
+
+<main>
+
+<!-- ================= OVERVIEW ================= -->
+<section class="view on" id="view-overview">
+  <div class="grid g-kpi" id="kpis"></div>
+  <div class="grid g-2">
+    <div class="card">
+      <h3><svg class="petal-mark" viewBox="0 0 20 20"><path d="M10,19 C3,16 2,7 5,1 C12,4 14,12 10,19Z" fill="#1b9ec9"/></svg>Disease Burden Treemap</h3>
+      <div class="sub">Share of admissions by condition — size = cases, shade = avg severity</div>
+      <svg id="ch-treemap" viewBox="0 0 900 460" width="100%"></svg>
+    </div>
+    <div class="card">
+      <h3><svg class="petal-mark" viewBox="0 0 20 20"><path d="M10,19 C3,16 2,7 5,1 C12,4 14,12 10,19Z" fill="#3cb794"/></svg>Seasonal Ribbon — Disease Rank by Month</h3>
+      <div class="sub">Top conditions competing for rank across the year (ribbon width = monthly cases)</div>
+      <svg id="ch-ribbon" viewBox="0 0 960 430" width="100%"></svg>
+      <div class="legend" id="lg-ribbon"></div>
+    </div>
+    <div class="card">
+      <h3><svg class="petal-mark" viewBox="0 0 20 20"><path d="M10,19 C3,16 2,7 5,1 C12,4 14,12 10,19Z" fill="#d9535f"/></svg>Awareness vs. Delay in Seeking Care</h3>
+      <div class="sub">Each bubble = a patient · x = awareness score · y = days before presenting · size = severity · colour = socio-economic band</div>
+      <svg id="ch-scatter" viewBox="0 0 900 440" width="100%"></svg>
+      <div class="legend" id="lg-scatter"></div>
+    </div>
+    <div class="card">
+      <h3><svg class="petal-mark" viewBox="0 0 20 20"><path d="M10,19 C3,16 2,7 5,1 C12,4 14,12 10,19Z" fill="#0e7196"/></svg>Cohort Exposure Web</h3>
+      <div class="sub">% of the filtered cohort exposed to each red factor (teal) vs. all-hospital baseline (dashed)</div>
+      <svg id="ch-radar" viewBox="0 0 480 430" width="100%" style="max-width:520px;display:block;margin:0 auto"></svg>
+    </div>
+    <div class="card">
+      <h3><svg class="petal-mark" viewBox="0 0 20 20"><path d="M10,19 C3,16 2,7 5,1 C12,4 14,12 10,19Z" fill="#3cb794"/></svg>Age &amp; Gender Pyramid</h3>
+      <div class="sub">Admissions by age band — males left, females right</div>
+      <svg id="ch-pyramid" viewBox="0 0 860 340" width="100%"></svg>
+    </div>
+    <div class="card">
+      <h3><svg class="petal-mark" viewBox="0 0 20 20"><path d="M10,19 C3,16 2,7 5,1 C12,4 14,12 10,19Z" fill="#dd9f3a"/></svg>Socio-economic Mix &amp; Health Attitude</h3>
+      <div class="sub">Who reaches government hospitals, and how they engage with care</div>
+      <div style="display:flex;gap:18px;flex-wrap:wrap;align-items:center;justify-content:center">
+        <svg id="ch-donut" viewBox="0 0 260 260" width="240"></svg>
+        <svg id="ch-att" viewBox="0 0 380 240" width="360"></svg>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= CAUSES ================= -->
+<section class="view" id="view-causes">
+  <div class="note-banner">Red factors are <b>modifiable root causes</b> — the levers Heal's community awareness programmes can act on. Flows below show how exposures feed conditions in the current cohort.</div>
+  <div class="grid g-2" style="grid-template-columns:1fr">
+    <div class="card">
+      <h3><svg class="petal-mark" viewBox="0 0 20 20"><path d="M10,19 C3,16 2,7 5,1 C12,4 14,12 10,19Z" fill="#d9535f"/></svg>Cause → Effect Flow (Sankey)</h3>
+      <div class="sub">Left: root causes (red) · Right: resulting conditions (teal) · ribbon width = patients carrying both</div>
+      <svg id="ch-sankey" viewBox="0 0 960 560" width="100%"></svg>
+    </div>
+  </div>
+  <div class="grid g-2" style="margin-top:16px">
+    <div class="card">
+      <h3><svg class="petal-mark" viewBox="0 0 20 20"><path d="M10,19 C3,16 2,7 5,1 C12,4 14,12 10,19Z" fill="#d9535f"/></svg>Red Factor League Table</h3>
+      <div class="sub">Prevalence of each root cause, with average severity it travels with</div>
+      <svg id="ch-causes" viewBox="0 0 900 480" width="100%"></svg>
+    </div>
+    <div class="card">
+      <h3><svg class="petal-mark" viewBox="0 0 20 20"><path d="M10,19 C3,16 2,7 5,1 C12,4 14,12 10,19Z" fill="#0e7196"/></svg>Preventability Lens</h3>
+      <div class="sub">How much of the current burden is avoidable through community intervention</div>
+      <svg id="ch-prevent" viewBox="0 0 900 480" width="100%"></svg>
+    </div>
+  </div>
+</section>
+
+<!-- ================= GEO ================= -->
+<section class="view" id="view-geo">
+  <div class="grid g-2" style="grid-template-columns:1fr">
+    <div class="card">
+      <h3><svg class="petal-mark" viewBox="0 0 20 20"><path d="M10,19 C3,16 2,7 5,1 C12,4 14,12 10,19Z" fill="#1b9ec9"/></svg>Town × Disease Heatmap</h3>
+      <div class="sub">Where each condition concentrates — darker teal = more admissions; red ring = town hotspot</div>
+      <div id="ch-heat" class="hm"></div>
+    </div>
+  </div>
+  <div class="grid g-2" style="margin-top:16px">
+    <div class="card">
+      <h3><svg class="petal-mark" viewBox="0 0 20 20"><path d="M10,19 C3,16 2,7 5,1 C12,4 14,12 10,19Z" fill="#3cb794"/></svg>Awareness &amp; Income by Town</h3>
+      <div class="sub">Median awareness score (teal) vs. median monthly household income PKR '000 (grey) — gaps mark priority neighbourhoods</div>
+      <svg id="ch-townbar" viewBox="0 0 900 500" width="100%"></svg>
+    </div>
+    <div class="card">
+      <h3><svg class="petal-mark" viewBox="0 0 20 20"><path d="M10,19 C3,16 2,7 5,1 C12,4 14,12 10,19Z" fill="#d9535f"/></svg>Hospital Load</h3>
+      <div class="sub">Admissions by facility with % arriving in critical state (red segment)</div>
+      <svg id="ch-hosp" viewBox="0 0 900 500" width="100%"></svg>
+    </div>
+  </div>
+</section>
+
+<!-- ================= MAP & FLOW ================= -->
+<section class="view" id="view-map">
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px">
+    <div class="f-group"><label>Map level</label>
+      <select id="m-level"><option value="pk">Pakistan (national)</option><option value="khi">Karachi (towns &amp; hospitals)</option></select></div>
+    <div class="f-group"><label>Shading metric</label>
+      <select id="m-metric"><option value="patients">Patient volume</option><option value="critical">Critical arrivals %</option><option value="delay">Avg care delay</option><option value="awareness">Avg awareness (inverse)</option></select></div>
+    <div class="f-group"><label>Style</label>
+      <select id="m-style"><option value="heat">Choropleth heatmap</option><option value="outline">Outline + bubbles</option></select></div>
+    <div class="f-group"><label>Flow direction</label>
+      <select id="m-flow"><option value="in">Inflow → Karachi</option><option value="out">Outflow → Lahore / Islamabad</option><option value="off">Flows off</option></select></div>
+    <div class="f-group"><label>&nbsp;</label><button class="btn btn-ghost" id="m-reset-zoom">Reset zoom</button></div>
+    <span class="count-chip" id="m-hint" style="margin-left:auto">Scroll to zoom · drag to pan · click a region to filter</span>
+  </div>
+
+  <div class="grid g-2" style="grid-template-columns:1fr">
+    <div class="card">
+      <h3 id="m-title"><svg class="petal-mark" viewBox="0 0 20 20"><path d="M10,19 C3,16 2,7 5,1 C12,4 14,12 10,19Z" fill="#1b9ec9"/></svg>Where Pakistan's patients come from</h3>
+      <div class="sub" id="m-sub">Bulk of admissions route to Karachi from across Sindh &amp; lower Balochistan. Bubble/flow width and labels show volume and % share.</div>
+      <div style="position:relative">
+        <svg id="ch-map" viewBox="0 0 960 640" width="100%" style="cursor:grab;touch-action:none;background:linear-gradient(180deg,#f0f7fa,#eaf4f7);border-radius:14px"></svg>
+        <div id="m-zoombadge" class="mono" style="position:absolute;top:10px;left:12px;background:rgba(255,255,255,.85);border:1px solid var(--line);border-radius:8px;padding:4px 9px;font-size:11px;color:var(--muted)">1.0×</div>
+      </div>
+      <div class="legend" id="lg-map"></div>
+    </div>
+  </div>
+
+  <div class="grid g-2" style="margin-top:16px">
+    <div class="card">
+      <h3><svg class="petal-mark" viewBox="0 0 20 20"><path d="M10,19 C3,16 2,7 5,1 C12,4 14,12 10,19Z" fill="#3cb794"/></svg>Origin → Karachi Ranking</h3>
+      <div class="sub">Source regions feeding Karachi's government hospitals — volume and share of total inflow</div>
+      <svg id="ch-origins" viewBox="0 0 900 460" width="100%"></svg>
+    </div>
+    <div class="card">
+      <h3><svg class="petal-mark" viewBox="0 0 20 20"><path d="M10,19 C3,16 2,7 5,1 C12,4 14,12 10,19Z" fill="#d9535f"/></svg>Karachi Hospital Catchment</h3>
+      <div class="sub">Once in Karachi, which facility receives them — with critical-arrival share</div>
+      <svg id="ch-catchment" viewBox="0 0 900 460" width="100%"></svg>
+    </div>
+  </div>
+</section>
+
+<!-- ================= PATIENTS ================= -->
+<section class="view" id="view-patients">
+  <div class="note-banner">Profiles are <b>synthetic sample data</b> for design &amp; training. Red chips = red-flag exposures. Click any card for the full profile, correlation matches and AI note.</div>
+  <div style="display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap">
+    <input type="text" id="p-search" placeholder="Search name or ID…" style="min-width:220px">
+    <select id="p-sort"><option value="sev">Sort: severity</option><option value="delay">Sort: delay</option><option value="age">Sort: age</option><option value="aw">Sort: awareness</option></select>
+    <span class="pill" id="p-shown"></span>
+  </div>
+  <div class="p-grid" id="p-grid"></div>
+  <div style="text-align:center;margin-top:16px"><button class="btn btn-ghost" id="p-more">Show more</button></div>
+</section>
+
+<!-- ================= ENTRY ================= -->
+<section class="view" id="view-entry">
+  <div class="grid g-2">
+    <div class="card">
+      <h3><svg class="petal-mark" viewBox="0 0 20 20"><path d="M10,19 C3,16 2,7 5,1 C12,4 14,12 10,19Z" fill="#3cb794"/></svg>New Patient Record</h3>
+      <div class="sub">Bedside intake for the embedded public-health professional. Added records flow straight into every chart.</div>
+      <div class="form-grid" id="entry-form">
+        <div class="f-group"><label>Full name <span class="req">*</span></label><input type="text" id="e-name" placeholder="e.g. Ayesha Baloch"></div>
+        <div class="f-group"><label>Age <span class="req">*</span></label><input type="number" id="e-age" min="0" max="110" placeholder="34"></div>
+        <div class="f-group"><label>Gender <span class="req">*</span></label><select id="e-gender"><option>Female</option><option>Male</option></select></div>
+        <div class="f-group"><label>Town <span class="req">*</span></label><select id="e-town"></select></div>
+        <div class="f-group"><label>Hospital <span class="req">*</span></label><select id="e-hospital"></select></div>
+        <div class="f-group"><label>Diagnosis <span class="req">*</span></label><select id="e-disease"></select></div>
+        <div class="f-group"><label>Socio-economic band</label><select id="e-ses"></select></div>
+        <div class="f-group"><label>Monthly income (PKR)</label><input type="number" id="e-income" placeholder="38000"></div>
+        <div class="f-group"><label>Awareness score (0–100)</label><input type="number" id="e-aw" min="0" max="100" placeholder="45"></div>
+        <div class="f-group"><label>Attitude to care</label><select id="e-att"></select></div>
+        <div class="f-group"><label>Severity (1–5)</label><select id="e-sev"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option></select></div>
+        <div class="f-group"><label>Days delayed before admission</label><input type="number" id="e-delay" min="0" placeholder="6"></div>
+        <div class="f-group" style="grid-column:1/-1"><label>Root causes (select up to 3, hold Ctrl/⌘)</label><select id="e-causes" multiple size="5" style="height:auto"></select></div>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px;align-items:center">
+        <button class="btn btn-teal" id="e-add">Add record</button>
+        <span id="e-msg" style="font-size:12px;color:var(--mint);font-weight:600"></span>
+      </div>
+    </div>
+    <div class="card">
+      <h3><svg class="petal-mark" viewBox="0 0 20 20"><path d="M10,19 C3,16 2,7 5,1 C12,4 14,12 10,19Z" fill="#0e7196"/></svg>Data Dictionary &amp; Bulk Import</h3>
+      <div class="sub">Everything a hospital site needs to capture for this analysis to work. <span class="req">*</span> = required at intake.</div>
+      <table class="schema">
+        <tr><th>Field</th><th>Type</th><th>Notes</th></tr>
+        <tr><td>patient_id <span class="req">*</span></td><td>string</td><td>Anonymised site code, e.g. CHK-0341 — never CNIC</td></tr>
+        <tr><td>age / gender <span class="req">*</span></td><td>int / enum</td><td>Gender: Male, Female</td></tr>
+        <tr><td>town_uc <span class="req">*</span></td><td>enum</td><td>Town or union council of residence</td></tr>
+        <tr><td>hospital <span class="req">*</span></td><td>enum</td><td>Admitting facility</td></tr>
+        <tr><td>diagnosis <span class="req">*</span></td><td>enum</td><td>Primary confirmed condition (ICD-10 mappable)</td></tr>
+        <tr><td>root_causes <span class="req">*</span></td><td>list</td><td>Up to 3 exposures from the red-factor list, assessed at intake interview</td></tr>
+        <tr><td>ses_band / income_pkr</td><td>enum / int</td><td>Household income band; PKR per month if disclosed</td></tr>
+        <tr><td>awareness_score</td><td>0–100</td><td>10-question structured health-literacy screen</td></tr>
+        <tr><td>attitude</td><td>enum</td><td>Proactive · Neutral · Avoidant · Fatalistic</td></tr>
+        <tr><td>delay_days</td><td>int</td><td>Symptom onset → hospital presentation</td></tr>
+        <tr><td>severity / outcome</td><td>1–5 / enum</td><td>Triage severity; Recovered, Under treatment, Referred, Critical</td></tr>
+        <tr><td>water_source / vaccinated / tobacco</td><td>enum / bool</td><td>Key correlates for waterborne, VPD and NCD analysis</td></tr>
+        <tr><td>admit_date</td><td>ISO date</td><td>Drives seasonality ribbons</td></tr>
+      </table>
+      <div style="display:flex;gap:10px;margin-top:16px">
+        <button class="btn btn-mint" id="e-csv">Download CSV template</button>
+        <button class="btn btn-ghost" id="e-export">Export current dataset (CSV)</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ================= REPORT ================= -->
+<section class="view" id="view-report">
+  <div class="rep">
+    <div class="card rep-block">
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <svg width="40" height="40" viewBox="0 0 200 200"><path d="M100,185 C45,180 8,140 10,92 C68,88 106,126 100,185Z" fill="#d9535f" opacity=".88"/><path d="M100,185 C42,152 32,78 60,24 C118,52 136,122 100,185Z" fill="#7fd0b4" opacity=".72"/><path d="M100,185 C162,152 178,72 146,20 C88,46 68,122 100,185Z" fill="#2aa9d2" opacity=".92"/></svg>
+        <div>
+          <h2>Cohort Report — Shaoor aur Shifa</h2>
+          <div style="font-size:12px;color:var(--muted)" id="rep-scope">All records</div>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:10px" class="no-print">
+          <button class="btn btn-teal" id="rep-ai">✦ Generate AI summary</button>
+          <button class="btn btn-red" id="rep-pdf">Download PDF</button>
+        </div>
+      </div>
+    </div>
+    <div class="card rep-block" id="rep-stats"></div>
+    <div class="card rep-block">
+      <h3>AI Summary &amp; Recommendations</h3>
+      <div class="sub">Clinical brief for doctors + plain-language guidance for patients and communities. Generated from the filtered cohort.</div>
+      <div class="ai-out" id="rep-ai-out">Press “Generate AI summary” to produce a narrative analysis of the current selection — key patterns, red-factor drivers, and recommended actions.</div>
+    </div>
+    <div class="card rep-block">
+      <h3>Key Visuals (current selection)</h3>
+      <div id="rep-visuals" style="display:grid;gap:18px"></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <span><b>Heal Social Foundation</b> · Health · Education · Awareness · Love for humanity</span>
+  <span class="urdu">صحت، تعلیم، شعور اور انسانیت سے محبت</span>
+  <span style="margin-left:auto">Synthetic demonstration dataset · Section 42 nonprofit · Karachi</span>
+</footer>
+
+<!-- patient modal -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal" style="position:relative">
+    <button class="btn btn-ghost x" id="modal-x">✕</button>
+    <div id="modal-body"></div>
+  </div>
+</div>
+<script>
+/* ============================================================
+   HEAL HEALTH RESEARCH PLATFORM — data + engine
+   ============================================================ */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const C = {teal:'#1b9ec9',tealDeep:'#0e7196',mint:'#3cb794',red:'#d9535f',redDeep:'#b93c48',amber:'#dd9f3a',ink:'#14333e',faint:'#8aa4ae',line:'#dfe9ec'};
+const tip = $('#tip');
+const showTip=(e,html)=>{tip.innerHTML=html;tip.style.opacity=1;const x=Math.min(e.clientX+14,innerWidth-270);tip.style.left=x+'px';tip.style.top=(e.clientY+14)+'px';};
+const hideTip=()=>tip.style.opacity=0;
+
+/* ---------- reference tables ---------- */
+const DISEASES = [
+  {n:'Typhoid Fever',cat:'Waterborne',prevent:.95},
+  {n:'Acute Diarrhoea',cat:'Waterborne',prevent:.92},
+  {n:'Hepatitis A/E',cat:'Waterborne',prevent:.9},
+  {n:'Tuberculosis',cat:'Respiratory / Infectious',prevent:.7},
+  {n:'Pneumonia',cat:'Respiratory / Infectious',prevent:.6},
+  {n:'Dengue',cat:'Vector-borne',prevent:.85},
+  {n:'Malaria',cat:'Vector-borne',prevent:.85},
+  {n:'Type 2 Diabetes',cat:'Non-communicable',prevent:.75},
+  {n:'Hypertension / CVD',cat:'Non-communicable',prevent:.7},
+  {n:'Ischaemic Heart Disease',cat:'Non-communicable',prevent:.55},
+  {n:'Maternal Complications',cat:'Maternal & Neonatal',prevent:.65},
+  {n:'Neonatal Sepsis',cat:'Maternal & Neonatal',prevent:.6},
+  {n:'Child Malnutrition',cat:'Nutritional',prevent:.9},
+  {n:'Anaemia',cat:'Nutritional',prevent:.8},
+];
+const CATCOLOR = {'Waterborne':'#1b9ec9','Respiratory / Infectious':'#0e7196','Vector-borne':'#3cb794','Non-communicable':'#dd9f3a','Maternal & Neonatal':'#7a5cc0','Nutritional':'#e07a4b'};
+const TOWNS = ['Lyari','Orangi Town','Korangi','Malir','Baldia','Gulshan-e-Iqbal','Landhi','New Karachi','Kemari','Saddar','North Nazimabad','Gadap'];
+const HOSPITALS = ['Civil Hospital Karachi','Jinnah PMC','Abbasi Shaheed','Sindh Govt Hospital Korangi','NICVD','Sindh Govt Hospital Liaquatabad'];
+const SES = [{n:'Below poverty line',w:.30,inc:[8,22]},{n:'Low income',w:.34,inc:[22,45]},{n:'Lower-middle',w:.24,inc:[45,90]},{n:'Middle income',w:.12,inc:[90,180]}];
+const ATT = ['Proactive','Neutral','Avoidant','Fatalistic'];
+const OUTCOME = ['Recovered','Under treatment','Referred','Critical'];
+const CAUSES = [
+  'Unsafe drinking water','Poor sanitation / open sewage','Delayed care-seeking','Low health literacy',
+  'Overcrowded housing','Tobacco / paan use','Poor diet / high sugar','No antenatal care',
+  'Missed vaccination','Air / indoor smoke','Stagnant water (breeding)','Self-medication',
+  'Financial barrier to care','Distance to facility'
+];
+/* which causes plausibly drive which categories (for realistic sampling) */
+const CAUSE_MAP = {
+  'Waterborne':['Unsafe drinking water','Poor sanitation / open sewage','Low health literacy','Self-medication','Delayed care-seeking'],
+  'Vector-borne':['Stagnant water (breeding)','Poor sanitation / open sewage','Overcrowded housing','Low health literacy','Delayed care-seeking'],
+  'Respiratory / Infectious':['Overcrowded housing','Air / indoor smoke','Tobacco / paan use','Missed vaccination','Delayed care-seeking','Financial barrier to care'],
+  'Non-communicable':['Poor diet / high sugar','Tobacco / paan use','Low health literacy','Self-medication','Delayed care-seeking'],
+  'Maternal & Neonatal':['No antenatal care','Distance to facility','Financial barrier to care','Low health literacy','Delayed care-seeking'],
+  'Nutritional':['Poor diet / high sugar','Financial barrier to care','Low health literacy','Poor sanitation / open sewage']
+};
+/* ---------- GEOGRAPHY: origin regions feeding the system ----------
+   xy are % coordinates on a stylised Pakistan outline (0-960 x, 0-640 y in map space)
+   w = relative weight (share of patients originating here) · dest = 'khi' | 'north'
+   Bulk of Pakistan routes to Karachi; Sindh + lower Balochistan dominate the inflow. */
+const KHI = {x:250,y:520}; // Karachi anchor on the national map
+const NORTH_HUBS = {'Lahore':{x:640,y:300},'Islamabad':{x:560,y:210}};
+const REGIONS = [
+  // --- Karachi's own catchment (intra-city, treated as origin=Karachi) ---
+  {name:'Karachi (city)',prov:'Sindh',x:250,y:520,w:34,dest:'khi',local:true},
+  // --- rest of Sindh -> Karachi ---
+  {name:'Hyderabad',prov:'Sindh',x:300,y:470,w:11,dest:'khi'},
+  {name:'Mirpur Khas',prov:'Sindh',x:345,y:485,w:5,dest:'khi'},
+  {name:'Thatta / Sujawal',prov:'Sindh',x:280,y:560,w:4,dest:'khi'},
+  {name:'Badin',prov:'Sindh',x:320,y:540,w:3.5,dest:'khi'},
+  {name:'Larkana',prov:'Sindh',x:310,y:390,w:5,dest:'khi'},
+  {name:'Sukkur',prov:'Sindh',x:345,y:370,w:5.5,dest:'khi'},
+  {name:'Dadu',prov:'Sindh',x:290,y:430,w:3,dest:'khi'},
+  {name:'Shaheed Benazirabad',prov:'Sindh',x:335,y:430,w:3,dest:'khi'},
+  {name:'Tharparkar',prov:'Sindh',x:390,y:520,w:3,dest:'khi'},
+  // --- lower Balochistan -> Karachi ---
+  {name:'Lasbela / Hub',prov:'Balochistan',x:200,y:500,w:5,dest:'khi'},
+  {name:'Khuzdar',prov:'Balochistan',x:190,y:420,w:3.5,dest:'khi'},
+  {name:'Gwadar / Makran',prov:'Balochistan',x:90,y:500,w:3,dest:'khi'},
+  {name:'Turbat / Kech',prov:'Balochistan',x:120,y:470,w:2.5,dest:'khi'},
+  {name:'Quetta',prov:'Balochistan',x:210,y:330,w:3,dest:'khi'},
+  // --- south Punjab -> Karachi (some) ---
+  {name:'Rahim Yar Khan',prov:'Punjab',x:450,y:400,w:2.5,dest:'khi'},
+  // --- outflow: northern cities (minority of patients divert here) ---
+  {name:'Lahore (referral out)',prov:'Punjab',x:640,y:300,w:5,dest:'north',hub:'Lahore'},
+  {name:'Islamabad (referral out)',prov:'ICT',x:560,y:210,w:3,dest:'north',hub:'Islamabad'},
+];
+const PROV_COLOR = {'Sindh':'#1b9ec9','Balochistan':'#dd9f3a','Punjab':'#3cb794','ICT':'#7a5cc0','KPK':'#e07a4b'};
+/* stylised Pakistan silhouette (hand-tuned, not survey-accurate) */
+const PK_PATH = "M120,470 L90,505 L115,540 L165,555 L210,545 L250,565 L300,575 L355,560 L400,540 L410,505 L395,470 L420,430 L440,410 L475,415 L500,395 L470,360 L455,320 L490,300 L520,270 L555,255 L545,220 L575,195 L620,180 L650,150 L690,140 L710,165 L695,205 L720,235 L710,275 L665,300 L640,335 L595,345 L560,375 L520,385 L490,415 L455,440 L420,455 L380,445 L345,400 L330,360 L300,395 L270,420 L230,405 L200,360 L215,320 L195,290 L165,320 L150,375 L175,420 L145,445 Z";
+/* Karachi town polygons (stylised grid of the metro's towns) for the zoom-in choropleth */
+const KHI_TOWN_GEO = {
+  'Kemari':{x:60,y:340,w:150,h:130},'Lyari':{x:215,y:360,w:110,h:90},'Saddar':{x:330,y:330,w:110,h:110},
+  'Baldia':{x:60,y:230,w:150,h:105},'Orangi Town':{x:215,y:200,w:150,h:110},'North Nazimabad':{x:370,y:200,w:130,h:110},
+  'New Karachi':{x:505,y:170,w:150,h:120},'Gadap':{x:505,y:60,w:250,h:105},'Gulshan-e-Iqbal':{x:370,y:320,w:150,h:110},
+  'Malir':{x:660,y:300,w:180,h:150},'Korangi':{x:525,y:320,w:130,h:150},'Landhi':{x:660,y:460,w:180,h:120}
+};
+const AGE_BANDS = ['0-4','5-14','15-24','25-34','35-44','45-54','55-64','65+'];
+const bandOf = a => a<5?'0-4':a<15?'5-14':a<25?'15-24':a<35?'25-34':a<45?'35-44':a<55?'45-54':a<65?'55-64':'65+';
+
+/* ---------- deterministic RNG so the sample is stable ---------- */
+let _s=1234567;
+const rnd=()=>{_s=(_s*1103515245+12345)&0x7fffffff;return _s/0x7fffffff;};
+const pick=a=>a[Math.floor(rnd()*a.length)];
+const wpick=arr=>{let r=rnd(),c=0;for(const o of arr){c+=o.w;if(r<=c)return o;}return arr[arr.length-1];};
+const gauss=(m,sd)=>{let u=rnd(),v=rnd();return m+sd*Math.sqrt(-2*Math.log(u+1e-9))*Math.cos(6.283*v);};
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+const MNAMES=['Imran','Bilal','Asif','Kamran','Rizwan','Faisal','Zeeshan','Adnan','Waqar','Salman','Junaid','Tariq','Nadeem','Owais','Shahzad'];
+const FNAMES=['Ayesha','Sana','Rabia','Nadia','Farah','Hina','Bushra','Saba','Kiran','Uzma','Maria','Amna','Zainab','Rukhsana','Shazia'];
+const LNAMES=['Baloch','Memon','Sheikh','Qureshi','Ansari','Khan','Soomro','Abbasi','Shaikh','Bhatti','Mughal','Rajput'];
+
+/* ---------- generate cohort ---------- */
+function makeRecord(i){
+  const dis = pick(DISEASES);
+  const ses = wpick(SES);
+  const gender = (dis.cat==='Maternal & Neonatal') ? 'Female' : (rnd()<.52?'Female':'Male');
+  let age;
+  if(dis.n==='Neonatal Sepsis') age=0;
+  else if(dis.n==='Child Malnutrition') age=Math.floor(rnd()*6);
+  else if(dis.cat==='Maternal & Neonatal') age=18+Math.floor(rnd()*22);
+  else if(dis.cat==='Non-communicable') age=clamp(Math.round(gauss(55,12)),30,88);
+  else age=clamp(Math.round(gauss(34,18)),1,90);
+  // poorer + less aware -> lower awareness, more delay, more severe
+  const sesIdx=SES.indexOf(ses);
+  const aw = clamp(Math.round(gauss(38+sesIdx*10, 15)),2,98);
+  const att = aw>70?pick(['Proactive','Proactive','Neutral']):aw>45?pick(['Neutral','Proactive','Avoidant']):pick(['Avoidant','Fatalistic','Neutral']);
+  const delay = clamp(Math.round(gauss(12-aw/8 + (att==='Fatalistic'?6:att==='Avoidant'?3:0), 5)),0,45);
+  const severity = clamp(Math.round(1 + delay/12 + (5-aw/25) + gauss(0,.7)),1,5);
+  const income = Math.round(gauss((ses.inc[0]+ses.inc[1])/2, (ses.inc[1]-ses.inc[0])/4))*1000;
+  // causes: pick from category-relevant list
+  const pool=[...CAUSE_MAP[dis.cat]];
+  const nC=1+Math.floor(rnd()*3);
+  const causes=[];
+  for(let k=0;k<nC && pool.length;k++){const c=pool.splice(Math.floor(rnd()*pool.length),1)[0];causes.push(c);}
+  if(delay>10 && !causes.includes('Delayed care-seeking'))causes.push('Delayed care-seeking');
+  if(aw<35 && !causes.includes('Low health literacy'))causes.push('Low health literacy');
+  const town = pick(TOWNS);
+  const first = gender==='Male'?pick(MNAMES):pick(FNAMES);
+  const outcome = severity>=5?pick(['Critical','Referred','Under treatment']):severity>=4?pick(['Under treatment','Referred','Recovered']):pick(['Recovered','Recovered','Under treatment']);
+  const month = Math.floor(rnd()*12);
+  // origin region: weighted pick across REGIONS (bulk -> Karachi/Sindh)
+  const _rTot=REGIONS.reduce((a,g)=>a+g.w,0);
+  let _r=rnd()*_rTot,_acc=0,region=REGIONS[0];
+  for(const g of REGIONS){_acc+=g.w;if(_r<=_acc){region=g;break;}}
+  return {
+    id:'HHR-'+String(1000+i),
+    name:first+' '+pick(LNAMES),
+    age,gender,town,
+    hospital:pick(HOSPITALS),
+    disease:dis.n,cat:dis.cat,prevent:dis.prevent,
+    ses:ses.n,sesIdx,income:clamp(income,5000,220000),
+    awareness:aw,attitude:att,delay,severity,outcome,
+    causes,month,
+    origin:region.name, originProv:region.prov, dest:region.dest, hub:region.hub||null,
+    water: causes.includes('Unsafe drinking water')?'Unimproved':pick(['Piped','Tanker','Bottled','Well']),
+    vaccinated: dis.cat==='Respiratory / Infectious'? (rnd()<.4?'No':'Partial') : (rnd()<.7?'Yes':'No'),
+    tobacco: (dis.cat==='Non-communicable'&&gender==='Male')?(rnd()<.6):(rnd()<.2)
+  };
+}
+let DATA = Array.from({length:520},(_,i)=>makeRecord(i));
+
+/* ---------- filter state ---------- */
+let F = {disease:'',town:'',hospital:'',gender:'',age:'',ses:'',cause:'',att:''};
+const applyFilter = () => DATA.filter(r =>
+  (!F.disease||r.disease===F.disease)&&(!F.town||r.town===F.town)&&(!F.hospital||r.hospital===F.hospital)&&
+  (!F.gender||r.gender===F.gender)&&(!F.age||bandOf(r.age)===F.age)&&(!F.ses||r.ses===F.ses)&&
+  (!F.cause||r.causes.includes(F.cause))&&(!F.att||r.attitude===F.att));
+let VIEW = DATA;
+
+/* ---------- populate selects ---------- */
+function fill(id,arr,keep){const el=$(id);const cur=el.value;el.innerHTML=(keep?'<option value="">All</option>':'')+arr.map(o=>`<option>${o}</option>`).join('');if(keep)el.value=cur;}
+fill('#f-disease',DISEASES.map(d=>d.n),1);
+fill('#f-town',[...TOWNS].sort(),1);
+fill('#f-hospital',HOSPITALS,1);
+fill('#f-age',AGE_BANDS,1);
+fill('#f-ses',SES.map(s=>s.n),1);
+fill('#f-cause',CAUSES,1);
+fill('#f-att',ATT,1);
+// entry selects (no "All")
+fill('#e-town',[...TOWNS].sort());fill('#e-hospital',HOSPITALS);fill('#e-disease',DISEASES.map(d=>d.n));
+fill('#e-ses',SES.map(s=>s.n));fill('#e-att',ATT);
+$('#e-causes').innerHTML=CAUSES.map(c=>`<option>${c}</option>`).join('');
+
+Object.keys(F).forEach(k=>{const el=$('#f-'+k);if(el)el.addEventListener('change',()=>{F[k]=el.value;refresh();});});
+$('#f-reset').addEventListener('click',()=>{Object.keys(F).forEach(k=>F[k]='');$$('#filterbar select').forEach(s=>s.value='');refresh();});
+
+$('#hd-date').textContent=new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+
+/* ============================================================
+   SVG helpers
+   ============================================================ */
+const NS='http://www.w3.org/2000/svg';
+function svg(el){el=(typeof el==='string')?$(el):el;el.innerHTML='';return el;}
+function mk(p,tag,attrs,txt){const e=document.createElementNS(NS,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);if(txt!=null)e.textContent=txt;p.appendChild(e);return e;}
+const lerpColor=(t)=>{ // teal->deep for intensity 0..1
+  const a=[223,240,247],b=[14,113,150];return `rgb(${a.map((v,i)=>Math.round(v+(b[i]-v)*t)).join(',')})`;};
+
+/* ============================================================
+   CHART: KPIs
+   ============================================================ */
+function drawKPIs(){
+  const n=VIEW.length;
+  const crit=VIEW.filter(r=>r.severity>=4).length;
+  const avgDelay=(VIEW.reduce((s,r)=>s+r.delay,0)/n||0).toFixed(1);
+  const avgAw=Math.round(VIEW.reduce((s,r)=>s+r.awareness,0)/n||0);
+  const prev=Math.round(VIEW.reduce((s,r)=>s+r.prevent,0)/n*100||0);
+  const cards=[
+    {c:'teal',l:'Patients in view',v:n.toLocaleString(),note:'of '+DATA.length+' total'},
+    {c:'red',l:'Critical / severe',v:crit+'',note:Math.round(crit/n*100||0)+'% arrived severe'},
+    {c:'red',l:'Avg. care delay',v:avgDelay+'d',note:'symptom → hospital'},
+    {c:'teal',l:'Avg. awareness',v:avgAw+'',note:'health-literacy 0–100'},
+    {c:'mint',l:'Preventable burden',v:prev+'%',note:'addressable in community'},
+  ];
+  const wrap=$('#kpis');wrap.innerHTML='';
+  cards.forEach(k=>{
+    const d=document.createElement('div');d.className='card kpi '+k.c;
+    d.innerHTML=`<div class="k-label">${k.l}</div><div class="k-val">${k.v}</div><div class="k-note">${k.note}</div>`;
+    wrap.appendChild(d);
+  });
+  $('#hd-n').textContent=n.toLocaleString();
+}
+
+/* ============================================================
+   CHART: Treemap (squarified-ish)
+   ============================================================ */
+function drawTreemap(){
+  const s=svg('#ch-treemap');const W=900,H=460;
+  const counts={};VIEW.forEach(r=>{counts[r.disease]=counts[r.disease]||{n:0,sev:0};counts[r.disease].n++;counts[r.disease].sev+=r.severity;});
+  let items=Object.entries(counts).map(([k,v])=>({name:k,n:v.n,sev:v.sev/v.n,cat:DISEASES.find(d=>d.n===k).cat})).sort((a,b)=>b.n-a.n);
+  if(!items.length){mk(s,'text',{x:W/2,y:H/2,'text-anchor':'middle',fill:C.faint},'No records in selection');return;}
+  const total=items.reduce((a,b)=>a+b.n,0);
+  // simple slice-and-dice squarify
+  function layout(items,x,y,w,h){
+    if(items.length===1){items[0].box=[x,y,w,h];return;}
+    const sum=items.reduce((a,b)=>a+b.n,0);let half=0,i=0;
+    for(;i<items.length;i++){if(half+items[i].n>sum/2)break;half+=items[i].n;}
+    i=Math.max(1,i);const A=items.slice(0,i),B=items.slice(i);
+    const aSum=A.reduce((a,b)=>a+b.n,0);
+    if(w>=h){const aw=w*aSum/sum;layout(A,x,y,aw,h);layout(B,x+aw,y,w-aw,h);}
+    else{const ah=h*aSum/sum;layout(A,x,y,w,ah);layout(B,x,y+ah,w,h-ah);}
+  }
+  layout(items,0,0,W,H);
+  items.forEach(it=>{
+    const [x,y,w,h]=it.box;const g=mk(s,'g',{});
+    const col=CATCOLOR[it.cat];
+    const rect=mk(g,'rect',{x:x+2,y:y+2,width:Math.max(0,w-4),height:Math.max(0,h-4),rx:9,fill:col,'fill-opacity':.55+it.sev/12,stroke:'#fff','stroke-width':2,style:'cursor:pointer;transition:fill-opacity .15s'});
+    rect.addEventListener('mouseenter',e=>{rect.setAttribute('fill-opacity',.95);showTip(e,`<b>${it.name}</b><br>${it.cat}<br>${it.n} cases · ${Math.round(it.n/total*100)}%<br>avg severity ${it.sev.toFixed(1)}/5`);});
+    rect.addEventListener('mousemove',e=>showTip(e,`<b>${it.name}</b><br>${it.cat}<br>${it.n} cases · ${Math.round(it.n/total*100)}%<br>avg severity ${it.sev.toFixed(1)}/5`));
+    rect.addEventListener('mouseleave',()=>{rect.setAttribute('fill-opacity',.55+it.sev/12);hideTip();});
+    rect.addEventListener('click',()=>{$('#f-disease').value=it.name;F.disease=it.name;refresh();});
+    if(w>72&&h>34){
+      mk(g,'text',{x:x+11,y:y+22,fill:'#fff','font-size':12,'font-weight':700},it.name.length>18?it.name.slice(0,17)+'…':it.name);
+      mk(g,'text',{x:x+11,y:y+38,fill:'#eaf6fb','font-size':11},it.n+' · '+Math.round(it.n/total*100)+'%');
+    }
+  });
+}
+
+/* ============================================================
+   CHART: Ribbon (bump) — disease rank by month
+   ============================================================ */
+function drawRibbon(){
+  const s=svg('#ch-ribbon');const W=960,H=430,pad={l:36,r:120,t:20,b:26};
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const top=Object.entries(VIEW.reduce((a,r)=>{a[r.disease]=(a[r.disease]||0)+1;return a;},{})).sort((a,b)=>b[1]-a[1]).slice(0,6).map(d=>d[0]);
+  if(!top.length){mk(s,'text',{x:W/2,y:H/2,'text-anchor':'middle',fill:C.faint},'No records');return;}
+  // monthly counts per disease
+  const mc={};top.forEach(d=>mc[d]=Array(12).fill(0));
+  VIEW.forEach(r=>{if(mc[r.disease])mc[r.disease][r.month]++;});
+  // rank per month
+  const ranks={};top.forEach(d=>ranks[d]=[]);
+  for(let m=0;m<12;m++){
+    const order=[...top].sort((a,b)=>mc[b][m]-mc[a][m]);
+    order.forEach((d,i)=>ranks[d][m]=i);
+  }
+  const plotW=W-pad.l-pad.r,plotH=H-pad.t-pad.b;
+  const xM=m=>pad.l+plotW*m/11;
+  const yR=r=>pad.t+plotH*r/(top.length-1||1);
+  const pal=['#1b9ec9','#3cb794','#d9535f','#dd9f3a','#7a5cc0','#0e7196'];
+  months.forEach((m,i)=>mk(s,'text',{x:xM(i),y:H-8,'text-anchor':'middle',class:'axis'},m));
+  top.forEach((d,di)=>{
+    const col=pal[di%pal.length];
+    let path='';
+    for(let m=0;m<12;m++){const x=xM(m),y=yR(ranks[d][m]);
+      if(m===0)path+=`M${x},${y}`;else{const px=xM(m-1),py=yR(ranks[d][m-1]);path+=`C${(px+x)/2},${py} ${(px+x)/2},${y} ${x},${y}`;}}
+    const w=Math.max(3,mc[d].reduce((a,b)=>a+b,0)/VIEW.length*40);
+    const p=mk(s,'path',{d:path,fill:'none',stroke:col,'stroke-width':w,'stroke-linecap':'round','stroke-opacity':.5,style:'transition:stroke-opacity .15s,stroke-width .15s;cursor:pointer'});
+    p.addEventListener('mouseenter',()=>{p.setAttribute('stroke-opacity',.95);});
+    p.addEventListener('mouseleave',()=>{p.setAttribute('stroke-opacity',.5);});
+    // end label
+    mk(s,'circle',{cx:xM(11),cy:yR(ranks[d][11]),r:4,fill:col});
+    mk(s,'text',{x:xM(11)+9,y:yR(ranks[d][11])+4,fill:C.ink,'font-size':11,'font-weight':600},d.length>16?d.slice(0,15)+'…':d);
+  });
+  const lg=$('#lg-ribbon');lg.innerHTML='#1 rank at top · ribbon thickness ∝ total monthly volume';
+}
+
+/* ============================================================
+   CHART: Scatter (awareness vs delay)
+   ============================================================ */
+function drawScatter(){
+  const s=svg('#ch-scatter');const W=900,H=440,pad={l:56,r:20,t:16,b:46};
+  const pw=W-pad.l-pad.r,ph=H-pad.t-pad.b;
+  const maxDelay=Math.max(30,...VIEW.map(r=>r.delay));
+  const x=a=>pad.l+pw*a/100, y=d=>pad.t+ph*(1-d/maxDelay);
+  // grid
+  for(let i=0;i<=5;i++){const gx=pad.l+pw*i/5;mk(s,'line',{x1:gx,y1:pad.t,x2:gx,y2:pad.t+ph,class:'tick'});mk(s,'text',{x:gx,y:H-24,'text-anchor':'middle',class:'axis'},i*20);}
+  for(let i=0;i<=4;i++){const gy=pad.t+ph*i/4;mk(s,'line',{x1:pad.l,y1:gy,x2:pad.l+pw,y2:gy,class:'tick'});mk(s,'text',{x:pad.l-8,y:gy+3,'text-anchor':'end',class:'axis'},Math.round(maxDelay*(1-i/4)));}
+  mk(s,'text',{x:pad.l+pw/2,y:H-6,'text-anchor':'middle',fill:C.muted,'font-size':11.5},'Health-awareness score →');
+  mk(s,'text',{x:16,y:pad.t+ph/2,'text-anchor':'middle',fill:C.muted,'font-size':11.5,transform:`rotate(-90 16 ${pad.t+ph/2})`},'← Days delayed before care');
+  const sesCol=['#b93c48','#d9535f','#dd9f3a','#3cb794'];
+  // trend line (least squares)
+  const n=VIEW.length;if(n){let sx=0,sy=0,sxy=0,sxx=0;VIEW.forEach(r=>{sx+=r.awareness;sy+=r.delay;sxy+=r.awareness*r.delay;sxx+=r.awareness*r.awareness;});
+    const b=(n*sxy-sx*sy)/(n*sxx-sx*sx||1),a=(sy-b*sx)/n;
+    mk(s,'line',{x1:x(0),y1:y(a),x2:x(100),y2:y(a+b*100),stroke:C.redDeep,'stroke-width':2,'stroke-dasharray':'6 5','stroke-opacity':.7});}
+  VIEW.forEach(r=>{
+    const c=mk(s,'circle',{cx:x(r.awareness),cy:y(r.delay),r:3+r.severity*1.4,fill:sesCol[r.sesIdx],'fill-opacity':.5,stroke:'#fff','stroke-width':.8,style:'cursor:pointer;transition:fill-opacity .1s'});
+    c.addEventListener('mouseenter',e=>{c.setAttribute('fill-opacity',.95);showTip(e,`<b>${r.name}</b> · ${r.age}${r.gender[0]}<br>${r.disease}<br>awareness ${r.awareness} · delay ${r.delay}d<br>severity ${r.severity}/5 · <span class="r">${r.ses}</span>`);});
+    c.addEventListener('mousemove',e=>showTip(e,`<b>${r.name}</b> · ${r.age}${r.gender[0]}<br>${r.disease}<br>awareness ${r.awareness} · delay ${r.delay}d<br>severity ${r.severity}/5 · <span class="r">${r.ses}</span>`));
+    c.addEventListener('mouseleave',()=>{c.setAttribute('fill-opacity',.5);hideTip();});
+    c.addEventListener('click',()=>openPatient(r));
+  });
+  $('#lg-scatter').innerHTML=SES.map((sname,i)=>`<span><i style="background:${sesCol[i]}"></i>${sname.n}</span>`).join('')+' · size = severity · dashed = trend';
+}
+
+/* ============================================================
+   CHART: Radar / web (cohort exposure)
+   ============================================================ */
+function drawRadar(){
+  const s=svg('#ch-radar');const W=480,H=430,cx=240,cy=205,R=140;
+  const factors=CAUSES.slice(0,8); // 8 spokes for clarity
+  const cohort=factors.map(f=>VIEW.filter(r=>r.causes.includes(f)).length/(VIEW.length||1));
+  const base=factors.map(f=>DATA.filter(r=>r.causes.includes(f)).length/DATA.length);
+  const N=factors.length;
+  for(let ring=1;ring<=4;ring++){
+    let pts='';for(let i=0;i<N;i++){const a=-Math.PI/2+i*2*Math.PI/N;pts+=`${cx+Math.cos(a)*R*ring/4},${cy+Math.sin(a)*R*ring/4} `;}
+    mk(s,'polygon',{points:pts,fill:'none',stroke:C.line,'stroke-width':1});
+  }
+  factors.forEach((f,i)=>{const a=-Math.PI/2+i*2*Math.PI/N;const lx=cx+Math.cos(a)*(R+20),ly=cy+Math.sin(a)*(R+20);
+    mk(s,'line',{x1:cx,y1:cy,x2:cx+Math.cos(a)*R,y2:cy+Math.sin(a)*R,stroke:C.line});
+    const words=f.split(' ');const anc=Math.abs(Math.cos(a))<.3?'middle':(Math.cos(a)>0?'start':'end');
+    words.forEach((w,wi)=>mk(s,'text',{x:lx,y:ly+wi*11-((words.length-1)*5),'text-anchor':anc,'font-size':9.5,fill:C.muted},w));});
+  const poly=(vals,col,fill,dash)=>{let pts='';vals.forEach((v,i)=>{const a=-Math.PI/2+i*2*Math.PI/N;pts+=`${cx+Math.cos(a)*R*v},${cy+Math.sin(a)*R*v} `;});
+    mk(s,'polygon',{points:pts,fill:fill,'fill-opacity':fill==='none'?0:.22,stroke:col,'stroke-width':2,'stroke-dasharray':dash||''});};
+  poly(base,C.faint,'none','5 4');
+  poly(cohort,C.teal,C.teal);
+  cohort.forEach((v,i)=>{const a=-Math.PI/2+i*2*Math.PI/N;const px=cx+Math.cos(a)*R*v,py=cy+Math.sin(a)*R*v;
+    const c=mk(s,'circle',{cx:px,cy:py,r:4,fill:C.tealDeep,style:'cursor:pointer'});
+    c.addEventListener('mouseenter',e=>showTip(e,`<b>${factors[i]}</b><br>cohort ${Math.round(v*100)}% · baseline ${Math.round(base[i]*100)}%`));
+    c.addEventListener('mousemove',e=>showTip(e,`<b>${factors[i]}</b><br>cohort ${Math.round(v*100)}% · baseline ${Math.round(base[i]*100)}%`));
+    c.addEventListener('mouseleave',hideTip);});
+}
+
+/* ============================================================
+   CHART: Age-gender pyramid
+   ============================================================ */
+function drawPyramid(){
+  const s=svg('#ch-pyramid');const W=860,H=340,cx=430,pad={t:14,b:26},rowH=(H-pad.t-pad.b)/AGE_BANDS.length;
+  const m={},f={};AGE_BANDS.forEach(b=>{m[b]=0;f[b]=0;});
+  VIEW.forEach(r=>{(r.gender==='Male'?m:f)[bandOf(r.age)]++;});
+  const max=Math.max(1,...AGE_BANDS.map(b=>Math.max(m[b],f[b])));
+  const barMax=330;
+  AGE_BANDS.slice().reverse().forEach((b,i)=>{
+    const y=pad.t+i*rowH+2,h=rowH-6;
+    const mw=m[b]/max*barMax,fw=f[b]/max*barMax;
+    const rm=mk(s,'rect',{x:cx-16-mw,y,width:mw,height:h,rx:5,fill:C.teal,'fill-opacity':.85,style:'cursor:pointer'});
+    const rf=mk(s,'rect',{x:cx+16,y,width:fw,height:h,rx:5,fill:C.red,'fill-opacity':.8,style:'cursor:pointer'});
+    rm.addEventListener('mouseenter',e=>showTip(e,`<b>${b}</b> · Male<br>${m[b]} admissions`));rm.addEventListener('mousemove',e=>showTip(e,`<b>${b}</b> · Male<br>${m[b]} admissions`));rm.addEventListener('mouseleave',hideTip);
+    rf.addEventListener('mouseenter',e=>showTip(e,`<b>${b}</b> · Female<br>${f[b]} admissions`));rf.addEventListener('mousemove',e=>showTip(e,`<b>${b}</b> · Female<br>${f[b]} admissions`));rf.addEventListener('mouseleave',hideTip);
+    mk(s,'text',{x:cx,y:y+h/2+4,'text-anchor':'middle','font-size':10.5,fill:C.muted,'font-weight':600},b);
+  });
+  mk(s,'text',{x:cx-40,y:H-8,'text-anchor':'end','font-size':11,fill:C.tealDeep,'font-weight':700},'◀ Male');
+  mk(s,'text',{x:cx+40,y:H-8,'text-anchor':'start','font-size':11,fill:C.redDeep,'font-weight':700},'Female ▶');
+}
+
+/* ============================================================
+   CHART: Donut (SES) + Attitude bars
+   ============================================================ */
+function drawDonut(){
+  const s=svg('#ch-donut');const cx=130,cy=130,r=92,ir=54;
+  const counts=SES.map(x=>({n:x.n,v:VIEW.filter(r=>r.ses===x.n).length}));
+  const total=counts.reduce((a,b)=>a+b.v,0)||1;
+  const cols=['#b93c48','#d9535f','#dd9f3a','#3cb794'];let a0=-Math.PI/2;
+  counts.forEach((c,i)=>{const ang=c.v/total*2*Math.PI,a1=a0+ang;
+    const x0=cx+Math.cos(a0)*r,y0=cy+Math.sin(a0)*r,x1=cx+Math.cos(a1)*r,y1=cy+Math.sin(a1)*r;
+    const xi0=cx+Math.cos(a1)*ir,yi0=cy+Math.sin(a1)*ir,xi1=cx+Math.cos(a0)*ir,yi1=cy+Math.sin(a0)*ir;
+    const large=ang>Math.PI?1:0;
+    const p=mk(s,'path',{d:`M${x0},${y0} A${r},${r} 0 ${large} 1 ${x1},${y1} L${xi0},${yi0} A${ir},${ir} 0 ${large} 0 ${xi1},${yi1}Z`,fill:cols[i],'fill-opacity':.9,stroke:'#fff','stroke-width':2,style:'cursor:pointer'});
+    p.addEventListener('mouseenter',e=>showTip(e,`<b>${c.n}</b><br>${c.v} patients · ${Math.round(c.v/total*100)}%`));
+    p.addEventListener('mousemove',e=>showTip(e,`<b>${c.n}</b><br>${c.v} patients · ${Math.round(c.v/total*100)}%`));
+    p.addEventListener('mouseleave',hideTip);a0=a1;});
+  mk(s,'text',{x:cx,y:cy-4,'text-anchor':'middle','font-size':22,'font-weight':800,fill:C.ink,'font-family':'Bricolage Grotesque'},total);
+  mk(s,'text',{x:cx,y:cy+13,'text-anchor':'middle','font-size':10,fill:C.faint},'patients');
+  // attitude bars
+  const s2=svg('#ch-att');const bw=380,bh=240;const acounts=ATT.map(a=>({a,v:VIEW.filter(r=>r.attitude===a).length}));
+  const amax=Math.max(1,...acounts.map(x=>x.v));const acol={Proactive:C.mint,Neutral:C.teal,Avoidant:C.amber,Fatalistic:C.red};
+  acounts.forEach((c,i)=>{const y=20+i*54,w=c.v/amax*(bw-140);
+    const rect=mk(s2,'rect',{x:120,y,width:w,height:32,rx:8,fill:acol[c.a],'fill-opacity':.85,style:'cursor:pointer'});
+    rect.addEventListener('mouseenter',e=>showTip(e,`<b>${c.a}</b><br>${c.v} patients · ${Math.round(c.v/(VIEW.length||1)*100)}%`));
+    rect.addEventListener('mousemove',e=>showTip(e,`<b>${c.a}</b><br>${c.v} patients`));rect.addEventListener('mouseleave',hideTip);
+    mk(s2,'text',{x:112,y:y+21,'text-anchor':'end','font-size':11.5,fill:C.ink,'font-weight':600},c.a);
+    mk(s2,'text',{x:128+w,y:y+21,'font-size':11,fill:C.muted},c.v);});
+}
+
+/* ============================================================
+   CHART: Sankey (cause -> disease category)
+   ============================================================ */
+function drawSankey(){
+  const s=svg('#ch-sankey');const W=960,H=560,pad=20;
+  // aggregate cause -> category
+  const cats=[...new Set(VIEW.map(r=>r.cat))];
+  const causeTot={},flows={};
+  VIEW.forEach(r=>r.causes.forEach(c=>{causeTot[c]=(causeTot[c]||0)+1;flows[c+'|'+r.cat]=(flows[c+'|'+r.cat]||0)+1;}));
+  const causes=Object.entries(causeTot).sort((a,b)=>b[1]-a[1]).slice(0,9).map(x=>x[0]);
+  if(!causes.length){mk(s,'text',{x:W/2,y:H/2,'text-anchor':'middle',fill:C.faint},'No records');return;}
+  const catTot={};cats.forEach(c=>catTot[c]=VIEW.filter(r=>r.cat===c).reduce((a,r)=>a+r.causes.filter(x=>causes.includes(x)).length,0));
+  const totalLeft=causes.reduce((a,c)=>a+causeTot[c],0);
+  const gap=8;const lh=(H-pad*2-gap*(causes.length-1));
+  let ly=pad;const causeY={};
+  causes.forEach(c=>{const h=Math.max(14,causeTot[c]/totalLeft*lh);causeY[c]={y:ly,h};ly+=h+gap;});
+  const totalRight=cats.reduce((a,c)=>a+catTot[c],0);
+  const rh=(H-pad*2-gap*(cats.length-1));let ry=pad;const catY={};
+  cats.forEach(c=>{const h=Math.max(18,catTot[c]/totalRight*rh);catY[c]={y:ry,h};ry+=h+gap;});
+  const xL=170,xR=W-170;
+  // draw ribbons
+  const causeOff={},catOff={};causes.forEach(c=>causeOff[c]=0);cats.forEach(c=>catOff[c]=0);
+  causes.forEach(c=>{
+    cats.forEach(cat=>{const v=flows[c+'|'+cat];if(!v)return;
+      const sh=v/causeTot[c]*causeY[c].h, th=v/catTot[cat]*catY[cat].h;
+      const y0=causeY[c].y+causeOff[c],y1=causeY[c].y+causeOff[c]+sh;causeOff[c]+=sh;
+      const y2=catY[cat].y+catOff[cat],y3=catY[cat].y+catOff[cat]+th;catOff[cat]+=th;
+      const mx=(xL+xR)/2;
+      const p=mk(s,'path',{d:`M${xL},${y0} C${mx},${y0} ${mx},${y2} ${xR},${y2} L${xR},${y3} C${mx},${y3} ${mx},${y1} ${xL},${y1}Z`,fill:CATCOLOR[cat],'fill-opacity':.28,stroke:'none',style:'transition:fill-opacity .15s;cursor:pointer'});
+      p.addEventListener('mouseenter',e=>{p.setAttribute('fill-opacity',.6);showTip(e,`<span class="r">${c}</span><br>→ <b>${cat}</b><br>${v} patients`);});
+      p.addEventListener('mousemove',e=>showTip(e,`<span class="r">${c}</span> → <b>${cat}</b><br>${v} patients`));
+      p.addEventListener('mouseleave',()=>{p.setAttribute('fill-opacity',.28);hideTip();});
+    });
+  });
+  // nodes
+  causes.forEach(c=>{mk(s,'rect',{x:xL-12,y:causeY[c].y,width:12,height:causeY[c].h,rx:3,fill:C.red});
+    mk(s,'text',{x:xL-18,y:causeY[c].y+causeY[c].h/2+4,'text-anchor':'end','font-size':11,fill:C.redDeep,'font-weight':600},c.length>22?c.slice(0,21)+'…':c);});
+  cats.forEach(c=>{mk(s,'rect',{x:xR,y:catY[c].y,width:12,height:catY[c].h,rx:3,fill:CATCOLOR[c]});
+    mk(s,'text',{x:xR+18,y:catY[c].y+catY[c].h/2+4,'font-size':11,fill:C.ink,'font-weight':600},c);});
+  mk(s,'text',{x:xL-12,y:12,'text-anchor':'end','font-size':10.5,fill:C.faint,'font-weight':700},'ROOT CAUSE');
+  mk(s,'text',{x:xR+12,y:12,'font-size':10.5,fill:C.faint,'font-weight':700},'CONDITION GROUP');
+}
+
+/* ============================================================
+   CHART: Causes league table (bar) + preventability
+   ============================================================ */
+function drawCauses(){
+  const s=svg('#ch-causes');const W=900,pad={l:190,r:60,t:10};
+  const rows=CAUSES.map(c=>{const pts=VIEW.filter(r=>r.causes.includes(c));return{c,n:pts.length,sev:pts.length?pts.reduce((a,r)=>a+r.severity,0)/pts.length:0};}).filter(r=>r.n>0).sort((a,b)=>b.n-a.n);
+  const H=pad.t+rows.length*34+10;s.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const max=Math.max(1,...rows.map(r=>r.n));const bw=W-pad.l-pad.r;
+  rows.forEach((r,i)=>{const y=pad.t+i*34;const w=r.n/max*bw;
+    mk(s,'text',{x:pad.l-10,y:y+21,'text-anchor':'end','font-size':11.5,fill:C.ink,'font-weight':600},r.c.length>26?r.c.slice(0,25)+'…':r.c);
+    const rect=mk(s,'rect',{x:pad.l,y:y+6,width:w,height:22,rx:6,fill:C.red,'fill-opacity':.35+r.sev/10,style:'cursor:pointer'});
+    rect.addEventListener('mouseenter',e=>showTip(e,`<b>${r.c}</b><br>${r.n} patients (${Math.round(r.n/VIEW.length*100)}%)<br>avg severity ${r.sev.toFixed(1)}/5`));
+    rect.addEventListener('mousemove',e=>showTip(e,`<b>${r.c}</b><br>${r.n} patients<br>avg severity ${r.sev.toFixed(1)}/5`));
+    rect.addEventListener('mouseleave',hideTip);
+    rect.addEventListener('click',()=>{$('#f-cause').value=r.c;F.cause=r.c;refresh();});
+    mk(s,'text',{x:pad.l+w+8,y:y+21,'font-size':11,fill:C.redDeep,'font-weight':700},r.n);
+  });
+}
+function drawPrevent(){
+  const s=svg('#ch-prevent');const W=900,H=480;
+  // stacked: preventable vs less-preventable share of admissions per category
+  const cats=[...new Set(VIEW.map(r=>r.cat))];
+  const data=cats.map(c=>{const g=VIEW.filter(r=>r.cat===c);const prev=g.reduce((a,r)=>a+r.prevent,0)/(g.length||1);return{c,n:g.length,prev};}).sort((a,b)=>b.n-a.n);
+  const max=Math.max(1,...data.map(d=>d.n));const pad={l:180,r:80,t:20};const bw=W-pad.l-pad.r;
+  data.forEach((d,i)=>{const y=pad.t+i*64;const w=d.n/max*bw;const pw=w*d.prev;
+    mk(s,'text',{x:pad.l-10,y:y+30,'text-anchor':'end','font-size':11.5,fill:C.ink,'font-weight':600},d.c);
+    mk(s,'rect',{x:pad.l,y:y+8,width:w,height:36,rx:8,fill:C.line});
+    const rp=mk(s,'rect',{x:pad.l,y:y+8,width:pw,height:36,rx:8,fill:C.mint,'fill-opacity':.85,style:'cursor:pointer'});
+    rp.addEventListener('mouseenter',e=>showTip(e,`<b>${d.c}</b><br>${d.n} admissions<br>~${Math.round(d.prev*100)}% preventable via community action`));
+    rp.addEventListener('mousemove',e=>showTip(e,`<b>${d.c}</b> · ${Math.round(d.prev*100)}% preventable`));rp.addEventListener('mouseleave',hideTip);
+    mk(s,'text',{x:pad.l+w+8,y:y+31,'font-size':12,fill:C.mint,'font-weight':700},Math.round(d.prev*100)+'%');
+  });
+  mk(s,'text',{x:pad.l,y:H-14,'font-size':11,fill:C.faint},'Green fill = share of that burden Heal awareness programmes can realistically prevent');
+}
+
+/* ============================================================
+   CHART: Heatmap town x disease
+   ============================================================ */
+function drawHeat(){
+  const el=$('#ch-heat');el.innerHTML='';
+  const diseases=Object.entries(VIEW.reduce((a,r)=>{a[r.disease]=(a[r.disease]||0)+1;return a;},{})).sort((a,b)=>b[1]-a[1]).slice(0,10).map(x=>x[0]);
+  const towns=[...TOWNS].sort();
+  if(!diseases.length){el.innerHTML='<div style="color:var(--faint);padding:20px">No records in selection</div>';return;}
+  const grid={};let max=0;towns.forEach(t=>{grid[t]={};diseases.forEach(d=>{const v=VIEW.filter(r=>r.town===t&&r.disease===d).length;grid[t][d]=v;if(v>max)max=v;});});
+  const townTot={};towns.forEach(t=>townTot[t]=VIEW.filter(r=>r.town===t).length);
+  const hot=Math.max(...Object.values(townTot));
+  el.style.gridTemplateColumns=`130px repeat(${diseases.length},1fr)`;
+  // header row
+  const corner=document.createElement('div');corner.className='hm-lab';el.appendChild(corner);
+  diseases.forEach(d=>{const c=document.createElement('div');c.className='hm-col';c.textContent=d.length>14?d.slice(0,13)+'…':d;c.title=d;el.appendChild(c);});
+  towns.forEach(t=>{
+    const lab=document.createElement('div');lab.className='hm-lab';lab.textContent=t;
+    if(townTot[t]===hot)lab.style.color=C.redDeep,lab.innerHTML=t+' 🔴';
+    el.appendChild(lab);
+    diseases.forEach(d=>{const v=grid[t][d];const cell=document.createElement('div');cell.className='hm-cell';
+      const t0=v/max;cell.style.background=v?lerpColor(t0):'#f0f6f8';cell.style.color=t0>.45?'#fff':C.muted;
+      cell.textContent=v||'';
+      cell.addEventListener('mouseenter',e=>showTip(e,`<b>${t}</b> × ${d}<br>${v} admissions`));
+      cell.addEventListener('mousemove',e=>showTip(e,`<b>${t}</b> × ${d}<br>${v} admissions`));
+      cell.addEventListener('mouseleave',hideTip);
+      cell.addEventListener('click',()=>{$('#f-town').value=t;F.town=t;$('#f-disease').value=d;F.disease=d;refresh();});
+      cell.style.cursor='pointer';el.appendChild(cell);});
+  });
+}
+
+/* ============================================================
+   CHART: Town bar (awareness vs income) + hospital load
+   ============================================================ */
+function drawTownBar(){
+  const s=svg('#ch-townbar');const W=900,pad={l:130,r:70,t:16};
+  const towns=[...TOWNS].sort();
+  const med=arr=>{if(!arr.length)return 0;arr=arr.slice().sort((a,b)=>a-b);return arr[Math.floor(arr.length/2)];};
+  const rows=towns.map(t=>{const g=VIEW.filter(r=>r.town===t);return{t,aw:med(g.map(r=>r.awareness)),inc:med(g.map(r=>r.income))/1000,n:g.length};}).filter(r=>r.n);
+  const H=pad.t+rows.length*40+30;s.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const bw=W-pad.l-pad.r;
+  rows.forEach((r,i)=>{const y=pad.t+i*40;
+    mk(s,'text',{x:pad.l-10,y:y+18,'text-anchor':'end','font-size':11.5,fill:C.ink,'font-weight':600},r.t);
+    const aw=r.aw/100*bw;mk(s,'rect',{x:pad.l,y:y+2,width:aw,height:13,rx:4,fill:C.teal,'fill-opacity':.85});
+    const inc=Math.min(1,r.inc/120)*bw;mk(s,'rect',{x:pad.l,y:y+18,width:inc,height:13,rx:4,fill:C.faint,'fill-opacity':.6});
+    mk(s,'text',{x:pad.l+aw+6,y:y+12,'font-size':9.5,fill:C.tealDeep},'aw '+r.aw);
+    mk(s,'text',{x:pad.l+inc+6,y:y+28,'font-size':9.5,fill:C.muted},'₨'+Math.round(r.inc)+'k');
+  });
+  mk(s,'text',{x:pad.l,y:H-8,'font-size':11,fill:C.faint},'Teal = median awareness · Grey = median household income (PKR ’000/mo)');
+}
+function drawHosp(){
+  const s=svg('#ch-hosp');const W=900,pad={l:230,r:70,t:16};
+  const rows=HOSPITALS.map(h=>{const g=VIEW.filter(r=>r.hospital===h);return{h,n:g.length,crit:g.filter(r=>r.severity>=4).length};}).filter(r=>r.n).sort((a,b)=>b.n-a.n);
+  const H=pad.t+rows.length*46+10;s.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const max=Math.max(1,...rows.map(r=>r.n));const bw=W-pad.l-pad.r;
+  rows.forEach((r,i)=>{const y=pad.t+i*46;const w=r.n/max*bw;const cw=r.crit/r.n*w;
+    mk(s,'text',{x:pad.l-10,y:y+24,'text-anchor':'end','font-size':11,fill:C.ink,'font-weight':600},r.h.length>28?r.h.slice(0,27)+'…':r.h);
+    mk(s,'rect',{x:pad.l,y:y+6,width:w,height:26,rx:7,fill:C.teal,'fill-opacity':.75});
+    mk(s,'rect',{x:pad.l,y:y+6,width:cw,height:26,rx:7,fill:C.red,'fill-opacity':.9});
+    mk(s,'text',{x:pad.l+w+8,y:y+24,'font-size':11,fill:C.muted,'font-weight':600},r.n+' · '+Math.round(r.crit/r.n*100)+'% crit');
+  });
+}
+
+/* ============================================================
+   Patient profiles + avatars
+   ============================================================ */
+function avatar(r,size){
+  size=size||46;
+  const hue = r.gender==='Male'?200:345;
+  const bg = r.gender==='Male'?'#dff0f7':'#fbe9ea';
+  const skin = r.gender==='Male'?'#0e7196':'#b93c48';
+  const sevRing = r.severity>=4?C.red:r.severity>=3?C.amber:C.mint;
+  const initials=r.name.split(' ').map(x=>x[0]).join('').slice(0,2);
+  return `<svg width="${size}" height="${size}" viewBox="0 0 48 48" style="flex:none">
+    <circle cx="24" cy="24" r="23" fill="${bg}" stroke="${sevRing}" stroke-width="2.5"/>
+    <circle cx="24" cy="19" r="8" fill="${skin}" fill-opacity=".85"/>
+    <path d="M10,40 C10,30 38,30 38,40 Z" fill="${skin}" fill-opacity=".85"/>
+    <text x="24" y="27" text-anchor="middle" font-size="11" font-weight="700" fill="#fff" font-family="Inter">${initials}</text>
+  </svg>`;
+}
+let pShown=24;
+function drawPatients(){
+  const q=$('#p-search').value.toLowerCase();const sort=$('#p-sort').value;
+  let list=VIEW.filter(r=>!q||r.name.toLowerCase().includes(q)||r.id.toLowerCase().includes(q));
+  const sk={sev:(a,b)=>b.severity-a.severity,delay:(a,b)=>b.delay-a.delay,age:(a,b)=>b.age-a.age,aw:(a,b)=>a.awareness-b.awareness};
+  list.sort(sk[sort]);
+  $('#p-shown').textContent=list.length+' patients';
+  const g=$('#p-grid');g.innerHTML='';
+  list.slice(0,pShown).forEach(r=>{
+    const card=document.createElement('div');card.className='p-card';
+    const sevCol=r.severity>=4?'#fbe9ea':r.severity>=3?'#faf1de':'#e2f5ee';
+    const sevTx=r.severity>=4?C.redDeep:r.severity>=3?'#9a6c1c':'#1e7c60';
+    const redChips=r.causes.slice(0,2).map(c=>`<span class="chip red">${c.length>16?c.slice(0,15)+'…':c}</span>`).join('');
+    card.innerHTML=`<div class="p-head">${avatar(r)}<div><div class="p-name">${r.name}</div><div class="p-meta">${r.id} · ${r.age}y ${r.gender} · ${r.town}</div></div><span class="sev" style="background:${sevCol};color:${sevTx}">S${r.severity}</span></div>
+      <div class="chips"><span class="chip">${r.disease}</span>${redChips}</div>
+      <div class="chips"><span class="chip ${r.ses.includes('poverty')||r.ses.includes('Low')?'amber':'mint'}">${r.ses}</span><span class="chip ${r.attitude==='Fatalistic'||r.attitude==='Avoidant'?'red':'mint'}">${r.attitude}</span></div>`;
+    card.addEventListener('click',()=>openPatient(r));
+    g.appendChild(card);
+  });
+  $('#p-more').style.display=list.length>pShown?'inline-block':'none';
+}
+$('#p-search').addEventListener('input',()=>{pShown=24;drawPatients();});
+$('#p-sort').addEventListener('change',drawPatients);
+$('#p-more').addEventListener('click',()=>{pShown+=24;drawPatients();});
+
+function correlates(r){ // find patients sharing key flags
+  return DATA.filter(o=>o.id!==r.id && o.disease===r.disease && o.causes.some(c=>r.causes.includes(c)) && o.town===r.town).length;
+}
+function openPatient(r){
+  const shared=correlates(r);
+  const cohortSameCause=DATA.filter(o=>o.causes.some(c=>r.causes.includes(c))).length;
+  const flags=[];
+  if(r.delay>10)flags.push(`Delayed ${r.delay} days before presenting — advanced disease risk`);
+  if(r.awareness<40)flags.push(`Low health literacy (score ${r.awareness}/100)`);
+  if(r.attitude==='Fatalistic'||r.attitude==='Avoidant')flags.push(`${r.attitude} attitude to care — engagement barrier`);
+  if(r.severity>=4)flags.push(`High triage severity (S${r.severity}) — critical presentation`);
+  r.causes.forEach(c=>flags.push(`Exposure: ${c}`));
+  const note=aiPatientNote(r);
+  $('#modal-body').innerHTML=`
+    <div style="display:flex;gap:16px;align-items:center;margin-bottom:18px">${avatar(r,66)}
+      <div><div style="font-family:'Bricolage Grotesque';font-size:22px;font-weight:700">${r.name}</div>
+      <div style="color:var(--muted);font-size:12.5px">${r.id} · ${r.age} yrs · ${r.gender} · ${r.town}</div>
+      <div class="chips" style="margin-top:6px"><span class="chip">${r.disease}</span><span class="chip amber">${r.cat}</span></div></div></div>
+    <div class="m-grid">
+      <div>
+        <div class="fact"><span>Diagnosis</span><b>${r.disease}</b></div>
+        <div class="fact"><span>Hospital</span><b>${r.hospital}</b></div>
+        <div class="fact"><span>Socio-economic</span><b>${r.ses}</b></div>
+        <div class="fact"><span>Household income</span><b>₨ ${r.income.toLocaleString()}/mo</b></div>
+        <div class="fact"><span>Awareness score</span><b>${r.awareness}/100</b></div>
+        <div class="fact"><span>Attitude to care</span><b>${r.attitude}</b></div>
+        <div class="fact"><span>Delay before care</span><b>${r.delay} days</b></div>
+        <div class="fact"><span>Severity / outcome</span><b>S${r.severity} · ${r.outcome}</b></div>
+        <div class="fact"><span>Water source</span><b>${r.water}</b></div>
+        <div class="fact"><span>Vaccinated</span><b>${r.vaccinated}</b></div>
+        <div class="fact"><span>Tobacco / paan</span><b>${r.tobacco?'Yes':'No'}</b></div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);margin-bottom:4px">Red-flag data points</div>
+        <div class="flag-list">${flags.map(f=>`<div class="flag">⚑ ${f}</div>`).join('')}</div>
+        <div style="margin-top:14px;background:var(--teal-soft);border-radius:12px;padding:12px">
+          <div style="font-size:11px;font-weight:600;color:var(--teal-deep);text-transform:uppercase;letter-spacing:.06em">Correlation matches</div>
+          <div style="font-size:13px;margin-top:4px"><b>${shared}</b> patients share this diagnosis, town &amp; a common exposure.<br><b>${cohortSameCause}</b> total patients carry at least one of this patient's red factors.</div>
+        </div>
+        <div style="margin-top:12px;background:#fbfdfe;border:1px solid var(--line);border-radius:12px;padding:12px">
+          <div style="font-size:11px;font-weight:600;color:var(--mint);text-transform:uppercase;letter-spacing:.06em">✦ AI clinical note</div>
+          <div style="font-size:12.5px;line-height:1.6;margin-top:5px">${note}</div>
+        </div>
+      </div>
+    </div>`;
+  $('#modal-bg').classList.add('on');
+}
+$('#modal-x').addEventListener('click',()=>$('#modal-bg').classList.remove('on'));
+$('#modal-bg').addEventListener('click',e=>{if(e.target.id==='modal-bg')$('#modal-bg').classList.remove('on');});
+
+function aiPatientNote(r){
+  const drivers=r.causes.slice(0,2).join(' and ').toLowerCase();
+  const urg=r.severity>=4?'This patient reached hospital in a critical state, consistent with the '+r.delay+'-day delay in seeking care.':'Presentation is moderate; earlier community screening could still have reduced severity.';
+  const lever= r.awareness<40?'The low awareness score points to health-literacy outreach in '+r.town+' as the highest-yield intervention.':'Awareness is adequate; the barrier here is more structural — likely access and affordability.';
+  return `${r.age}-year-old ${r.gender.toLowerCase()} from ${r.town} with ${r.disease}. Root drivers appear to be ${drivers}. ${urg} ${lever} <b>For the patient:</b> plain-language counselling on ${r.causes[0].toLowerCase()}, plus a follow-up date and a named community health worker contact.`;
+}
+
+/* ============================================================
+   Data entry
+   ============================================================ */
+$('#e-add').addEventListener('click',()=>{
+  const name=$('#e-name').value.trim(),age=+$('#e-age').value;
+  if(!name||!age){$('#e-msg').style.color=C.red;$('#e-msg').textContent='Name and age are required.';return;}
+  const dName=$('#e-disease').value;const dis=DISEASES.find(d=>d.n===dName);
+  const sesN=$('#e-ses').value;const sesIdx=SES.findIndex(s=>s.n===sesN);
+  const causes=[...$('#e-causes').selectedOptions].map(o=>o.value).slice(0,3);
+  const rec={
+    id:'HHR-'+String(1000+DATA.length),name,age,gender:$('#e-gender').value,town:$('#e-town').value,
+    hospital:$('#e-hospital').value,disease:dName,cat:dis.cat,prevent:dis.prevent,ses:sesN,sesIdx:Math.max(0,sesIdx),
+    income:+$('#e-income').value||30000,awareness:clamp(+$('#e-aw').value||45,0,100),attitude:$('#e-att').value,
+    severity:+$('#e-sev').value,delay:+$('#e-delay').value||0,outcome:'Under treatment',causes:causes.length?causes:['Low health literacy'],
+    month:new Date().getMonth(),water:causes.includes('Unsafe drinking water')?'Unimproved':'Piped',vaccinated:'Unknown',tobacco:false
+  };
+  DATA.unshift(rec);
+  $('#e-msg').style.color=C.mint;$('#e-msg').textContent='✓ Added '+name+' — all charts updated.';
+  ['#e-name','#e-age','#e-income','#e-aw','#e-delay'].forEach(id=>$(id).value='');
+  refresh();
+});
+function toCSV(rows){
+  const cols=['id','name','age','gender','town','hospital','disease','cat','ses','income','awareness','attitude','severity','delay','outcome','causes','water','vaccinated','tobacco'];
+  const head=cols.join(',');
+  const body=rows.map(r=>cols.map(c=>{let v=r[c];if(Array.isArray(v))v=v.join('; ');return `"${String(v).replace(/"/g,'""')}"`;}).join(',')).join('\n');
+  return head+'\n'+body;
+}
+function download(name,text,type){const b=new Blob([text],{type:type||'text/csv'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=name;a.click();URL.revokeObjectURL(u);}
+$('#e-csv').addEventListener('click',()=>download('heal_intake_template.csv','patient_id,name,age,gender,town_uc,hospital,diagnosis,ses_band,income_pkr,awareness_score,attitude,severity,delay_days,outcome,root_causes,water_source,vaccinated,tobacco\n'));
+$('#e-export').addEventListener('click',()=>download('heal_dataset_'+VIEW.length+'.csv',toCSV(VIEW)));
+
+/* ============================================================
+   Report + AI summary + PDF
+   ============================================================ */
+function scopeText(){const parts=[];if(F.disease)parts.push(F.disease);if(F.town)parts.push('in '+F.town);if(F.ses)parts.push('· '+F.ses);if(F.cause)parts.push('· cause: '+F.cause);if(F.gender)parts.push('· '+F.gender);if(F.att)parts.push('· '+F.att);return parts.length?parts.join(' '):'All records (no filters applied)';}
+function drawReportStats(){
+  const n=VIEW.length;
+  const topDis=Object.entries(VIEW.reduce((a,r)=>{a[r.disease]=(a[r.disease]||0)+1;return a;},{})).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  const topCause=Object.entries(VIEW.reduce((a,r)=>{r.causes.forEach(c=>a[c]=(a[c]||0)+1);return a;},{})).sort((a,b)=>b[1]-a[1]).slice(0,3);
+  const topTown=Object.entries(VIEW.reduce((a,r)=>{a[r.town]=(a[r.town]||0)+1;return a;},{})).sort((a,b)=>b[1]-a[1])[0];
+  const avgDelay=(VIEW.reduce((s,r)=>s+r.delay,0)/n||0).toFixed(1);
+  const avgAw=Math.round(VIEW.reduce((s,r)=>s+r.awareness,0)/n||0);
+  const crit=Math.round(VIEW.filter(r=>r.severity>=4).length/n*100||0);
+  $('#rep-scope').textContent=scopeText();
+  $('#rep-stats').innerHTML=`<h3>Cohort at a glance</h3><div class="grid g-3" style="margin-top:10px">
+    <div><div class="k-label" style="font-size:10.5px;color:var(--faint);text-transform:uppercase">Records</div><div style="font-size:26px;font-weight:800;font-family:'Bricolage Grotesque'">${n}</div></div>
+    <div><div class="k-label" style="font-size:10.5px;color:var(--faint);text-transform:uppercase">Avg delay</div><div style="font-size:26px;font-weight:800;font-family:'Bricolage Grotesque';color:var(--red)">${avgDelay}d</div></div>
+    <div><div class="k-label" style="font-size:10.5px;color:var(--faint);text-transform:uppercase">Critical arrivals</div><div style="font-size:26px;font-weight:800;font-family:'Bricolage Grotesque';color:var(--red)">${crit}%</div></div>
+    <div><div class="k-label" style="font-size:10.5px;color:var(--faint);text-transform:uppercase">Avg awareness</div><div style="font-size:26px;font-weight:800;font-family:'Bricolage Grotesque';color:var(--teal-deep)">${avgAw}</div></div>
+    </div>
+    <div style="margin-top:14px;font-size:13px;line-height:1.7">
+    <b>Top conditions:</b> ${topDis.map(d=>d[0]+' ('+d[1]+')').join(', ')}<br>
+    <b>Leading root causes:</b> <span style="color:var(--red-deep)">${topCause.map(c=>c[0]+' ('+c[1]+')').join(', ')}</span><br>
+    <b>Highest-burden town:</b> ${topTown?topTown[0]+' ('+topTown[1]+' admissions)':'—'}</div>`;
+}
+function buildAISummary(){
+  const n=VIEW.length;if(!n)return 'No records match the current selection — adjust filters and try again.';
+  const topDis=Object.entries(VIEW.reduce((a,r)=>{a[r.disease]=(a[r.disease]||0)+1;return a;},{})).sort((a,b)=>b[1]-a[1]);
+  const topCause=Object.entries(VIEW.reduce((a,r)=>{r.causes.forEach(c=>a[c]=(a[c]||0)+1);return a;},{})).sort((a,b)=>b[1]-a[1]);
+  const topTown=Object.entries(VIEW.reduce((a,r)=>{a[r.town]=(a[r.town]||0)+1;return a;},{})).sort((a,b)=>b[1]-a[1]);
+  const avgDelay=(VIEW.reduce((s,r)=>s+r.delay,0)/n).toFixed(1);
+  const avgAw=Math.round(VIEW.reduce((s,r)=>s+r.awareness,0)/n);
+  const crit=Math.round(VIEW.filter(r=>r.severity>=4).length/n*100);
+  const prev=Math.round(VIEW.reduce((s,r)=>s+r.prevent,0)/n*100);
+  const lowAw=Math.round(VIEW.filter(r=>r.awareness<40).length/n*100);
+  const c1=topCause[0][0],c2=topCause[1]?topCause[1][0]:'';
+  return `EPIDEMIOLOGICAL BRIEF — ${scopeText()}
+Generated ${new Date().toLocaleString('en-GB')} · ${n} patient records
+
+■ PATTERN
+The selected cohort is dominated by ${topDis[0][0]} (${Math.round(topDis[0][1]/n*100)}% of cases)${topDis[1]?', followed by '+topDis[1][0]:''}. Burden concentrates in ${topTown[0][0]}. Patients wait an average of ${avgDelay} days between symptom onset and hospital presentation, and ${crit}% arrive already in a severe or critical state — the signature of a reactive, late-presenting system.
+
+■ ROOT-CAUSE READ
+The dominant modifiable driver is "${c1}"${c2?', closely tracked by "'+c2+'"':''}. ${lowAw}% of this cohort scored below 40/100 on health literacy, and mean awareness is ${avgAw}/100. Low awareness co-travels with longer delays and higher severity — the correlation the scatter view makes visible. An estimated ${prev}% of this burden is preventable through community-level action rather than hospital treatment.
+
+■ FOR DOCTORS
+- Flag late presenters (>10 days) at triage for structured follow-up; they cluster in the severe tier.
+- Capture root-cause exposures at intake — the analysis is only as good as the "${c1}" field being filled.
+- Refer eligible patients to the linked community health worker in ${topTown[0][0]} to close the loop after discharge.
+
+■ FOR PATIENTS & COMMUNITIES
+- Priority message: tackle ${c1.toLowerCase()} — the single factor behind the most admissions here.
+- Run the next awareness session in ${topTown[0][0]}${topTown[1]?' and '+topTown[1][0]:''}, in Urdu, targeting adult women as primary health gatekeepers.
+- Simple "seek care within 48 hours if…" guidance would measurably cut the ${avgDelay}-day delay.
+
+■ RECOMMENDED NEXT ACTIONS
+1. Stand up an awareness programme in ${topTown[0][0]} focused on ${c1.toLowerCase()}.
+2. Add a bedside screen for the two leading exposures to sharpen causal attribution.
+3. Re-run this cohort in 3 months to test whether delay and critical-arrival rates fall.
+
+Note: figures derive from a synthetic demonstration dataset for platform design.`;
+}
+$('#rep-ai').addEventListener('click',()=>{
+  const out=$('#rep-ai-out');out.innerHTML='<span class="spinner"></span>Analysing '+VIEW.length+' records…';
+  setTimeout(()=>{out.textContent=buildAISummary();},650);
+});
+$('#rep-pdf').addEventListener('click',()=>{
+  // ensure summary exists
+  if(!$('#rep-ai-out').textContent.includes('EPIDEMIOLOGICAL'))$('#rep-ai-out').textContent=buildAISummary();
+  window.print();
+});
+function drawReportVisuals(){
+  // clone treemap + causes into report area for print
+  const box=$('#rep-visuals');box.innerHTML='';
+  const c1=document.createElement('div');c1.className='card';c1.innerHTML='<h3>Disease burden</h3>'+$('#ch-treemap').outerHTML;
+  const c2=document.createElement('div');c2.className='card';c2.innerHTML='<h3>Leading root causes</h3>'+$('#ch-causes').outerHTML;
+  box.appendChild(c1);box.appendChild(c2);
+}
+
+/* ============================================================
+   MAP VIEW — national outline/choropleth + Karachi zoom + patient flow
+   ============================================================ */
+let mapZoom=1, mapPan={x:0,y:0}, mapDrag=null;
+const MC={level:'pk',metric:'patients',style:'heat',flow:'in'};
+function metricVal(records,metric){
+  const n=records.length; if(!n)return {v:0,label:'0',t:0};
+  if(metric==='patients')return {v:n,label:n+'',t:n};
+  if(metric==='critical'){const c=records.filter(r=>r.severity>=4).length;return {v:c/n,label:Math.round(c/n*100)+'%',t:c/n};}
+  if(metric==='delay'){const d=records.reduce((a,r)=>a+r.delay,0)/n;return {v:d,label:d.toFixed(1)+'d',t:d/25};}
+  if(metric==='awareness'){const a=records.reduce((s,r)=>s+r.awareness,0)/n;return {v:a,label:a.toFixed(0),t:1-a/100};} // inverse: low awareness = hot
+  return {v:0,label:'0',t:0};
+}
+const heatColor=t=>{ // mint(low)->teal->amber->red(high)
+  t=clamp(t,0,1);const stops=[[62,183,148],[27,158,201],[221,159,58],[217,83,95]];
+  const seg=t*3,i=Math.min(2,Math.floor(seg)),f=seg-i,a=stops[i],b=stops[i+1];
+  return `rgb(${a.map((v,k)=>Math.round(v+(b[k]-v)*f)).join(',')})`;};
+
+function drawMap(){
+  const s=svg('#ch-map');const W=960,H=640;
+  const g=mk(s,'g',{transform:`translate(${mapPan.x},${mapPan.y}) scale(${mapZoom})`});
+  $('#m-zoombadge').textContent=mapZoom.toFixed(1)+'×';
+  MC.level=$('#m-level').value;MC.metric=$('#m-metric').value;MC.style=$('#m-style').value;MC.flow=$('#m-flow').value;
+
+  if(MC.level==='pk') drawMapPakistan(g,W,H);
+  else drawMapKarachi(g,W,H);
+
+  // legend
+  const lg=$('#lg-map');const metricName={patients:'patient volume',critical:'critical-arrival %',delay:'avg care delay',awareness:'low awareness'}[MC.metric];
+  lg.innerHTML=`<span><i style="background:${heatColor(.05)}"></i>low ${metricName}</span><span><i style="background:${heatColor(.5)}"></i>mid</span><span><i style="background:${heatColor(.95)}"></i>high</span>`
+    +(MC.flow!=='off'?`<span style="margin-left:12px">${MC.flow==='in'?'▶ inflow to Karachi (Sindh + lower Balochistan dominate)':'◀ outflow: referrals diverted north'}</span>`:'');
+}
+
+function drawMapPakistan(g,W,H){
+  const s=g.ownerSVGElement;
+  // country silhouette
+  mk(g,'path',{d:PK_PATH,fill:'#ffffff',stroke:'#c3d7de','stroke-width':1.5,'stroke-linejoin':'round',filter:''});
+  mk(g,'text',{x:640,y:130,'font-size':13,fill:'#a9c1c9','font-weight':700,'letter-spacing':'.1em'},'PAKISTAN');
+  // aggregate per region
+  const byRegion={};VIEW.forEach(r=>{(byRegion[r.origin]=byRegion[r.origin]||[]).push(r);});
+  const maxT=Math.max(1,...REGIONS.map(rg=>metricVal(byRegion[rg.name]||[],MC.metric).v));
+  const totalIn=VIEW.filter(r=>r.dest==='khi').length;
+  const totalOut=VIEW.filter(r=>r.dest==='north').length;
+
+  // ---- flows first (under bubbles) ----
+  if(MC.flow==='in'){
+    REGIONS.filter(rg=>rg.dest==='khi'&&!rg.local).forEach(rg=>{
+      const recs=byRegion[rg.name]||[];if(!recs.length)return;
+      const share=recs.length/totalIn;const wdt=Math.max(1.5,share*90);
+      const mx=(rg.x+KHI.x)/2,my=Math.min(rg.y,KHI.y)-40;
+      const p=mk(g,'path',{d:`M${rg.x},${rg.y} Q${mx},${my} ${KHI.x},${KHI.y}`,fill:'none',stroke:PROV_COLOR[rg.prov],'stroke-width':wdt,'stroke-opacity':.32,'stroke-linecap':'round',style:'transition:stroke-opacity .15s'});
+      p.addEventListener('mouseenter',e=>{p.setAttribute('stroke-opacity',.7);showTip(e,`<b>${rg.name}</b> → Karachi<br>${recs.length} patients · ${Math.round(share*100)}% of inflow`);});
+      p.addEventListener('mousemove',e=>showTip(e,`<b>${rg.name}</b> → Karachi<br>${recs.length} patients · ${Math.round(share*100)}%`));
+      p.addEventListener('mouseleave',()=>{p.setAttribute('stroke-opacity',.32);hideTip();});
+    });
+  } else if(MC.flow==='out'){
+    REGIONS.filter(rg=>rg.dest==='north').forEach(rg=>{
+      const recs=byRegion[rg.name]||[];const share=recs.length/(totalOut||1);const wdt=Math.max(2,share*70);
+      const mx=(KHI.x+rg.x)/2,my=Math.min(KHI.y,rg.y)-60;
+      const p=mk(g,'path',{d:`M${KHI.x},${KHI.y} Q${mx},${my} ${rg.x},${rg.y}`,fill:'none',stroke:C.red,'stroke-width':wdt,'stroke-opacity':.4,'stroke-linecap':'round','stroke-dasharray':'2 6'});
+      p.addEventListener('mouseenter',e=>showTip(e,`Karachi → <b>${rg.hub}</b><br>${recs.length} referred out · ${Math.round(share*100)}% of outflow`));
+      p.addEventListener('mousemove',e=>showTip(e,`Karachi → <b>${rg.hub}</b><br>${recs.length} referred out`));
+      p.addEventListener('mouseleave',hideTip);
+    });
+  }
+
+  // ---- region bubbles / choropleth points ----
+  REGIONS.forEach(rg=>{
+    const recs=byRegion[rg.name]||[];const m=metricVal(recs,MC.metric);
+    const t=m.v/maxT;
+    const isKhi=rg.name==='Karachi (city)';
+    if(rg.dest==='north'){ // northern hubs styled distinctly
+      mk(g,'circle',{cx:rg.x,cy:rg.y,r:isKhi?0:12,fill:'#fff',stroke:C.red,'stroke-width':2});
+      mk(g,'text',{x:rg.x,y:rg.y-16,'text-anchor':'middle','font-size':10.5,fill:C.redDeep,'font-weight':700},rg.hub);
+      mk(g,'text',{x:rg.x,y:rg.y+4,'text-anchor':'middle','font-size':9,fill:C.redDeep,'font-weight':700},recs.length);
+      return;
+    }
+    const R = MC.style==='heat'? 9+ (recs.length/ (VIEW.length||1))*140 : 6+ (recs.length/(VIEW.length||1))*130;
+    const fill = MC.style==='heat'? heatColor(t) : PROV_COLOR[rg.prov];
+    const c=mk(g,'circle',{cx:rg.x,cy:rg.y,r:Math.max(6,R),fill,'fill-opacity':isKhi?.95:.72,stroke:'#fff','stroke-width':isKhi?2.5:1.4,style:'cursor:pointer;transition:fill-opacity .12s'});
+    const share=Math.round(recs.length/(VIEW.length||1)*100);
+    const tipHtml=`<b>${rg.name}</b> · ${rg.prov}<br>${recs.length} patients · ${share}% of all<br>${MC.metric}: ${m.label}`;
+    c.addEventListener('mouseenter',e=>{c.setAttribute('fill-opacity',1);showTip(e,tipHtml);});
+    c.addEventListener('mousemove',e=>showTip(e,tipHtml));
+    c.addEventListener('mouseleave',()=>{c.setAttribute('fill-opacity',isKhi?.95:.72);hideTip();});
+    c.addEventListener('click',()=>{ if(isKhi){$('#m-level').value='khi';mapZoom=1;mapPan={x:0,y:0};drawMap();}});
+    // labels: volume + %
+    if(isKhi){
+      mk(g,'text',{x:rg.x,y:rg.y+4,'text-anchor':'middle','font-size':13,fill:'#fff','font-weight':800},'KHI');
+      mk(g,'text',{x:rg.x,y:rg.y+R+16,'text-anchor':'middle','font-size':11,fill:C.tealDeep,'font-weight':700},`Karachi · ${totalIn} in (${Math.round(totalIn/(VIEW.length||1)*100)}%)`);
+    } else if(recs.length){
+      mk(g,'text',{x:rg.x,y:rg.y-R-4,'text-anchor':'middle','font-size':9.5,fill:C.ink,'font-weight':600},rg.name.split(' ')[0]);
+      mk(g,'text',{x:rg.x,y:rg.y+3,'text-anchor':'middle','font-size':9,fill:MC.style==='heat'&&t>.5?'#fff':C.muted,'font-weight':700},`${recs.length}·${share}%`);
+    }
+  });
+}
+
+function drawMapKarachi(g,W,H){
+  // choropleth of Karachi towns by chosen metric, + hospital markers
+  const byTown={};VIEW.forEach(r=>{(byTown[r.town]=byTown[r.town]||[]).push(r);});
+  const maxV=Math.max(1,...TOWNS.map(t=>metricVal(byTown[t]||[],MC.metric).v));
+  mk(g,'text',{x:60,y:36,'font-size':13,fill:'#a9c1c9','font-weight':700,'letter-spacing':'.1em'},'KARACHI · TOWNS & GOVERNMENT HOSPITALS');
+  Object.entries(KHI_TOWN_GEO).forEach(([town,geo])=>{
+    const recs=byTown[town]||[];const m=metricVal(recs,MC.metric);const t=m.v/maxV;
+    const fill= MC.style==='heat'? heatColor(t):'#ffffff';
+    const rect=mk(g,'rect',{x:geo.x,y:geo.y,width:geo.w,height:geo.h,rx:10,fill,'fill-opacity':MC.style==='heat'?.9:1,stroke:'#fff','stroke-width':2.5,style:'cursor:pointer;transition:fill-opacity .12s'});
+    const share=Math.round(recs.length/(VIEW.length||1)*100);
+    const tipHtml=`<b>${town}</b><br>${recs.length} patients · ${share}%<br>${MC.metric}: ${m.label}`;
+    rect.addEventListener('mouseenter',e=>{rect.setAttribute('fill-opacity',1);showTip(e,tipHtml);});
+    rect.addEventListener('mousemove',e=>showTip(e,tipHtml));
+    rect.addEventListener('mouseleave',()=>{rect.setAttribute('fill-opacity',MC.style==='heat'?.9:1);hideTip();});
+    rect.addEventListener('click',()=>{$('#f-town').value=town;F.town=town;refresh();});
+    const dark = MC.style==='heat'&&t>.5;
+    mk(g,'text',{x:geo.x+geo.w/2,y:geo.y+geo.h/2-2,'text-anchor':'middle','font-size':11.5,fill:dark?'#fff':C.ink,'font-weight':700},town.length>13?town.slice(0,12)+'…':town);
+    mk(g,'text',{x:geo.x+geo.w/2,y:geo.y+geo.h/2+15,'text-anchor':'middle','font-size':10,fill:dark?'#eaf6fb':C.muted,'font-weight':600},`${recs.length} · ${share}%`);
+  });
+  // hospital pins (approx placement over metro) with catchment volume
+  const HPOS={'Civil Hospital Karachi':{x:360,y:370},'Jinnah PMC':{x:410,y:360},'Abbasi Shaheed':{x:300,y:250},'Sindh Govt Hospital Korangi':{x:570,y:400},'NICVD':{x:400,y:390},'Sindh Govt Hospital Liaquatabad':{x:440,y:250}};
+  HOSPITALS.forEach(h=>{const pos=HPOS[h];if(!pos)return;const recs=VIEW.filter(r=>r.hospital===h);
+    const pin=mk(g,'g',{style:'cursor:pointer'});
+    mk(pin,'circle',{cx:pos.x,cy:pos.y,r:7,fill:C.redDeep,stroke:'#fff','stroke-width':2});
+    mk(pin,'path',{d:`M${pos.x},${pos.y+6} l-5,10 h10 Z`,fill:C.redDeep});
+    mk(pin,'rect',{x:pos.x-3,y:pos.y-3,width:6,height:6,rx:1,fill:'#fff'}); // cross-ish marker
+    const lbl=mk(pin,'text',{x:pos.x+11,y:pos.y+4,'font-size':9.5,fill:C.redDeep,'font-weight':700},`${h.replace('Sindh Govt Hospital','SGH').replace('Karachi','')} (${recs.length})`);
+    const tipHtml=`<b>${h}</b><br>${recs.length} admissions<br>${Math.round(recs.filter(r=>r.severity>=4).length/(recs.length||1)*100)}% critical`;
+    pin.addEventListener('mouseenter',e=>showTip(e,tipHtml));pin.addEventListener('mousemove',e=>showTip(e,tipHtml));pin.addEventListener('mouseleave',hideTip);
+    pin.addEventListener('click',()=>{$('#f-hospital').value=h;F.hospital=h;refresh();});
+  });
+}
+
+/* origin ranking bar */
+function drawOrigins(){
+  const s=svg('#ch-origins');const W=900,pad={l:180,r:80,t:14};
+  const inRecs=VIEW.filter(r=>r.dest==='khi');
+  const agg={};inRecs.forEach(r=>agg[r.origin]=(agg[r.origin]||0)+1);
+  const rows=Object.entries(agg).sort((a,b)=>b[1]-a[1]).slice(0,12);
+  const H=pad.t+rows.length*33+10;s.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const max=Math.max(1,...rows.map(r=>r[1]));const bw=W-pad.l-pad.r;const tot=inRecs.length||1;
+  rows.forEach((r,i)=>{const y=pad.t+i*33;const w=r[1]/max*bw;
+    const prov=(REGIONS.find(g=>g.name===r[0])||{}).prov||'Sindh';
+    mk(s,'text',{x:pad.l-10,y:y+20,'text-anchor':'end','font-size':11,fill:C.ink,'font-weight':600},r[0].length>24?r[0].slice(0,23)+'…':r[0]);
+    const rect=mk(s,'rect',{x:pad.l,y:y+5,width:w,height:22,rx:6,fill:PROV_COLOR[prov],'fill-opacity':.82,style:'cursor:pointer'});
+    rect.addEventListener('mouseenter',e=>showTip(e,`<b>${r[0]}</b> · ${prov}<br>${r[1]} patients → Karachi · ${Math.round(r[1]/tot*100)}%`));
+    rect.addEventListener('mousemove',e=>showTip(e,`<b>${r[0]}</b><br>${r[1]} · ${Math.round(r[1]/tot*100)}%`));rect.addEventListener('mouseleave',hideTip);
+    mk(s,'text',{x:pad.l+w+8,y:y+20,'font-size':10.5,fill:C.muted,'font-weight':700},`${r[1]} · ${Math.round(r[1]/tot*100)}%`);
+  });
+}
+/* hospital catchment bar */
+function drawCatchment(){
+  const s=svg('#ch-catchment');const W=900,pad={l:230,r:80,t:14};
+  const rows=HOSPITALS.map(h=>{const g=VIEW.filter(r=>r.hospital===h);return{h,n:g.length,crit:g.filter(r=>r.severity>=4).length};}).filter(r=>r.n).sort((a,b)=>b.n-a.n);
+  const H=pad.t+rows.length*46+10;s.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  const max=Math.max(1,...rows.map(r=>r.n));const bw=W-pad.l-pad.r;const tot=VIEW.length||1;
+  rows.forEach((r,i)=>{const y=pad.t+i*46;const w=r.n/max*bw;const cw=r.crit/r.n*w;
+    mk(s,'text',{x:pad.l-10,y:y+26,'text-anchor':'end','font-size':11,fill:C.ink,'font-weight':600},r.h.length>28?r.h.slice(0,27)+'…':r.h);
+    mk(s,'rect',{x:pad.l,y:y+8,width:w,height:26,rx:7,fill:C.teal,'fill-opacity':.72});
+    mk(s,'rect',{x:pad.l,y:y+8,width:cw,height:26,rx:7,fill:C.red,'fill-opacity':.9});
+    mk(s,'text',{x:pad.l+w+8,y:y+26,'font-size':10.5,fill:C.muted,'font-weight':600},`${r.n} · ${Math.round(r.n/tot*100)}% · ${Math.round(r.crit/r.n*100)}% crit`);
+  });
+}
+
+/* map interactions: zoom + pan */
+(function mapControls(){
+  const el=$('#ch-map');
+  el.addEventListener('wheel',e=>{e.preventDefault();const rect=el.getBoundingClientRect();
+    const mx=(e.clientX-rect.left)/rect.width*960,my=(e.clientY-rect.top)/rect.height*640;
+    const old=mapZoom;mapZoom=clamp(mapZoom*(e.deltaY<0?1.15:0.87),1,6);
+    // zoom toward cursor
+    mapPan.x=mx-(mx-mapPan.x)*(mapZoom/old);mapPan.y=my-(my-mapPan.y)*(mapZoom/old);
+    if(mapZoom===1){mapPan={x:0,y:0};}
+    drawMap();
+  },{passive:false});
+  el.addEventListener('pointerdown',e=>{mapDrag={x:e.clientX,y:e.clientY,px:mapPan.x,py:mapPan.y};el.style.cursor='grabbing';el.setPointerCapture(e.pointerId);});
+  el.addEventListener('pointermove',e=>{if(!mapDrag)return;const rect=el.getBoundingClientRect();
+    mapPan.x=mapDrag.px+(e.clientX-mapDrag.x)/rect.width*960;mapPan.y=mapDrag.py+(e.clientY-mapDrag.y)/rect.height*640;drawMap();});
+  el.addEventListener('pointerup',()=>{mapDrag=null;el.style.cursor='grab';});
+  el.addEventListener('pointerleave',()=>{mapDrag=null;el.style.cursor='grab';});
+  ['m-level','m-metric','m-style','m-flow'].forEach(id=>$('#'+id).addEventListener('change',()=>{
+    if(id==='m-level'){mapZoom=1;mapPan={x:0,y:0};}
+    // hide flow controls in karachi level (intra-city)
+    $('#m-flow').closest('.f-group').style.opacity = $('#m-level').value==='khi'?.4:1;
+    $('#m-title').lastChild.textContent = $('#m-level').value==='khi'?'Inside Karachi — towns & government hospitals':'Where Pakistan\u2019s patients come from';
+    drawMap();
+  }));
+  $('#m-reset-zoom').addEventListener('click',()=>{mapZoom=1;mapPan={x:0,y:0};drawMap();});
+})();
+function drawMapView(){drawMap();drawOrigins();drawCatchment();}
+
+/* ============================================================
+   Tabs + refresh orchestration
+   ============================================================ */
+let active='overview';
+$$('#tabs button').forEach(b=>b.addEventListener('click',()=>{
+  $$('#tabs button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  active=b.dataset.v;$$('.view').forEach(v=>v.classList.remove('on'));$('#view-'+active).classList.add('on');
+  renderActive();window.scrollTo({top:0,behavior:'smooth'});
+}));
+function renderActive(){
+  if(active==='overview'){drawKPIs();drawTreemap();drawRibbon();drawScatter();drawRadar();drawPyramid();drawDonut();}
+  else if(active==='causes'){drawSankey();drawCauses();drawPrevent();}
+  else if(active==='geo'){drawHeat();drawTownBar();drawHosp();}
+  else if(active==='map'){drawMapView();}
+  else if(active==='patients'){drawPatients();}
+  else if(active==='report'){drawReportStats();drawReportVisuals();}
+}
+function refresh(){
+  VIEW=applyFilter();
+  $('#f-count').textContent=VIEW.length+' records';
+  $('#hd-n').textContent=VIEW.length.toLocaleString();
+  renderActive();
+}
+window.addEventListener('resize',()=>{clearTimeout(window._rz);window._rz=setTimeout(renderActive,180);});
+refresh();
+</script>
+</body>
+</html>

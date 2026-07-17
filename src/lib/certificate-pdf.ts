@@ -29,7 +29,7 @@ export async function generateCertificatePdf(
   data: CertificateData,
 ): Promise<Uint8Array> {
   const pdf = await PDFDocument.create();
-  pdf.setTitle(`Heal Digital Internship Certificate — ${data.recipientName}`);
+  pdf.setTitle(`Heal Impact Certification — ${data.recipientName}`);
   pdf.setAuthor("Heal Social Foundation");
   pdf.setSubject(data.fellowshipTitle);
 
@@ -88,7 +88,7 @@ export async function generateCertificatePdf(
 
   // Header.
   drawCentered("HEAL SOCIAL FOUNDATION", height - 118, 11, bold, BRAND.muted);
-  drawCentered("Certificate of Completion", height - 160, 34, bold, BRAND.teal);
+  drawCentered("Impact Certification", height - 160, 34, bold, BRAND.teal);
 
   // Body.
   drawCentered("This is to certify that", height - 210, 13, reg, BRAND.inkSoft);
@@ -105,7 +105,7 @@ export async function generateCertificatePdf(
   });
 
   drawCentered(
-    "has successfully completed the digital internship",
+    "has successfully completed the impact internship",
     height - 306,
     13,
     reg,
@@ -195,7 +195,7 @@ export async function generateCertificatePdf(
     font: bold,
     color: BRAND.ink,
   });
-  page.drawText("Digital Internships Programme", {
+  page.drawText("Impact Internships Programme", {
     x: sigRight - sigW,
     y: qrY + 10,
     size: 9,

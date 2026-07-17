@@ -23,6 +23,7 @@ const UA =
   "(KHTML, like Gecko) Chrome/120.0 Safari/537.36";
 
 const D3_URL = "https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js";
+const THREE_URL = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
 
 // The families + weights our shipped/known modules reference.
 const FONTS_CSS_URL =
@@ -56,6 +57,14 @@ async function fetchD3() {
   await ensureDir(join(PUBLIC, "vendor"));
   await writeFile(join(PUBLIC, "vendor", "d3.min.js"), js, "utf8");
   console.log("  ✓ public/vendor/d3.min.js");
+}
+
+async function fetchThree() {
+  console.log("• Fetching Three.js…");
+  const js = await fetchText(THREE_URL, { "User-Agent": UA });
+  await ensureDir(join(PUBLIC, "vendor"));
+  await writeFile(join(PUBLIC, "vendor", "three.min.js"), js, "utf8");
+  console.log("  ✓ public/vendor/three.min.js");
 }
 
 async function fetchFonts() {
@@ -93,6 +102,11 @@ async function main() {
     await fetchD3();
   } catch (e) {
     console.error("  ✗ D3 fetch failed:", e.message);
+  }
+  try {
+    await fetchThree();
+  } catch (e) {
+    console.error("  ✗ Three.js fetch failed:", e.message);
   }
   try {
     await fetchFonts();

@@ -82,6 +82,8 @@ export interface Module {
   completion_rule: CompletionRule;
   completion_config: CompletionConfig;
   is_required: boolean;
+  /** UN SDG numbers (1-17) this module covers. */
+  sdgs: number[];
   created_at: string;
 }
 

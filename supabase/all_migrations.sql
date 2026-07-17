@@ -1,5 +1,5 @@
 -- ==========================================================================
--- Heal Digital Internships — ALL migrations, combined in run order.
+-- Heal Digital Impact Internships — ALL migrations, combined in run order.
 -- Paste this whole file into the Supabase SQL Editor and click Run once.
 -- Safe to re-run (idempotent). Includes the optional seed at the end.
 -- Source of truth is supabase/migrations/*.sql — regenerate, don't hand-edit.
@@ -680,58 +680,76 @@ revoke all on function public.redeem_enrollment_code(text) from public, anon;
 grant execute on function public.redeem_enrollment_code(text) to authenticated;
 
 -- ###########################################################################
+-- ## 0006_sdgs.sql
+-- ###########################################################################
+
+-- ============================================================================
+-- Heal Digital Impact Internships — SDG mapping
+-- Migration 0006: tag each module with the UN Sustainable Development Goals it
+-- covers, so students can see which SDGs they are progressing through.
+-- ============================================================================
+
+alter table public.modules
+  add column if not exists sdgs smallint[] not null default '{}';
+
+comment on column public.modules.sdgs is
+  'UN SDG numbers (1-17) this module covers, e.g. {3,6,11}.';
+
+-- ###########################################################################
 -- ## 0004_seed.sql
 -- ###########################################################################
 
 -- ============================================================================
--- Heal Digital Fellowships — Seed (OPTIONAL, for local dev / first run)
--- Migration 0004: one example fellowship with the two shipped example modules.
+-- Heal Digital Impact Internships — Seed (OPTIONAL, for local dev / first run)
+-- Migration 0004: one example internship with the four shipped simulations,
+-- each mapped to the UN SDGs it covers.
 --
+-- Requires 0006_sdgs.sql to have run first (adds the modules.sdgs column).
 -- Safe to run more than once (idempotent on slug / order_index).
--- Delete or edit freely once you add your real content.
 -- ============================================================================
 
 insert into public.fellowships (slug, title, description, locale, cover_color, is_published)
 values (
   'ai-governance',
-  'Applied AI Digital Internship',
-  'An immersive introduction to applied AI, ethics, and the UN SDGs through impact simulations, case studies, and real-world applications. Explore a live data dashboard, then apply what you learned in a short assessed scenario.',
+  'Applied AI Impact Internship',
+  'Work through real-world impact simulations mapped to the UN Sustainable Development Goals — water intelligence, public health, urban safety, and the future of work — then apply what you learn. Earn a verifiable Impact Certification.',
   'en',
   '#0f8b80',
   true
 )
 on conflict (slug) do nothing;
 
--- Module 1: explore-only dashboard (completion_rule = engagement).
+-- Simulation modules (all engagement-based dashboards/simulations).
 insert into public.modules
-  (fellowship_id, title, description, type, order_index, asset_path, completion_rule, completion_config, is_required)
-select
-  f.id,
-  'Explore: The Governance Dashboard',
-  'A self-contained interactive dashboard (D3.js). Spend a little time exploring it, then mark it complete to continue.',
-  'explore',
-  0,
-  'example-explore.html',
-  'engagement',
-  '{"min_seconds": 20}'::jsonb,
-  true
+  (fellowship_id, title, description, type, order_index, asset_path, completion_rule, completion_config, is_required, sdgs)
+select f.id, m.title, m.description, m.type, m.order_index, m.asset_path,
+       m.completion_rule, m.completion_config::jsonb, m.is_required, m.sdgs
 from public.fellowships f
-where f.slug = 'ai-governance'
-on conflict (fellowship_id, order_index) do nothing;
-
--- Module 2: assessed scenario (completion_rule = reported).
-insert into public.modules
-  (fellowship_id, title, description, type, order_index, asset_path, completion_rule, completion_config, is_required)
-select
-  f.id,
-  'Assessed: Allocate the Compute',
-  'A short scenario that scores your choices and reports a result. You must score at least 70 to pass.',
-  'assessed',
-  1,
-  'example-assessed.html',
-  'reported',
-  '{"pass_score": 70}'::jsonb,
-  true
-from public.fellowships f
+cross join (values
+  (
+    'Karachi Water Intelligence',
+    'An interactive water-quality intelligence dashboard. Explore the data, then mark complete to continue.',
+    'explore', 0, 'karachi-water-intelligence.html', 'engagement',
+    '{"min_seconds": 45}', true, array[6,11,3]::smallint[]
+  ),
+  (
+    'Health Research Platform — Shaoor aur Shifa',
+    'Explore a public-health research platform spanning maternal health, nutrition, and communicable diseases.',
+    'explore', 1, 'health-research-platform.html', 'engagement',
+    '{"min_seconds": 45}', true, array[3]::smallint[]
+  ),
+  (
+    'Mahfooz Karachi — Safety Observatory',
+    'A city safety observatory. Explore the indicators and what drives them.',
+    'explore', 2, 'karachi-safety-observatory.html', 'engagement',
+    '{"min_seconds": 45}', true, array[11,16,3]::smallint[]
+  ),
+  (
+    'Rozgar — Karachi 2041',
+    'A 3D simulation of jobs and economic futures for the city. Explore the scenarios.',
+    'explore', 3, 'rozgar-karachi-2041.html', 'engagement',
+    '{"min_seconds": 45}', true, array[8,9,11]::smallint[]
+  )
+) as m(title, description, type, order_index, asset_path, completion_rule, completion_config, is_required, sdgs)
 where f.slug = 'ai-governance'
 on conflict (fellowship_id, order_index) do nothing;

@@ -33,18 +33,18 @@ export default async function LandingPage() {
         <div className="mx-auto grid max-w-6xl gap-10 px-6 pb-16 pt-10 lg:grid-cols-2 lg:pt-20">
           <div className="flex flex-col justify-center">
             <span className="badge w-fit bg-mint-100 text-mint-800">
-              Applied AI · Ethics · UN SDGs
+              Impact Simulations · Case Studies · UN SDGs
             </span>
             <h1 className="mt-4 text-4xl font-extrabold leading-[1.05] sm:text-5xl lg:text-6xl">
-              Digital internships for the{" "}
+              The Digital Impact Internship for{" "}
               <span className="bg-heal-gradient bg-clip-text text-transparent">
-                clinician who codes
+                real-world change
               </span>
             </h1>
             <p className="mt-5 max-w-xl text-lg text-ink-soft">
-              Impact simulations, case studies, and real-world applications in
-              applied AI, ethics, and the UN SDGs. Finish and earn a credible
-              certificate that anyone can independently verify.
+              Work through impact simulations, case studies, and real-world
+              applications mapped to the UN Sustainable Development Goals. Finish
+              and earn an Impact Certification anyone can independently verify.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/login" className="btn-primary px-5 py-3 text-base">
@@ -66,10 +66,10 @@ export default async function LandingPage() {
               <div className="flex h-full flex-col justify-between text-white">
                 <div>
                   <p className="font-mono text-xs uppercase tracking-widest text-white/70">
-                    Certificate of completion
+                    Impact Certification
                   </p>
                   <p className="mt-6 font-display text-2xl font-bold">
-                    Applied AI Digital Internship
+                    Applied AI Impact Internship
                   </p>
                   <p className="mt-1 text-white/80">Heal Social Foundation</p>
                 </div>

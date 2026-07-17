@@ -211,6 +211,16 @@ export async function createModule(formData: FormData) {
     completionConfig.pass_score = Math.max(0, Math.min(100, passScore));
   }
 
+  // Parse SDGs: comma/space separated numbers, kept to the valid 1-17 range.
+  const sdgs = [
+    ...new Set(
+      String(formData.get("sdgs") ?? "")
+        .split(/[^0-9]+/)
+        .map((s) => parseInt(s, 10))
+        .filter((n) => Number.isInteger(n) && n >= 1 && n <= 17),
+    ),
+  ];
+
   // Next order_index.
   const { data: existing } = await gate.supabase
     .from("modules")
@@ -229,6 +239,7 @@ export async function createModule(formData: FormData) {
     completion_rule: completionRule,
     completion_config: completionConfig,
     is_required: formData.get("is_required") !== "off",
+    sdgs,
     order_index: nextIndex,
   });
   if (error) return { ok: false, error: error.message };

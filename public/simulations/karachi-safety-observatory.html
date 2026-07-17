@@ -1,0 +1,1273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mahfooz Karachi — HEAL Karachi Safety Observatory</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Nastaliq+Urdu:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f4f8f9; --card:#ffffff; --ink:#14333e; --muted:#5c7884; --faint:#8aa4ae;
+  --teal:#1b9ec9; --teal-deep:#0e7196; --teal-soft:#dff0f7;
+  --mint:#3cb794; --mint-soft:#e2f5ee;
+  --red:#d9535f; --red-deep:#b93c48; --red-soft:#fbe9ea;
+  --amber:#dd9f3a; --amber-soft:#faf1de;
+  --violet:#7a5fd0; --violet-soft:#efeafc;
+  --flame:#e2662e; --flame-soft:#fcece2;
+  --umber:#8e6f52; --umber-soft:#f3ece4;
+  --line:#dfe9ec;
+  --night:#0a1930; --night-2:#10233f; --night-line:#1d3a5f; --lamp:#ffd27a;
+  --shadow:0 1px 2px rgba(20,51,62,.05), 0 8px 24px -12px rgba(20,51,62,.14);
+  --r:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.mono{font-family:'IBM Plex Mono',monospace}
+.urdu{font-family:'Noto Nastaliq Urdu',serif;direction:rtl}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+::selection{background:var(--teal-soft)}
+
+/* ================= header ================= */
+header{background:linear-gradient(180deg,#ffffff 0%,#f7fbfc 100%);border-bottom:1px solid var(--line);padding:16px 26px 14px;position:relative;z-index:20}
+.hd-row{display:flex;align-items:center;gap:16px;flex-wrap:wrap;max-width:1560px;margin:0 auto}
+.hd-logo{display:flex;align-items:center;gap:13px;flex-shrink:0}
+.hd-title h1{font-family:'Bricolage Grotesque',sans-serif;font-size:clamp(21px,2.6vw,29px);font-weight:700;letter-spacing:-.02em;line-height:1.05}
+.hd-title h1 em{font-style:normal;color:var(--teal)}
+.hd-title .sub{font-size:12px;color:var(--muted);margin-top:2px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.hd-title .sub .urdu{font-size:14px;color:var(--teal-deep)}
+.hd-spacer{flex:1}
+.dedication{display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,#fff8ec,#fdf1f2);border:1px solid #f2e2d8;border-radius:14px;padding:9px 14px;max-width:430px}
+.dedication .flame-ic{flex-shrink:0}
+.dedication p{font-size:12px;line-height:1.45;color:#6e5340}
+.dedication p b{color:#4d372a}
+.dedication .urdu{display:block;font-size:12.5px;color:#8a6a4e;margin-top:1px}
+@keyframes flick{0%,100%{transform:scale(1) rotate(-2deg);opacity:.95}50%{transform:scale(1.12) rotate(2deg);opacity:1}}
+.flame-ic .fl{animation:flick 2.4s ease-in-out infinite;transform-origin:50% 90%}
+
+/* ================= layout ================= */
+.wrap{max-width:1560px;margin:0 auto;padding:18px 26px 60px;display:flex;flex-direction:column;gap:16px}
+
+/* ---------- category rail ---------- */
+.cat-rail{display:flex;gap:10px;flex-wrap:wrap;align-items:stretch}
+.cat-btn{position:relative;display:flex;align-items:center;gap:10px;background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:10px 15px 10px 11px;box-shadow:var(--shadow);transition:transform .18s cubic-bezier(.2,.9,.3,1.4), border-color .18s, background .18s;overflow:hidden}
+.cat-btn:hover{transform:translateY(-2px)}
+.cat-btn .ic{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;flex-shrink:0;transition:transform .3s}
+.cat-btn:hover .ic{transform:rotate(-6deg) scale(1.08)}
+.cat-btn .tx{text-align:left}
+.cat-btn .tx .nm{display:block;font-weight:600;font-size:12.5px;line-height:1.15}
+.cat-btn .tx .ct{font-size:11px;color:var(--muted)}
+.cat-btn .ct b{font-family:'IBM Plex Mono',monospace;font-weight:600}
+.cat-btn.on{border-color:var(--cc);background:var(--csoft)}
+.cat-btn.on::after{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--cc)}
+.cat-btn.all.on::after{background:linear-gradient(180deg,#d9535f,#e39b2d,#1b9ec9,#7a5fd0)}
+.cat-btn:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+
+/* ---------- main grid ---------- */
+.main-grid{display:grid;grid-template-columns:minmax(0,1fr) 372px;gap:16px;align-items:start}
+@media(max-width:1120px){.main-grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.card-h{display:flex;align-items:center;gap:10px;padding:14px 18px 0;flex-wrap:wrap}
+.card-h h2{font-family:'Bricolage Grotesque',sans-serif;font-size:16.5px;font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+.card-h .hint{font-size:11.5px;color:var(--faint)}
+
+/* ---------- map card ---------- */
+.map-card{overflow:hidden}
+.map-toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 18px}
+.seg{display:inline-flex;background:#eef4f6;border:1px solid var(--line);border-radius:12px;padding:3px;gap:2px}
+.seg button{font-size:12px;font-weight:600;color:var(--muted);padding:6px 12px;border-radius:9px;transition:all .18s;display:flex;align-items:center;gap:6px}
+.seg button.on{background:#fff;color:var(--ink);box-shadow:0 1px 3px rgba(20,51,62,.14)}
+.tool-btn{font-size:12px;font-weight:600;color:var(--muted);border:1px solid var(--line);background:#fff;border-radius:12px;padding:7px 12px;display:flex;align-items:center;gap:6px;transition:all .18s}
+.tool-btn:hover{border-color:var(--teal);color:var(--teal-deep)}
+.tool-btn.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.tool-btn.on.warn{background:var(--red-deep);border-color:var(--red-deep)}
+.tool-btn.night-on{background:var(--night);border-color:var(--night);color:var(--lamp)}
+.map-stage{position:relative;background:#eaf2f4;transition:background .5s}
+.map-stage.night{background:#050f1f}
+.map-stage svg{display:block;width:100%;height:640px;touch-action:none;cursor:grab}
+.map-stage svg.lasso-mode{cursor:crosshair}
+.map-stage svg.route-mode{cursor:copy}
+.map-stage svg:active{cursor:grabbing}
+@media(max-width:760px){.map-stage svg{height:480px}}
+.dist{fill:#f8fcfd;stroke:#b9cdd4;stroke-width:1.2;transition:fill .4s,stroke .4s;cursor:pointer}
+.dist:hover{fill:#eef7fa}
+.dist.sel{fill:var(--teal-soft);stroke:var(--teal);stroke-width:2}
+.dist.dim{fill:#f0f4f5;opacity:.55}
+.night .dist{fill:var(--night-2);stroke:var(--night-line)}
+.night .dist:hover{fill:#152c4e}
+.night .dist.sel{fill:#173458;stroke:#3f77c0}
+.night .dist.dim{fill:#0d1e37;opacity:.6}
+.dlabel{font-family:'Bricolage Grotesque',sans-serif;font-weight:600;fill:#7d97a1;pointer-events:none;transition:fill .4s}
+.night .dlabel{fill:#4d6f9b}
+.road{fill:none;stroke:#c6d7dc;stroke-linecap:round;transition:stroke .4s;pointer-events:none}
+.night .road{stroke:#1c3a60}
+.road.lowlit{stroke-dasharray:5 5}
+.night .road.lowlit{stroke:#233046;stroke-dasharray:4 6}
+.troute{fill:none;stroke:#98572b;stroke-opacity:.72;stroke-linecap:round;cursor:pointer;transition:all .25s}
+.troute:hover{stroke-width:5.5 !important;stroke-opacity:1}
+.troute.sel{stroke:#e2662e;stroke-opacity:1;filter:drop-shadow(0 0 6px rgba(226,102,46,.6))}
+.night .troute{stroke:#b06a35}
+.night .troute.sel{stroke:#ff9d54}
+.dot{transition:opacity .3s}
+.lasso-path{fill:rgba(27,158,201,.10);stroke:var(--teal);stroke-width:1.6;stroke-dasharray:6 5;animation:ants 1.2s linear infinite}
+.night .lasso-path{fill:rgba(255,210,122,.08);stroke:var(--lamp)}
+@keyframes ants{to{stroke-dashoffset:-22}}
+.uroute{fill:none;stroke:var(--mint);stroke-width:3.5;stroke-linecap:round;stroke-dasharray:9 6;filter:drop-shadow(0 0 5px rgba(60,183,148,.5))}
+.map-legend{position:absolute;left:14px;bottom:14px;background:rgba(255,255,255,.92);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:13px;padding:10px 13px;font-size:11px;color:var(--muted);display:flex;flex-direction:column;gap:5px;max-width:240px;transition:all .4s}
+.night ~ .map-legend, .map-stage.night .map-legend{background:rgba(10,25,48,.88);border-color:#21406b;color:#9db6d6}
+.map-legend .lg{display:flex;align-items:center;gap:7px}
+.map-hud{position:absolute;right:14px;top:14px;display:flex;flex-direction:column;gap:7px;align-items:flex-end}
+.hud-chip{background:rgba(255,255,255,.92);backdrop-filter:blur(6px);border:1px solid var(--line);border-radius:11px;padding:6px 11px;font-size:11.5px;font-weight:600;color:var(--muted);display:flex;gap:7px;align-items:center;transition:all .4s}
+.map-stage.night .hud-chip{background:rgba(10,25,48,.88);border-color:#21406b;color:#9db6d6}
+.hud-chip .zbtn{width:22px;height:22px;border-radius:7px;background:#eef4f6;display:grid;place-items:center;font-size:14px;font-weight:700;color:var(--ink)}
+.map-stage.night .hud-chip .zbtn{background:#173154;color:#cfe0f5}
+.map-tip{position:absolute;pointer-events:none;background:var(--ink);color:#fff;font-size:11.5px;padding:7px 11px;border-radius:10px;opacity:0;transition:opacity .15s;max-width:250px;z-index:5;line-height:1.4;box-shadow:0 6px 18px rgba(0,0,0,.25)}
+.map-tip b{color:#8fd8f2}
+.map-tip .tt-ur{color:#a8c6d4;font-size:11px}
+.route-banner{position:absolute;left:50%;top:12px;transform:translateX(-50%);background:var(--ink);color:#fff;font-size:12px;font-weight:600;padding:8px 16px;border-radius:99px;display:none;align-items:center;gap:10px;z-index:6;box-shadow:0 8px 22px rgba(0,0,0,.3)}
+.route-banner.show{display:flex}
+.route-banner button{background:var(--mint);color:#08301f;font-weight:700;font-size:11.5px;padding:4px 11px;border-radius:99px}
+.route-banner button.ghost{background:transparent;color:#ffb1b1;border:1px solid #5a3d3d}
+
+/* ---------- side panel ---------- */
+.side{display:flex;flex-direction:column;gap:16px;min-width:0}
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;padding:14px 18px 16px}
+.kpi{background:#f8fbfc;border:1px solid var(--line);border-radius:14px;padding:11px 13px;position:relative;overflow:hidden}
+.kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--kc,#1b9ec9)}
+.kpi .v{font-family:'Bricolage Grotesque',sans-serif;font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+.kpi .l{font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+.kpi .d{font-size:10.5px;color:var(--faint);margin-top:1px}
+.anchors{margin:0 18px 16px;background:linear-gradient(135deg,#f2f9fb,#eef6f2);border:1px dashed #bcd8e0;border-radius:14px;padding:11px 14px;font-size:11.5px;color:#3c6472;line-height:1.55}
+.anchors b{color:var(--teal-deep)}
+.anchors .src{display:block;color:var(--faint);font-size:10px;margin-top:4px}
+
+/* AI brief */
+.ai-card .card-h h2 svg{flex-shrink:0}
+.ai-body{padding:12px 18px 18px}
+.ai-scope{font-size:11.5px;color:var(--muted);margin-bottom:9px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.ai-scope .pill{background:var(--teal-soft);color:var(--teal-deep);font-weight:600;padding:2px 9px;border-radius:99px;font-size:11px}
+.ai-text{background:#f8fbfc;border:1px solid var(--line);border-radius:14px;padding:13px 15px;font-size:12.8px;line-height:1.65;min-height:120px;white-space:pre-wrap}
+.ai-text .cursor{display:inline-block;width:7px;height:14px;background:var(--teal);vertical-align:-2px;animation:blink 1s steps(2) infinite;border-radius:2px}
+@keyframes blink{50%{opacity:0}}
+.ai-actions{display:flex;gap:8px;margin-top:10px}
+.btn-primary{background:var(--teal);color:#fff;font-weight:600;font-size:12.5px;padding:9px 16px;border-radius:12px;display:inline-flex;align-items:center;gap:7px;transition:all .18s;box-shadow:0 4px 12px -4px rgba(27,158,201,.5)}
+.btn-primary:hover{background:var(--teal-deep);transform:translateY(-1px)}
+.btn-primary:disabled{opacity:.55;cursor:wait;transform:none}
+.btn-ghost{border:1px solid var(--line);color:var(--muted);font-weight:600;font-size:12.5px;padding:9px 14px;border-radius:12px;transition:all .18s}
+.btn-ghost:hover{border-color:var(--teal);color:var(--teal-deep)}
+
+/* hotspots list */
+.hot-list{padding:8px 18px 16px;display:flex;flex-direction:column;gap:8px}
+.hot-item{display:flex;align-items:center;gap:11px;background:#f8fbfc;border:1px solid var(--line);border-radius:13px;padding:9px 12px;cursor:pointer;transition:all .18s;text-align:left;width:100%}
+.hot-item:hover{border-color:var(--teal);transform:translateX(3px)}
+.hot-rank{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:15px;color:var(--faint);width:20px;flex-shrink:0}
+.hot-info{flex:1;min-width:0}
+.hot-info .n{display:block;font-weight:600;font-size:12.5px}
+.hot-info .s{display:block;font-size:11px;color:var(--muted)}
+.hot-bar{height:5px;border-radius:99px;background:#e7eef1;overflow:hidden;margin-top:4px}
+.hot-bar i{display:block;height:100%;border-radius:99px;transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.hot-val{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:13px;flex-shrink:0}
+
+/* selection report */
+.rep-body{padding:10px 18px 18px;font-size:12.5px}
+.rep-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px dashed #e6eef1;gap:10px}
+.rep-row:last-child{border:none}
+.rep-row .k{color:var(--muted)}
+.rep-row .v{font-weight:600;text-align:right}
+.rep-cats{display:flex;height:10px;border-radius:99px;overflow:hidden;margin:9px 0 3px;background:#eef4f6}
+.rep-cats i{transition:width .5s}
+.rep-empty{color:var(--faint);font-size:12px;padding:6px 0 2px}
+
+/* ---------- slicers ---------- */
+.slicer-grid{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:16px}
+@media(max-width:980px){.slicer-grid{grid-template-columns:1fr}}
+.slicer-card{padding-bottom:14px}
+.tl-wrap{position:relative;padding:6px 18px 2px}
+.tl-canvas{width:100%;height:130px;display:block;cursor:ew-resize;border-radius:10px}
+.tl-note{padding:0 18px;font-size:11px;color:var(--faint);display:flex;justify-content:space-between}
+.tl-note b{color:var(--teal-deep);font-weight:600}
+.hour-wrap{padding:10px 18px 4px}
+.hour-track{position:relative;display:grid;grid-template-columns:repeat(24,1fr);gap:2px;height:64px;border-radius:12px;overflow:hidden;user-select:none;cursor:ew-resize;touch-action:none}
+.hcell{position:relative;background:#eef4f6;display:flex;align-items:flex-end;justify-content:center;transition:background .2s}
+.hcell i{display:block;width:100%;background:var(--faint);opacity:.55;border-radius:2px 2px 0 0;transition:height .4s, background .3s}
+.hcell.inr{background:var(--teal-soft)}
+.hcell.inr i{background:var(--teal);opacity:.9}
+.hcell.nite{background:#e6edf7}
+.hcell.nite.inr{background:#d3e5f4}
+.hour-labels{display:grid;grid-template-columns:repeat(24,1fr);gap:2px;margin-top:4px;font-size:9px;color:var(--faint);text-align:center;font-family:'IBM Plex Mono',monospace}
+.hour-presets{display:flex;gap:6px;flex-wrap:wrap;padding:10px 18px 0}
+.preset{font-size:11px;font-weight:600;color:var(--muted);border:1px solid var(--line);border-radius:99px;padding:4px 11px;transition:all .15s}
+.preset:hover{border-color:var(--teal);color:var(--teal-deep)}
+.preset.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+
+/* ---------- charts ---------- */
+.chart-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.chart-card canvas{width:100%;height:210px;display:block;padding:6px 12px 12px}
+footer{max-width:1560px;margin:26px auto 0;padding:0 26px;font-size:11px;color:var(--faint);line-height:1.6}
+footer b{color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(80px);background:var(--ink);color:#fff;font-size:12.5px;font-weight:600;padding:11px 18px;border-radius:13px;box-shadow:0 12px 30px rgba(0,0,0,.3);transition:transform .35s cubic-bezier(.2,.9,.3,1.2);z-index:99}
+.toast.show{transform:translateX(-50%) translateY(0)}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms !important;transition-duration:.01ms !important}}
+</style>
+</head>
+<body>
+<header>
+  <div class="hd-row">
+    <div class="hd-logo">
+      <!-- HEAL logo -->
+      <svg width="52" height="52" viewBox="0 0 52 52" aria-label="Heal Social Foundation">
+        <defs><linearGradient id="lg-heal" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stop-color="#1b9ec9"/><stop offset="1" stop-color="#0e7196"/>
+        </linearGradient></defs>
+        <rect x="1" y="1" width="50" height="50" rx="14" fill="url(#lg-heal)"/>
+        <path d="M26 39c-7.4-5.5-12.4-9.8-12.4-15.4 0-3.9 3-6.8 6.6-6.8 2.3 0 4.4 1.2 5.8 3.2 1.4-2 3.5-3.2 5.8-3.2 3.6 0 6.6 2.9 6.6 6.8 0 5.6-5 9.9-12.4 15.4z" fill="#fff"/>
+        <polyline points="15,27 21,27 23.4,22 26.8,31 29.2,25.5 31.2,27 37,27" fill="none" stroke="#d9535f" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="hd-title">
+        <h1>Mahfooz <em>Karachi</em></h1>
+        <div class="sub">
+          <span>HEAL Karachi Safety Observatory · Heal Social Foundation</span>
+          <span class="urdu">محفوظ کراچی — شہر کی حفاظت، سب کی ذمہ داری</span>
+        </div>
+      </div>
+    </div>
+    <div class="hd-spacer"></div>
+    <div class="dedication">
+      <svg class="flame-ic" width="26" height="30" viewBox="0 0 26 30">
+        <path class="fl" d="M13 3c1.2 4.2 6.5 6.6 6.5 12.4A6.5 6.5 0 0 1 13 22a6.5 6.5 0 0 1-6.5-6.6C6.5 9.6 11.8 7.2 13 3z" fill="#e8a13f"/>
+        <path class="fl" d="M13 9.5c.7 2.4 3.2 3.7 3.2 6.4A3.2 3.2 0 0 1 13 19a3.2 3.2 0 0 1-3.2-3.1c0-2.7 2.5-4 3.2-6.4z" fill="#fbe3b0"/>
+        <rect x="10.6" y="22.6" width="4.8" height="5" rx="1.4" fill="#c9b294"/>
+      </svg>
+      <p><b>Dedicated to Sarim, Ibrahim, and every victim of crime and road accidents in Karachi.</b> May their memory make this city safer.
+      <span class="urdu">سارم، ابراہیم اور کراچی کے ہر متاثرہ شہری کے نام</span></p>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ============ category rail ============ -->
+  <div class="cat-rail" id="catRail" role="tablist" aria-label="Hazard categories"></div>
+
+  <!-- ============ main grid ============ -->
+  <div class="main-grid">
+
+    <!-- ------- map ------- -->
+    <div class="card map-card">
+      <div class="card-h">
+        <h2><svg width="16" height="16" viewBox="0 0 16 16"><path d="M1 4l4.5-2L10 4l5-2v10l-5 2-4.5-2L1 14V4z" fill="none" stroke="#1b9ec9" stroke-width="1.5" stroke-linejoin="round"/></svg>
+        City risk map <span class="hint" id="mapHint">click a district · scroll to zoom · drag to pan</span></h2>
+      </div>
+      <div class="map-toolbar">
+        <div class="seg" id="viewSeg" role="group" aria-label="Map layer">
+          <button data-v="scatter" class="on">Scatter</button>
+          <button data-v="heat">Hotspots</button>
+          <button data-v="both">Both</button>
+        </div>
+        <div class="seg" id="selSeg" role="group" aria-label="Selection mode">
+          <button data-s="district" class="on">Districts</button>
+          <button data-s="area">Areas</button>
+          <button data-s="lasso">Lasso</button>
+        </div>
+        <button class="tool-btn" id="nightBtn" aria-pressed="false">
+          <svg width="13" height="13" viewBox="0 0 13 13"><path d="M11 8.2A5.2 5.2 0 0 1 4.8 2 5.2 5.2 0 1 0 11 8.2z" fill="currentColor"/></svg>
+          Night mode
+        </button>
+        <button class="tool-btn" id="trailerBtn" aria-pressed="false">
+          <svg width="15" height="12" viewBox="0 0 15 12"><rect x="0.5" y="1.5" width="8.5" height="6" rx="1" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M9 4h3l2 2.4V8h-5z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="3.4" cy="9.6" r="1.5" fill="none" stroke="currentColor" stroke-width="1.2"/><circle cx="11.4" cy="9.6" r="1.5" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
+          Trailer routes
+        </button>
+        <button class="tool-btn" id="plotBtn">
+          <svg width="13" height="13" viewBox="0 0 13 13"><circle cx="2.5" cy="10.5" r="1.7" fill="currentColor"/><circle cx="10.5" cy="2.5" r="1.7" fill="currentColor"/><path d="M3.8 9.2C6 7 7 6 9.2 3.8" stroke="currentColor" stroke-width="1.3" stroke-dasharray="2.4 2" fill="none"/></svg>
+          Plot a route
+        </button>
+        <button class="tool-btn" id="resetBtn">Reset</button>
+      </div>
+      <div class="map-stage" id="mapStage">
+        <svg id="map" viewBox="0 0 1000 640" preserveAspectRatio="xMidYMid meet" aria-label="Interactive Karachi safety map">
+          <g id="world">
+            <g id="gDistricts"></g>
+            <image id="heatImg" style="pointer-events:none;opacity:0"></image>
+            <image id="nightImg" style="pointer-events:none;opacity:0"></image>
+            <g id="gRoads"></g>
+            <g id="gTrailer" style="display:none"></g>
+            <g id="gDots"></g>
+            <g id="gLabels"></g>
+            <g id="gAreas"></g>
+            <g id="gLasso"></g>
+            <g id="gRoute"></g>
+          </g>
+        </svg>
+        <div class="map-legend" id="legend"></div>
+        <div class="map-hud">
+          <div class="hud-chip"><button class="zbtn" id="zIn" aria-label="Zoom in">+</button><button class="zbtn" id="zOut" aria-label="Zoom out">−</button><span id="zLvl">1.0×</span></div>
+          <div class="hud-chip" id="clock">🕗 filter: all hours</div>
+        </div>
+        <div class="map-tip" id="tip"></div>
+        <div class="route-banner" id="routeBanner">
+          <span id="routeMsg">Click points on the map to plot a heavy-trailer route</span>
+          <button id="routeDone">Done</button>
+          <button class="ghost" id="routeCancel">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ------- side panel ------- -->
+    <div class="side">
+      <div class="card">
+        <div class="card-h"><h2>Pulse <span class="hint" id="scopeHint">Karachi · all categories</span></h2></div>
+        <div class="kpi-grid">
+          <div class="kpi" style="--kc:#1b9ec9"><div class="v mono" id="kIncidents">0</div><div class="l">Mapped incidents</div><div class="d" id="kIncidentsD">in current slice</div></div>
+          <div class="kpi" style="--kc:#d9535f"><div class="v mono" id="kFatal">0</div><div class="l">Lives lost</div><div class="d">within slice (modelled)</div></div>
+          <div class="kpi" style="--kc:#e39b2d"><div class="v mono" id="kPeak">—</div><div class="l">Peak hour</div><div class="d" id="kPeakD">most incidents</div></div>
+          <div class="kpi" style="--kc:#7a5fd0"><div class="v mono" id="kTrend">—</div><div class="l">Trend</div><div class="d">vs previous period</div></div>
+        </div>
+        <div class="anchors" id="anchors"></div>
+      </div>
+
+      <div class="card ai-card">
+        <div class="card-h"><h2>
+          <svg width="17" height="17" viewBox="0 0 17 17"><path d="M8.5 1l1.7 4.6 4.8.3-3.7 3 1.2 4.7-4-2.6-4 2.6 1.2-4.7-3.7-3 4.8-.3z" fill="#dd9f3a"/></svg>
+          AI area brief</h2></div>
+        <div class="ai-body">
+          <div class="ai-scope">Scope: <span class="pill" id="aiScope">All Karachi</span><span class="pill" id="aiCat">All categories</span></div>
+          <div class="ai-text" id="aiText">Select a district, areas, or a lasso region — then generate a briefing for that slice of the city.</div>
+          <div class="ai-actions">
+            <button class="btn-primary" id="aiBtn">
+              <svg width="13" height="13" viewBox="0 0 13 13"><path d="M6.5 1.5v10M1.5 6.5h10" stroke="#fff" stroke-width="1.8" stroke-linecap="round"/></svg>
+              Generate brief</button>
+            <button class="btn-ghost" id="aiCopy">Copy</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><h2>Hotspot tracking <span class="hint">top clusters in slice</span></h2></div>
+        <div class="hot-list" id="hotList"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-h"><h2>Selection report</h2></div>
+        <div class="rep-body" id="report"><div class="rep-empty">Nothing selected — showing all Karachi.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ slicers ============ -->
+  <div class="slicer-grid">
+    <div class="card slicer-card">
+      <div class="card-h"><h2>Calendar timeline <span class="hint">drag across months to slice · Jan 2025 – Jun 2026</span></h2></div>
+      <div class="tl-wrap"><canvas id="tlCanvas" class="tl-canvas"></canvas></div>
+      <div class="tl-note"><span>Monthly incidents in current category & geography</span><span id="tlRange"><b>All 18 months</b></span></div>
+    </div>
+    <div class="card slicer-card">
+      <div class="card-h"><h2>Timings <span class="hint">drag across hours</span></h2></div>
+      <div class="hour-wrap">
+        <div class="hour-track" id="hourTrack"></div>
+        <div class="hour-labels" id="hourLabels"></div>
+      </div>
+      <div class="hour-presets" id="hourPresets"></div>
+    </div>
+  </div>
+
+  <!-- ============ charts ============ -->
+  <div class="chart-grid">
+    <div class="card chart-card"><div class="card-h"><h2>District comparison</h2></div><canvas id="chDist"></canvas></div>
+    <div class="card chart-card"><div class="card-h"><h2>Category mix</h2></div><canvas id="chMix"></canvas></div>
+    <div class="card chart-card"><div class="card-h"><h2>Hour-of-day rhythm</h2></div><canvas id="chHour"></canvas></div>
+  </div>
+
+</div>
+
+<footer>
+  <b>Data honesty:</b> headline anchors are drawn from Sindh Police / CPLC 2025 reporting (64,323 street-crime FIRs; 17,706 phones snatched at gunpoint; ~800 traffic deaths incl. 169 by heavy vehicles Jan–Aug; SBCA dangerous-building notices concentrated in Lyari & the old city). Individual map points, timings and area splits are <b>modelled for demonstration</b> around those anchors — this is a use-case prototype by Heal Social Foundation, not an operational incident register. · Mahfooz Karachi محفوظ کراچی
+</footer>
+<div class="toast" id="toast"></div>
+<script>
+/* ============================================================
+   MAHFOOZ KARACHI — data layer
+   Real geometry: GADM 3.6 via PakData/GISData (5 districts
+   geometrically split into today's 7). Anchors: CPLC / Sindh
+   Police 2025 reporting. Points are modelled for demonstration.
+   ============================================================ */
+const DISTRICT_RINGS = {"Central": [[[67.0185, 24.8954], [67.0053, 24.9562], [67.0141, 24.9799], [67.0335, 24.9977], [67.0621, 24.9931], [67.0712, 24.9844], [67.0575, 24.9406], [67.0185, 24.8954]]], "East": [[[67.07, 24.9694], [67.1347, 24.9441], [67.1128, 24.9057], [67.1955, 24.9217], [67.2042, 24.9106], [67.2013, 24.9047], [67.0842, 24.8619], [67.0814, 24.8767], [67.0305, 24.8889], [67.0185, 24.8954], [67.07, 24.9694]]], "Korangi": [[[67.2013, 24.9047], [67.1914, 24.885], [67.1787, 24.8758], [67.1487, 24.8728], [67.1428, 24.8683], [67.1793, 24.8501], [67.1783, 24.839], [67.1389, 24.8204], [67.0987, 24.8318], [67.0916, 24.828], [67.0842, 24.8619], [67.2013, 24.9047]]], "South": [[[67.0916, 24.828], [67.0722, 24.8129], [67.0704, 24.8055], [67.0964, 24.763], [67.0829, 24.7476], [67.0249, 24.806], [66.9863, 24.8143], [66.9837, 24.7979], [66.9735, 24.8243], [66.9893, 24.8443], [66.9685, 24.826], [66.975, 24.8557], [67.0185, 24.8954], [67.0692, 24.883], [67.0814, 24.8767], [67.0916, 24.828]]], "West": [[[66.9754, 25.0737], [67.0192, 25.1388], [67.0267, 25.1569], [67.0275, 25.2029], [67.0351, 25.2159], [67.0984, 25.2553], [67.115, 25.2544], [67.1452, 25.2223], [67.1444, 25.2139], [67.0943, 25.1945], [67.0794, 25.1811], [67.1059, 25.1173], [67.1192, 25.1076], [67.1286, 25.108], [67.1844, 25.1395], [67.1925, 25.1404], [67.2301, 25.1225], [67.244, 25.0961], [67.2446, 25.0802], [67.228, 25.0458], [67.1927, 25.0228], [67.1098, 25.0135], [67.0712, 24.9844], [67.0335, 24.9977], [67.0141, 24.9799], [67.013, 24.915], [67.0185, 24.8954], [66.9707, 24.8518], [66.9668, 24.8704], [66.9634, 24.8696], [66.985, 24.93], [66.955, 25.02], [66.9481, 25.0551], [66.9754, 25.0737]]], "Keamari": [[[66.9619, 24.8006], [66.9124, 24.8401], [66.854, 24.8613], [66.8226, 24.8379], [66.756, 24.8521], [66.6721, 24.8249], [66.6532, 24.8379], [66.6787, 24.8771], [66.7201, 24.8857], [66.7065, 24.8896], [66.7262, 24.921], [66.694, 24.8876], [66.6876, 24.9075], [66.7418, 24.9756], [66.8949, 25.0304], [66.9209, 25.0366], [66.9481, 25.0551], [66.955, 25.02], [66.985, 24.93], [66.9634, 24.8696], [66.9154, 24.8585], [66.9215, 24.8343], [66.9611, 24.8259], [66.9538, 24.8196], [66.9616, 24.8099], [66.9619, 24.8006]]], "Malir": [[[67.1904, 24.8021], [67.1824, 24.789], [67.1501, 24.7935], [67.1251, 24.7771], [67.0918, 24.7922], [67.1041, 24.7639], [67.0844, 24.7759], [67.0746, 24.7885], [67.0704, 24.8055], [67.0722, 24.8129], [67.0987, 24.8318], [67.1148, 24.8288], [67.1292, 24.82], [67.1783, 24.839], [67.1432, 24.8609], [67.1428, 24.8683], [67.1787, 24.8758], [67.2029, 24.9029], [67.2042, 24.9106], [67.1955, 24.9217], [67.1311, 24.899], [67.1128, 24.9057], [67.1377, 24.9365], [67.1347, 24.9441], [67.0759, 24.9607], [67.0712, 24.9844], [67.1013, 25.0103], [67.2153, 25.0361], [67.2225, 25.0408], [67.2435, 25.1035], [67.2429, 25.1107], [67.2153, 25.1333], [67.1925, 25.1404], [67.1286, 25.108], [67.1192, 25.1076], [67.0793, 25.1568], [67.0768, 25.1739], [67.1444, 25.2139], [67.1313, 25.2391], [67.115, 25.2544], [67.1316, 25.2572], [67.1374, 25.2623], [67.1678, 25.3358], [67.1838, 25.4558], [67.2053, 25.4894], [67.2095, 25.505], [67.336, 25.6339], [67.389, 25.6521], [67.401, 25.6386], [67.4052, 25.6265], [67.4004, 25.4047], [67.3865, 25.3609], [67.3723, 25.3369], [67.3033, 25.2741], [67.2682, 25.1956], [67.2691, 25.1882], [67.4532, 25.1054], [67.4594, 25.0992], [67.5072, 24.9481], [67.5761, 24.8268], [67.5769, 24.8168], [67.5638, 24.7931], [67.5541, 24.7934], [67.4928, 24.8432], [67.4895, 24.8534], [67.4327, 24.8416], [67.4294, 24.8102], [67.4223, 24.79], [67.3865, 24.7857], [67.3643, 24.7888], [67.2982, 24.8236], [67.1955, 24.8241], [67.1825, 24.804], [67.1718, 24.8018], [67.1904, 24.8021]]]};
+/* ---------- projection (equirectangular, city-focused) ---------- */
+const LON0=66.60, LAT_TOP=25.70, KY=1150, KX=KY*Math.cos(25*Math.PI/180);
+const P = (lon,lat)=>[ (lon-LON0)*KX, (LAT_TOP-lat)*KY ];
+/* initial camera focuses the urban core */
+const HOME = {x:230, y:660, w:640, h:410}; /* viewBox rect in world coords */
+
+/* ---------- categories ---------- */
+const CATS = {
+  theft:    {nm:'Street theft & robbery', ur:'اسٹریٹ کرائم', c:'#d9535f', soft:'#fbe9ea', base:520,
+             ic:'M7 1l1.3 3.4L12 5l-2.7 2.2.9 3.5L7 8.8 3.8 10.7l.9-3.5L2 5l3.7-.6z'},
+  burglary: {nm:'Burglary & house crime', ur:'گھروں میں چوری', c:'#7a5fd0', soft:'#efeafc', base:300,
+             ic:'M2 6.5L7 2l5 4.5V12H8.5V8.6h-3V12H2z'},
+  accident: {nm:'Road accidents', ur:'ٹریفک حادثات', c:'#e39b2d', soft:'#faf1de', base:560,
+             ic:'M1.5 8.5L3 5a1.6 1.6 0 011.5-1h5A1.6 1.6 0 0111 5l1.5 3.5V11a.8.8 0 01-.8.8h-.9a.8.8 0 01-.8-.8v-.7H4v.7a.8.8 0 01-.8.8h-.9a.8.8 0 01-.8-.8zM3.4 8h7.2L9.6 5.4H4.4z'},
+  drain:    {nm:'Open drains & manholes', ur:'کھلے گٹر اور نالے', c:'#1b9ec9', soft:'#dff0f7', base:230,
+             ic:'M7 1.6C8.8 4 11 5.8 11 8.3A4 4 0 013 8.3C3 5.8 5.2 4 7 1.6z'},
+  fire:     {nm:'Fire-hazard buildings', ur:'آگ کے خطرے والی عمارتیں', c:'#e2662e', soft:'#fcece2', base:200,
+             ic:'M7 1c.8 2.8 4 4.2 4 7.4A4 4 0 013 8.4C3 6.6 4.4 5.6 5 4.2c.5 1 .8 1.6 1.7 2.1C6.5 4.4 6.4 2.7 7 1z'},
+  collapse: {nm:'Building disintegration', ur:'خستہ حال عمارتیں', c:'#8e6f52', soft:'#f3ece4', base:150,
+             ic:'M2 12V4l3-2v10zm4.5 0V5.5L10 3.4l1 .8-2 1.6V12zM10 12V8l2-1.6V12z'}
+};
+const CATKEYS = Object.keys(CATS);
+
+/* ---------- districts: population (2023 census, approx, millions) ---------- */
+const DIST_META = {
+  Central:{pop:3.62, ur:'وسطی'},  East:{pop:3.95, ur:'شرقی'}, Korangi:{pop:3.13, ur:'کورنگی'},
+  South:{pop:2.33, ur:'جنوبی'},  West:{pop:2.68, ur:'غربی'}, Keamari:{pop:2.07, ur:'کیماڑی'},
+  Malir:{pop:2.43, ur:'ملیر'}
+};
+/* per-category district weights (informed by CPLC patterns, SBCA notices, corridor geography) */
+const W = {
+  theft:    {Central:.19,East:.18,South:.15,Korangi:.13,West:.12,Malir:.12,Keamari:.11},
+  burglary: {East:.20,Central:.18,South:.14,Korangi:.14,West:.12,Malir:.12,Keamari:.10},
+  accident: {Malir:.18,Keamari:.16,East:.15,Korangi:.14,West:.13,Central:.12,South:.12},
+  drain:    {West:.22,Korangi:.18,Central:.15,East:.14,South:.12,Malir:.11,Keamari:.08},
+  fire:     {West:.18,Keamari:.16,South:.16,Korangi:.16,Central:.12,East:.12,Malir:.10},
+  collapse: {South:.34,Central:.16,West:.14,Keamari:.12,Korangi:.10,East:.08,Malir:.06}
+};
+
+/* ---------- named areas (lon,lat, lighting 0–1) ---------- */
+const AREAS = [
+ ['Central','Liaquatabad',67.041,24.905,.72],['Central','Nazimabad',67.026,24.916,.78],
+ ['Central','North Nazimabad',67.031,24.938,.82],['Central','Gulberg',67.052,24.930,.74],
+ ['Central','New Karachi',67.056,24.972,.55],['Central','Buffer Zone',67.045,24.955,.66],
+ ['East','Gulshan-e-Iqbal',67.088,24.923,.84],['East','Gulistan-e-Jauhar',67.128,24.912,.72],
+ ['East','PECHS',67.062,24.868,.88],['East','Safoora Goth',67.158,24.940,.45],
+ ['East','Sohrab Goth',67.090,24.962,.40],['East','Ferozabad',67.058,24.878,.80],
+ ['Korangi','Korangi',67.120,24.840,.55],['Korangi','Landhi',67.158,24.845,.50],
+ ['Korangi','Shah Faisal Colony',67.130,24.876,.62],['Korangi','Ibrahim Hyderi',67.144,24.802,.30],
+ ['Korangi','Zaman Town',67.108,24.850,.58],['Korangi','Qayyumabad',67.092,24.842,.52],
+ ['South','Saddar',67.023,24.856,.86],['South','Lyari',66.998,24.868,.48],
+ ['South','Clifton',67.030,24.812,.90],['South','DHA',67.058,24.800,.92],
+ ['South','Kharadar',67.002,24.850,.55],['South','Garden',67.020,24.874,.70],
+ ['West','Orangi Town',66.990,24.945,.42],['West','SITE',67.010,24.900,.50],
+ ['West','Manghopir',67.020,24.995,.22],['West','Mominabad',66.996,24.922,.44],
+ ['West','Surjani Town',67.060,25.000,.35],['West','Pak Colony',67.006,24.886,.58],
+ ['Keamari','Keamari Harbour',66.976,24.830,.60],['Keamari','Baldia Town',66.956,24.905,.40],
+ ['Keamari','Mauripur',66.926,24.868,.28],['Keamari','Hawkes Bay',66.862,24.852,.15],
+ ['Keamari','Shershah',66.980,24.886,.45],['Keamari','Machar Colony',66.980,24.856,.25],
+ ['Malir','Model Colony',67.186,24.895,.60],['Malir','Malir City',67.206,24.892,.55],
+ ['Malir','Quaidabad',67.212,24.868,.42],['Malir','Shah Latif Town',67.242,24.880,.35],
+ ['Malir','Memon Goth',67.282,24.932,.20],['Malir','Gadap',67.200,25.100,.12],
+ ['Malir','Bin Qasim',67.330,24.850,.30],['Malir','Gulshan-e-Hadeed',67.362,24.848,.55]
+];
+
+/* ---------- major roads (name, lit 0–1, trailer?, note, points lon/lat) ---------- */
+const ROADS = [
+ {n:'M-9 Superhighway', lit:.35, tr:1, note:'Primary freight artery to the interior. Trailer & dumper window 22:00–06:00. Long unlit stretches past Sohrab Goth.',
+  p:[[67.088,24.965],[67.120,25.000],[67.170,25.048],[67.240,25.108],[67.330,25.170]]},
+ {n:'M-10 Northern Bypass', lit:.15, tr:1, note:'Built to keep port trailers out of the city — largely unlit, so night traffic drifts back onto city roads.',
+  p:[[66.930,24.885],[66.940,24.950],[66.970,25.020],[67.050,25.068],[67.130,25.060],[67.185,25.055]]},
+ {n:'Sharea Faisal', lit:.95, tr:0, note:'Best-lit corridor in the city; heavy vehicles banned in daytime.',
+  p:[[67.025,24.855],[67.060,24.870],[67.090,24.885],[67.122,24.893],[67.160,24.900]]},
+ {n:'Rashid Minhas Rd', lit:.80, tr:1, note:'Night dumper corridor. Scene of the Aug 2025 tragedy that killed two siblings and sparked citywide protests.',
+  p:[[67.100,24.885],[67.105,24.910],[67.100,24.935],[67.090,24.955]]},
+ {n:'University Rd', lit:.85, tr:0, note:'Dense evening snatching band between NIPA and Safoora.',
+  p:[[67.050,24.880],[67.080,24.905],[67.120,24.925],[67.158,24.943]]},
+ {n:'Korangi Rd', lit:.60, tr:1, note:'Tanker route via Kala Pul — two young brothers were crushed here in 2025.',
+  p:[[67.045,24.845],[67.080,24.838],[67.120,24.833],[67.160,24.840]]},
+ {n:'Mauripur Rd', lit:.25, tr:1, note:'Port-to-RCD trailer stream; among the least-lit arterial roads.',
+  p:[[66.992,24.855],[66.950,24.865],[66.900,24.860],[66.862,24.855]]},
+ {n:'M.A. Jinnah Rd', lit:.90, tr:0, note:'Old-city spine; snatching clusters at signals.',
+  p:[[67.005,24.855],[67.020,24.870],[67.035,24.885],[67.045,24.900]]},
+ {n:'Shahrah-e-Pakistan', lit:.80, tr:0, note:'Liaquatabad–Sohrab Goth; evening theft band.',
+  p:[[67.040,24.900],[67.055,24.930],[67.070,24.950],[67.085,24.965]]},
+ {n:'N-5 National Hwy', lit:.30, tr:1, note:'Quaidabad to Gulshan-e-Hadeed; port-bound trailers mix with local traffic.',
+  p:[[67.192,24.860],[67.250,24.858],[67.310,24.850],[67.380,24.845],[67.450,24.860]]},
+ {n:'Hub River Rd (RCD)', lit:.20, tr:1, note:'Trailer route to Hub; unlit through Baldia outskirts.',
+  p:[[66.990,24.900],[66.950,24.940],[66.910,24.990],[66.870,25.030]]},
+ {n:'Lyari Expressway', lit:.55, tr:0, note:'Officially light-vehicle only; enforcement gaps at night.',
+  p:[[66.995,24.860],[67.020,24.895],[67.050,24.930],[67.070,24.960],[67.085,24.985]]},
+ {n:'Manghopir Rd', lit:.30, tr:1, note:'Dumper corridor from northern quarries through Orangi edge.',
+  p:[[67.005,24.895],[67.010,24.940],[67.020,24.985],[67.030,25.020]]},
+ {n:'ICI Bridge – Mai Kolachi', lit:.70, tr:1, note:'Feb 2025: freight train, trailer and oil tanker collided here.',
+  p:[[67.000,24.840],[67.012,24.826],[67.032,24.815]]}
+];
+
+/* real 2025 heavy-vehicle deaths (Jan–mid Aug, police data): trailers 63 · tankers 37 · dumpers 34 · buses 35 */
+const TRAILER_STATS = {'M-9 Superhighway':{d:21},'M-10 Northern Bypass':{d:9},'Rashid Minhas Rd':{d:11},'Korangi Rd':{d:13},'Mauripur Rd':{d:14},'N-5 National Hwy':{d:16},'Hub River Rd (RCD)':{d:8},'Manghopir Rd':{d:7},'ICI Bridge – Mai Kolachi':{d:6}};
+
+/* ---------- months ---------- */
+const MONTHS=[];{const nm=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+for(let y=2025;y<=2026;y++)for(let m=0;m<12;m++){if(y===2026&&m>5)break;MONTHS.push({y,m,lab:nm[m]+" '"+String(y).slice(2)});}}
+
+/* seasonality per category (index by calendar month 0–11) */
+const SEASON = {
+  theft:   [1.05,1,1.1,1.05,1,.95,.9,.95,1,1.05,1.1,1.15],
+  burglary:[1.1,1,1,.95,.9,.95,1,1,1,1.05,1.1,1.15],
+  accident:[1.1,1.05,1,1,1.05,1.05,1.1,1.15,1,1,1,1.05],
+  drain:   [.4,.4,.5,.6,.7,.9,2.6,2.9,1.3,.6,.45,.4],
+  fire:    [1.3,1.2,1.05,1.1,1.2,1,.8,.8,.9,1,1.15,1.3],
+  collapse:[.7,.7,.8,.9,1,1.2,2.2,1.9,1,.8,.7,.7]
+};
+/* hour profiles (24 weights) */
+function hp(peaks){const a=new Array(24).fill(.25);peaks.forEach(([h,w,s])=>{for(let i=0;i<24;i++){let d=Math.min(Math.abs(i-h),24-Math.abs(i-h));a[i]+=w*Math.exp(-d*d/(2*s*s));}});return a;}
+const HOURS = {
+  theft:    hp([[20,1.6,2.2],[9,.8,1.6],[13,.5,2]]),
+  burglary: hp([[3,1.8,2],[14,.4,3]]),
+  accident: hp([[8.5,1.1,1.4],[18,1.3,2],[1,1.0,2.4]]),   /* late-night bump = heavy-vehicle window */
+  drain:    hp([[19,1.1,3],[11,.7,3]]),
+  fire:     hp([[2,1.3,2.4],[13,.8,3]]),
+  collapse: hp([[6,1.2,2.5],[15,.6,3]])
+};
+
+/* ============================================================
+   incident generator (seeded — same city every load)
+   ============================================================ */
+let _s = 20250810; /* seed: 10 Aug 2025, Rashid Minhas — remembered */
+const rnd = ()=>{_s=(_s*1103515245+12345)&0x7fffffff;return _s/0x7fffffff;};
+const gauss = ()=>{let u=0,v=0;while(!u)u=rnd();while(!v)v=rnd();return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);};
+const pickW = (arr,wf)=>{const t=arr.reduce((a,x)=>a+wf(x),0);let r=rnd()*t;for(const x of arr){r-=wf(x);if(r<=0)return x;}return arr[arr.length-1];};
+
+/* point in polygon (world coords) */
+function pip(pt, ring){let c=false;for(let i=0,j=ring.length-1;i<ring.length;j=i++){const [xi,yi]=ring[i],[xj,yj]=ring[j];
+  if(((yi>pt[1])!==(yj>pt[1]))&&(pt[0]<(xj-xi)*(pt[1]-yi)/(yj-yi)+xi))c=!c;}return c;}
+
+const DISTRICTS={}; /* name -> {rings:[worldpts], bbox, centroid} */
+for(const [name,rings] of Object.entries(DISTRICT_RINGS)){
+  const w=rings.map(r=>r.map(([lo,la])=>P(lo,la)));
+  let minx=1e9,miny=1e9,maxx=-1e9,maxy=-1e9,cx=0,cy=0,n=0;
+  w.forEach(r=>r.forEach(([x,y])=>{minx=Math.min(minx,x);maxx=Math.max(maxx,x);miny=Math.min(miny,y);maxy=Math.max(maxy,y);cx+=x;cy+=y;n++;}));
+  DISTRICTS[name]={rings:w,bbox:[minx,miny,maxx,maxy],cx:cx/n,cy:cy/n};
+}
+/* nicer label anchors for the big rural districts */
+DISTRICTS.Malir.cx=P(67.23,24.93)[0]; DISTRICTS.Malir.cy=P(67.23,24.93)[1];
+DISTRICTS.Keamari.cx=P(66.90,24.93)[0]; DISTRICTS.Keamari.cy=P(66.90,24.93)[1];
+DISTRICTS.West.cx=P(67.09,25.09)[0]; DISTRICTS.West.cy=P(67.09,25.09)[1];
+
+const AREA_OBJS = AREAS.map(([d,n,lo,la,lit])=>({d,n,lit,x:P(lo,la)[0],y:P(lo,la)[1]}));
+const ROAD_OBJS = ROADS.map(r=>({...r, w:r.p.map(([lo,la])=>P(lo,la))}));
+
+function inDistrict(name,pt){const D=DISTRICTS[name];if(pt[0]<D.bbox[0]||pt[0]>D.bbox[2]||pt[1]<D.bbox[1]||pt[1]>D.bbox[3])return false;return D.rings.some(r=>pip(pt,r));}
+
+/* GADM's simplified rings drift from today's district lines in places —
+   snap each named area inside its real-life district's polygon */
+for(const A of AREA_OBJS){
+  if(inDistrict(A.d,[A.x,A.y]))continue;
+  const D=DISTRICTS[A.d];
+  let done=false;
+  for(let t=0.06;t<=1&&!done;t+=0.06){
+    const x=A.x+(D.cx-A.x)*t, y=A.y+(D.cy-A.y)*t;
+    if(inDistrict(A.d,[x,y])){A.x=x;A.y=y;done=true;}
+  }
+  if(!done){A.x=D.cx+(A.x-D.cx)*0.1;A.y=D.cy+(A.y-D.cy)*0.1;}
+}
+
+/* scatter accidents along roads, others around area centroids */
+function makeIncidents(){
+  const out=[];let id=0;
+  for(const cat of CATKEYS){
+    const total=CATS[cat].base;
+    for(let i=0;i<total;i++){
+      const dist = pickW(Object.keys(W[cat]), d=>W[cat][d]);
+      let x,y,area=null,road=null;
+      if(cat==='accident' && rnd()<0.72){
+        const cand=ROAD_OBJS.filter(r=> r.w.some(p=>inDistrict(dist,p)) );
+        const R = cand.length? pickW(cand, r=> (r.tr? 1.6:1) * (1.25-r.lit) + .4) : ROAD_OBJS[0];
+        road=R.n;
+        const si=Math.floor(rnd()*(R.w.length-1));
+        const t=rnd(); const a=R.w[si],b=R.w[si+1];
+        x=a[0]+(b[0]-a[0])*t+gauss()*3; y=a[1]+(b[1]-a[1])*t+gauss()*3;
+        const near=AREA_OBJS.reduce((best,A)=>{const d2=(A.x-x)**2+(A.y-y)**2;return d2<best.d2?{d2,A}:best;},{d2:1e18,A:null});
+        area=near.A? near.A.n : null;
+      } else {
+        const opts=AREA_OBJS.filter(a=>a.d===dist);
+        const A=opts[Math.floor(rnd()*opts.length)];
+        area=A.n;
+        let tries=0;
+        do{ x=A.x+gauss()*14; y=A.y+gauss()*14; tries++; }while(!inDistrict(dist,[x,y])&&tries<8);
+        if(tries>=8){x=A.x;y=A.y;}
+      }
+      const mi = pickW(MONTHS.map((_,i)=>i), i=>SEASON[cat][MONTHS[i].m]* (1 - i*0.006));
+      const hr = pickW([...Array(24).keys()], h=>HOURS[cat][h]);
+      const sevRoll=rnd();
+      const fatalP = {theft:.004,burglary:.002,accident:.062,drain:.03,fire:.05,collapse:.11}[cat];
+      const sev = sevRoll<fatalP?3 : sevRoll<fatalP+0.22?2 : 1; /* 3 fatal, 2 injury, 1 report */
+      const A2=AREA_OBJS.find(a=>a.n===area);
+      out.push({id:id++,cat,dist,area,road,x,y,mi,hr,sev,lit:A2?A2.lit:.5});
+    }
+  }
+  return out;
+}
+const INCIDENTS = makeIncidents();
+
+/* ============================================================
+   state + filtering
+   ============================================================ */
+const S = {
+  cat:'all', view:'scatter', selMode:'district', night:false,
+  selDistricts:new Set(), selAreas:new Set(), lassoPts:null,
+  m0:0, m1:MONTHS.length-1, h0:0, h1:23,
+  trailer:false, selTrailer:null, plotting:false, routePts:[],
+  cam:{...HOME}
+};
+
+function inHourRange(h){ return S.h0<=S.h1 ? (h>=S.h0&&h<=S.h1) : (h>=S.h0||h<=S.h1); }
+function geoPass(r){
+  if(S.lassoPts) return pip([r.x,r.y],S.lassoPts);
+  if(S.selAreas.size) return S.selAreas.has(r.area);
+  if(S.selDistricts.size) return S.selDistricts.has(r.dist);
+  return true;
+}
+function filtered(){
+  return INCIDENTS.filter(r=>
+    (S.cat==='all'||r.cat===S.cat) && r.mi>=S.m0 && r.mi<=S.m1 && inHourRange(r.hr) && geoPass(r));
+}
+function scopeName(){
+  if(S.lassoPts) return 'Lasso region';
+  if(S.selAreas.size) return [...S.selAreas].slice(0,3).join(', ')+(S.selAreas.size>3?` +${S.selAreas.size-3}`:'');
+  if(S.selDistricts.size) return [...S.selDistricts].map(d=>'District '+d).join(', ');
+  return 'All Karachi';
+}
+
+/* ============================================================
+   map: build districts, roads, labels
+   ============================================================ */
+const svg=document.getElementById('map'), world=document.getElementById('world');
+const NS='http://www.w3.org/2000/svg';
+const el=(t,at={},parent)=>{const e=document.createElementNS(NS,t);for(const k in at)e.setAttribute(k,at[k]);if(parent)parent.appendChild(e);return e;};
+const ringPath=r=>'M'+r.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join('L')+'Z';
+
+const gD=document.getElementById('gDistricts'), gR=document.getElementById('gRoads'),
+      gT=document.getElementById('gTrailer'), gDots=document.getElementById('gDots'),
+      gL=document.getElementById('gLabels'), gA=document.getElementById('gAreas'),
+      gLasso=document.getElementById('gLasso'), gRoute=document.getElementById('gRoute');
+
+for(const [name,D] of Object.entries(DISTRICTS)){
+  const p=el('path',{d:D.rings.map(ringPath).join(' '),class:'dist','data-d':name},gD);
+  p.addEventListener('click',e=>{ if(S.plotting||S.selMode==='lasso')return;
+    if(S.selMode==='district'){ toggleSet(S.selDistricts,name); S.selAreas.clear(); S.lassoPts=null; clearLassoDraw(); refresh(); }
+  });
+  p.addEventListener('mousemove',e=>showTip(e,`<b>District ${name}</b> · <span class="tt-ur urdu">${DIST_META[name].ur}</span><br>${DIST_META[name].pop}M residents (2023)<br>${cnt(name)} incidents in slice`));
+  p.addEventListener('mouseleave',hideTip);
+}
+function cnt(dist){return filtered().filter(r=>r.dist===dist).length;}
+
+for(const R of ROAD_OBJS){
+  el('path',{d:'M'+R.w.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join('L'),
+    class:'road'+(R.lit<0.4?' lowlit':''), 'stroke-width':R.tr?2.4:1.8},gR);
+}
+/* trailer corridors (thicker, clickable) */
+for(const R of ROAD_OBJS.filter(r=>r.tr)){
+  const p=el('path',{d:'M'+R.w.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join('L'),
+    class:'troute','stroke-width':3,'data-r':R.n},gT);
+  p.addEventListener('click',e=>{e.stopPropagation();selectTrailer(R);});
+  p.addEventListener('mousemove',e=>showTip(e,`<b>${R.n}</b> — heavy-trailer corridor<br>${R.note}`));
+  p.addEventListener('mouseleave',hideTip);
+}
+/* district labels */
+for(const [name,D] of Object.entries(DISTRICTS)){
+  el('text',{x:D.cx,y:D.cy,class:'dlabel','font-size':name==='Malir'||name==='Keamari'?15:12,'text-anchor':'middle'},gL).textContent=name.toUpperCase();
+}
+/* area markers (visible in Areas mode) */
+const areaEls=[];
+for(const A of AREA_OBJS){
+  const g=el('g',{style:'display:none;cursor:pointer'},gA);
+  const halo=el('circle',{cx:A.x,cy:A.y,r:7,fill:'rgba(27,158,201,.15)',stroke:'none'},g);
+  const c=el('circle',{cx:A.x,cy:A.y,r:3,fill:'#fff',stroke:'#1b9ec9','stroke-width':1.6},g);
+  g.addEventListener('click',e=>{e.stopPropagation();if(S.selMode!=='area')return;
+    toggleSet(S.selAreas,A.n); S.selDistricts.clear(); S.lassoPts=null; clearLassoDraw(); refresh();});
+  g.addEventListener('mousemove',e=>showTip(e,`<b>${A.n}</b> · District ${A.d}<br>Street lighting index: ${(A.lit*100)|0}/100${A.lit<.4?' — <b>poorly lit</b>':''}`));
+  g.addEventListener('mouseleave',hideTip);
+  areaEls.push({A,g,c,halo});
+}
+function toggleSet(s,v){s.has(v)?s.delete(v):s.add(v);}
+
+/* ---------- camera ---------- */
+function applyCam(){
+  svg.setAttribute('viewBox',`${S.cam.x} ${S.cam.y} ${S.cam.w} ${S.cam.h}`);
+  document.getElementById('zLvl').textContent=(HOME.w/S.cam.w).toFixed(1)+'×';
+  const k=Math.sqrt(S.cam.w/HOME.w);
+  gDots.querySelectorAll('circle').forEach(c=>c.setAttribute('r',(+c.dataset.r*k).toFixed(2)));
+  areaEls.forEach(o=>{o.c.setAttribute('r',3*k);o.halo.setAttribute('r',7*k);});
+}
+function zoomAt(f,cx,cy){
+  const nw=Math.min(Math.max(S.cam.w*f,60),1200), nh=nw*(HOME.h/HOME.w);
+  S.cam.x=cx-(cx-S.cam.x)*(nw/S.cam.w); S.cam.y=cy-(cy-S.cam.y)*(nh/S.cam.h);
+  S.cam.w=nw;S.cam.h=nh;applyCam();
+}
+function evtWorld(e){
+  const r=svg.getBoundingClientRect();
+  return [S.cam.x+(e.clientX-r.left)/r.width*S.cam.w, S.cam.y+(e.clientY-r.top)/r.height*S.cam.h];
+}
+svg.addEventListener('wheel',e=>{e.preventDefault();const [cx,cy]=evtWorld(e);zoomAt(e.deltaY>0?1.18:0.85,cx,cy);},{passive:false});
+document.getElementById('zIn').onclick=()=>zoomAt(0.8,S.cam.x+S.cam.w/2,S.cam.y+S.cam.h/2);
+document.getElementById('zOut').onclick=()=>zoomAt(1.25,S.cam.x+S.cam.w/2,S.cam.y+S.cam.h/2);
+
+/* pan + lasso + route plotting via pointer events */
+let drag=null;
+svg.addEventListener('pointerdown',e=>{
+  if(S.plotting) return;
+  if(S.selMode==='lasso'){ S._lassoDrawing=true; S._lassoRaw=[evtWorld(e)]; svg.setPointerCapture(e.pointerId); return; }
+  drag={x:e.clientX,y:e.clientY,cx:S.cam.x,cy:S.cam.y}; svg.setPointerCapture(e.pointerId);
+});
+svg.addEventListener('pointermove',e=>{
+  if(S._lassoDrawing){ S._lassoRaw.push(evtWorld(e)); drawLasso(S._lassoRaw,false); return; }
+  if(!drag)return;
+  const r=svg.getBoundingClientRect();
+  S.cam.x=drag.cx-(e.clientX-drag.x)/r.width*S.cam.w;
+  S.cam.y=drag.cy-(e.clientY-drag.y)/r.height*S.cam.h;
+  applyCam();
+});
+svg.addEventListener('pointerup',e=>{
+  if(S._lassoDrawing){ S._lassoDrawing=false;
+    if(S._lassoRaw.length>5){ S.lassoPts=S._lassoRaw; S.selDistricts.clear(); S.selAreas.clear(); drawLasso(S._lassoRaw,true); refresh(); toast('Lasso applied — '+filtered().length+' incidents in region'); }
+    else clearLassoDraw();
+    return; }
+  drag=null;
+});
+svg.addEventListener('click',e=>{
+  if(!S.plotting)return;
+  const p=evtWorld(e); S.routePts.push(p); drawUserRoute();
+});
+function drawLasso(pts,closed){
+  gLasso.innerHTML='';
+  el('path',{d:'M'+pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join('L')+(closed?'Z':''),class:'lasso-path'},gLasso);
+}
+function clearLassoDraw(){gLasso.innerHTML='';}
+
+/* ---------- tooltip / toast ---------- */
+const tip=document.getElementById('tip'), stage=document.getElementById('mapStage');
+function showTip(e,html){const r=stage.getBoundingClientRect();tip.innerHTML=html;tip.style.opacity=1;
+  tip.style.left=Math.min(e.clientX-r.left+14,r.width-260)+'px';tip.style.top=(e.clientY-r.top+12)+'px';}
+function hideTip(){tip.style.opacity=0;}
+let toastT;function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600);}
+
+/* ============================================================
+   layers: scatter dots, heat canvas, night lights canvas
+   ============================================================ */
+const heatImg=document.getElementById('heatImg'), nightImg=document.getElementById('nightImg');
+const WORLD_BBOX=(()=>{let a=[1e9,1e9,-1e9,-1e9];Object.values(DISTRICTS).forEach(D=>{a[0]=Math.min(a[0],D.bbox[0]);a[1]=Math.min(a[1],D.bbox[1]);a[2]=Math.max(a[2],D.bbox[2]);a[3]=Math.max(a[3],D.bbox[3]);});return a;})();
+[heatImg,nightImg].forEach(im=>{im.setAttribute('x',WORLD_BBOX[0]);im.setAttribute('y',WORLD_BBOX[1]);
+  im.setAttribute('width',WORLD_BBOX[2]-WORLD_BBOX[0]);im.setAttribute('height',WORLD_BBOX[3]-WORLD_BBOX[1]);im.setAttribute('preserveAspectRatio','none');});
+const HW=Math.round(WORLD_BBOX[2]-WORLD_BBOX[0]), HH=Math.round(WORLD_BBOX[3]-WORLD_BBOX[1]);
+
+function renderDots(list){
+  gDots.innerHTML='';
+  const k=Math.sqrt(S.cam.w/HOME.w);
+  const cap=1800, step=list.length>cap? list.length/cap : 1;
+  const frag=document.createDocumentFragment();
+  for(let i=0;i<list.length;i+=step){
+    const r=list[Math.floor(i)];
+    const base=r.sev===3?3.2:r.sev===2?2.3:1.7;
+    const c=document.createElementNS(NS,'circle');
+    c.setAttribute('cx',r.x.toFixed(1));c.setAttribute('cy',r.y.toFixed(1));
+    c.dataset.r=base; c.setAttribute('r',(base*k).toFixed(2));
+    c.setAttribute('fill',CATS[r.cat].c);
+    c.setAttribute('fill-opacity',S.night?(r.sev===3?.95:.75):(r.sev===3?.9:.6));
+    c.setAttribute('class','dot');
+    if(r.sev===3){c.setAttribute('stroke',S.night?'#fff':'#7d1622');c.setAttribute('stroke-width',.6*k);}
+    frag.appendChild(c);
+  }
+  gDots.appendChild(frag);
+}
+
+function renderHeat(list){
+  const sc=0.9, cv=document.createElement('canvas');cv.width=HW*sc;cv.height=HH*sc;
+  const ctx=cv.getContext('2d');
+  ctx.globalCompositeOperation='lighter';
+  const single = S.cat!=='all';
+  for(const r of list){
+    const x=(r.x-WORLD_BBOX[0])*sc, y=(r.y-WORLD_BBOX[1])*sc, rad=13*sc*(r.sev===3?1.5:1);
+    const col = single? CATS[S.cat].c : CATS[r.cat].c;
+    const g=ctx.createRadialGradient(x,y,0,x,y,rad);
+    const [rr,gg,bb]=hex2rgb(col);
+    g.addColorStop(0,`rgba(${rr},${gg},${bb},.16)`);g.addColorStop(1,`rgba(${rr},${gg},${bb},0)`);
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,rad,0,7);ctx.fill();
+  }
+  heatImg.setAttribute('href',cv.toDataURL());
+  heatImg.style.opacity = (S.view==='heat'||S.view==='both')?1:0;
+}
+function hex2rgb(h){return [parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];}
+
+/* night lights: warm lamps along roads, brightness ∝ lighting index; area glow ∝ area lit */
+let nightRendered=false;
+function renderNight(){
+  if(nightRendered) return;
+  const sc=1, cv=document.createElement('canvas');cv.width=HW*sc;cv.height=HH*sc;
+  const ctx=cv.getContext('2d');
+  ctx.globalCompositeOperation='lighter';
+  /* ambient neighbourhood glow */
+  for(const A of AREA_OBJS){
+    const x=A.x-WORLD_BBOX[0],y=A.y-WORLD_BBOX[1];
+    const g=ctx.createRadialGradient(x,y,0,x,y,26);
+    g.addColorStop(0,`rgba(255,196,110,${.10+A.lit*.16})`);g.addColorStop(1,'rgba(255,196,110,0)');
+    ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,26,0,7);ctx.fill();
+  }
+  /* street lamps */
+  for(const R of ROAD_OBJS){
+    for(let s=0;s<R.w.length-1;s++){
+      const a=R.w[s],b=R.w[s+1];
+      const len=Math.hypot(b[0]-a[0],b[1]-a[1]);
+      const gap=R.lit>0.7?6 : R.lit>0.4?11 : 26;
+      const n=Math.max(1,Math.floor(len/gap));
+      for(let i=0;i<=n;i++){
+        if(R.lit<0.45 && ((i*2654435761)>>>3)%10 > R.lit*14) continue; /* dark gaps on unlit roads */
+        const t=i/n, x=a[0]+(b[0]-a[0])*t-WORLD_BBOX[0], y=a[1]+(b[1]-a[1])*t-WORLD_BBOX[1];
+        const g=ctx.createRadialGradient(x,y,0,x,y,6.5);
+        g.addColorStop(0,`rgba(255,216,135,${.7+R.lit*.3})`);
+        g.addColorStop(.3,`rgba(255,192,95,${.3*R.lit+.12})`);
+        g.addColorStop(1,'rgba(255,180,80,0)');
+        ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,y,6.5,0,7);ctx.fill();
+        ctx.fillStyle=`rgba(255,244,214,${.6+R.lit*.4})`;ctx.beginPath();ctx.arc(x,y,.9,0,7);ctx.fill();
+      }
+    }
+  }
+  nightImg.setAttribute('href',cv.toDataURL());
+  nightRendered=true;
+}
+
+/* ============================================================
+   legend
+   ============================================================ */
+function renderLegend(){
+  const L=document.getElementById('legend');
+  let html='';
+  if(S.cat==='all'){
+    html+=CATKEYS.map(k=>`<div class="lg"><span style="width:9px;height:9px;border-radius:99px;background:${CATS[k].c};display:inline-block"></span>${CATS[k].nm}</div>`).join('');
+  } else {
+    const C=CATS[S.cat];
+    html+=`<div class="lg"><span style="width:9px;height:9px;border-radius:99px;background:${C.c};display:inline-block"></span>${C.nm} · <span class="urdu">${C.ur}</span></div>`;
+    html+=`<div class="lg"><span style="width:9px;height:9px;border-radius:99px;background:${C.c};display:inline-block;outline:2px solid #7d1622"></span>fatal incident</div>`;
+  }
+  if(S.night) html+=`<div class="lg"><span style="width:9px;height:9px;border-radius:99px;background:#ffd27a;box-shadow:0 0 6px #ffd27a;display:inline-block"></span>street lighting · <span style="border-bottom:2px dashed #55688a;width:16px;display:inline-block"></span> poorly-lit road</div>`;
+  else html+=`<div class="lg"><span style="border-bottom:2px dashed #b6c8ce;width:16px;display:inline-block"></span> poorly-lit road (see night mode)</div>`;
+  if(S.trailer) html+=`<div class="lg"><span style="border-bottom:3px solid #b06a35;width:16px;display:inline-block"></span> heavy-trailer corridor — click one</div>`;
+  L.innerHTML=html;
+}
+
+/* ============================================================
+   trailer corridors + user route plotting
+   ============================================================ */
+let truckAnim=null;
+function selectTrailer(R){
+  S.selTrailer = S.selTrailer===R.n? null : R.n;
+  gT.querySelectorAll('.troute').forEach(p=>p.classList.toggle('sel',p.dataset.r===S.selTrailer));
+  gRoute.querySelectorAll('.truck').forEach(t=>t.remove());
+  cancelAnimationFrame(truckAnim);
+  if(S.selTrailer){
+    animateTruck(R);
+    const d=(TRAILER_STATS[R.n]||{}).d;
+    toast(`${R.n}: ${d?d+' heavy-vehicle deaths (2025, modelled from police corridor data)':'trailer corridor'}`);
+  }
+  renderReport(filtered());
+}
+function animateTruck(R){
+  const g=el('g',{class:'truck'},gRoute);
+  const body=el('rect',{x:-7,y:-4,width:10,height:7,rx:1.4,fill:'#e2662e',stroke:'#7c3413','stroke-width':.8},g);
+  el('rect',{x:3,y:-3,width:5,height:6,rx:1,fill:'#14333e'},g);
+  const pts=R.w; let seg=0,t=0;
+  const step=()=>{
+    t+=0.012; if(t>1){t=0;seg=(seg+1)%(pts.length-1);}
+    const a=pts[seg],b=pts[seg+1];
+    const x=a[0]+(b[0]-a[0])*t, y=a[1]+(b[1]-a[1])*t;
+    const ang=Math.atan2(b[1]-a[1],b[0]-a[0])*180/Math.PI;
+    g.setAttribute('transform',`translate(${x},${y}) rotate(${ang})`);
+    truckAnim=requestAnimationFrame(step);
+  };step();
+}
+const banner=document.getElementById('routeBanner');
+document.getElementById('plotBtn').addEventListener('click',()=>{
+  S.plotting=true;S.routePts=[];banner.classList.add('show');
+  svg.classList.add('route-mode');
+  document.getElementById('routeMsg').textContent='Click points on the map to plot a heavy-trailer route';
+});
+document.getElementById('routeCancel').addEventListener('click',()=>endPlot(false));
+document.getElementById('routeDone').addEventListener('click',()=>endPlot(true));
+function drawUserRoute(){
+  gRoute.querySelectorAll('.uroute,.upt').forEach(x=>x.remove());
+  if(S.routePts.length>1)
+    el('path',{d:'M'+S.routePts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join('L'),class:'uroute'},gRoute);
+  S.routePts.forEach(p=>el('circle',{cx:p[0],cy:p[1],r:3.4,fill:'#3cb794',stroke:'#fff','stroke-width':1.4,class:'upt'},gRoute));
+  if(S.routePts.length>1){
+    let km=0;for(let i=1;i<S.routePts.length;i++)km+=Math.hypot(S.routePts[i][0]-S.routePts[i-1][0],S.routePts[i][1]-S.routePts[i-1][1]);
+    km=km/KY*111; /* world units -> degrees -> km */
+    document.getElementById('routeMsg').textContent=`Route: ${S.routePts.length} points · ≈ ${km.toFixed(1)} km — Done to save`;
+  }
+}
+function endPlot(keep){
+  S.plotting=false;banner.classList.remove('show');svg.classList.remove('route-mode');
+  if(!keep||S.routePts.length<2){gRoute.querySelectorAll('.uroute,.upt').forEach(x=>x.remove());S.routePts=[];return;}
+  const crossed=[...new Set(S.routePts.map(p=>Object.keys(DISTRICTS).find(d=>inDistrict(d,p))).filter(Boolean))];
+  let km=0;for(let i=1;i<S.routePts.length;i++)km+=Math.hypot(S.routePts[i][0]-S.routePts[i-1][0],S.routePts[i][1]-S.routePts[i-1][1]);
+  km=km/KY*111;
+  const nearHome=S.routePts.filter(p=>{ /* share of the route on low-lit ground */
+    const a=AREA_OBJS.reduce((b,A)=>{const d2=(A.x-p[0])**2+(A.y-p[1])**2;return d2<b.d2?{d2,A}:b;},{d2:1e18,A:null}).A;
+    return a && a.lit<0.4;}).length/S.routePts.length;
+  toast(`Route saved · ≈${km.toFixed(1)} km through ${crossed.join(', ')||'—'} · ${(nearHome*100)|0}% of it in poorly-lit territory`);
+}
+
+/* ============================================================
+   category rail
+   ============================================================ */
+const rail=document.getElementById('catRail');
+function buildRail(){
+  rail.innerHTML='';
+  const mk=(key,nm,ur,color,soft,icon)=>{
+    const b=document.createElement('button');
+    b.className='cat-btn'+(key==='all'?' all':'')+(S.cat===key?' on':'');
+    b.style.setProperty('--cc',color); b.style.setProperty('--csoft',soft);
+    b.setAttribute('role','tab'); b.setAttribute('aria-selected',S.cat===key);
+    b.innerHTML=`<span class="ic" style="background:${soft}"><svg width="16" height="14" viewBox="0 0 14 13"><path d="${icon}" fill="${color}"/></svg></span>
+      <span class="tx"><span class="nm">${nm}</span><span class="ct"><b data-cnt="${key}">–</b> in slice · <span class="urdu">${ur}</span></span></span>`;
+    b.onclick=()=>{S.cat=key;buildRail();refresh();};
+    rail.appendChild(b);
+  };
+  mk('all','All hazards','تمام خطرات','#14333e','#eef4f6','M7 1a6 6 0 100 12A6 6 0 007 1zm0 2.2a3.8 3.8 0 110 7.6 3.8 3.8 0 010-7.6z');
+  for(const k of CATKEYS) mk(k,CATS[k].nm,CATS[k].ur,CATS[k].c,CATS[k].soft,CATS[k].ic);
+}
+function updateRailCounts(){
+  for(const k of ['all',...CATKEYS]){
+    const n=INCIDENTS.filter(r=>(k==='all'||r.cat===k)&&r.mi>=S.m0&&r.mi<=S.m1&&inHourRange(r.hr)&&geoPass(r)).length;
+    const e=rail.querySelector(`[data-cnt="${k}"]`); if(e)e.textContent=n.toLocaleString();
+  }
+}
+
+/* ---------- segments & toggles ---------- */
+document.getElementById('viewSeg').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  S.view=b.dataset.v;
+  [...e.currentTarget.children].forEach(x=>x.classList.toggle('on',x===b));
+  refreshMapOnly();
+});
+document.getElementById('selSeg').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  S.selMode=b.dataset.s;
+  [...e.currentTarget.children].forEach(x=>x.classList.toggle('on',x===b));
+  svg.classList.toggle('lasso-mode',S.selMode==='lasso');
+  areaEls.forEach(o=>o.g.style.display=S.selMode==='area'?'':'none');
+  document.getElementById('mapHint').textContent=
+    S.selMode==='district'?'click a district · scroll to zoom · drag to pan':
+    S.selMode==='area'?'click area markers to add/remove them':
+    'press and draw a loop around any part of the city';
+});
+document.getElementById('nightBtn').addEventListener('click',function(){
+  S.night=!S.night;
+  this.classList.toggle('night-on',S.night);this.setAttribute('aria-pressed',S.night);
+  stage.classList.toggle('night',S.night);
+  if(S.night){renderNight();nightImg.style.opacity=1;}else nightImg.style.opacity=0;
+  this.childNodes[2].textContent=S.night?' Day mode':' Night mode';
+  refreshMapOnly();renderLegend();
+});
+document.getElementById('trailerBtn').addEventListener('click',function(){
+  S.trailer=!S.trailer;this.classList.toggle('on',S.trailer);this.setAttribute('aria-pressed',S.trailer);
+  gT.style.display=S.trailer?'':'none';
+  if(!S.trailer){S.selTrailer=null;cancelAnimationFrame(truckAnim);gRoute.querySelectorAll('.truck').forEach(t=>t.remove());}
+  renderLegend();
+});
+document.getElementById('resetBtn').addEventListener('click',()=>{
+  S.selDistricts.clear();S.selAreas.clear();S.lassoPts=null;clearLassoDraw();
+  S.m0=0;S.m1=MONTHS.length-1;S.h0=0;S.h1=23;S.selTrailer=null;
+  gRoute.innerHTML='';cancelAnimationFrame(truckAnim);
+  gT.querySelectorAll('.troute').forEach(p=>p.classList.remove('sel'));
+  S.cam={...HOME};applyCam();refresh();toast('Filters reset');
+});
+
+/* ============================================================
+   calendar timeline slicer (canvas brush)
+   ============================================================ */
+const tl=document.getElementById('tlCanvas'), tctx=tl.getContext('2d');
+function sizeCanvas(cv){const d=window.devicePixelRatio||1;const r=cv.getBoundingClientRect();cv.width=r.width*d;cv.height=r.height*d;cv.getContext('2d').setTransform(d,0,0,d,0,0);return r;}
+function tlData(){
+  const arr=new Array(MONTHS.length).fill(0);
+  INCIDENTS.forEach(r=>{if((S.cat==='all'||r.cat===S.cat)&&inHourRange(r.hr)&&geoPass(r))arr[r.mi]++;});
+  return arr;
+}
+function drawTimeline(){
+  const r=sizeCanvas(tl); const Wd=r.width,H=r.height,pad=6,bw=(Wd-pad*2)/MONTHS.length;
+  const data=tlData(),mx=Math.max(...data,1);
+  tctx.clearRect(0,0,Wd,H);
+  const monsoon=[6,7]; /* Jul, Aug */
+  data.forEach((v,i)=>{
+    const inR=i>=S.m0&&i<=S.m1;
+    const h=(H-34)*v/mx;
+    const x=pad+i*bw;
+    if(monsoon.includes(MONTHS[i].m)){tctx.fillStyle='rgba(27,158,201,.07)';tctx.fillRect(x,4,bw-2,H-26);}
+    tctx.fillStyle=inR?(S.cat==='all'?'#1b9ec9':CATS[S.cat].c):'#d3e0e4';
+    roundRect(tctx,x+1.5,H-22-h,bw-4,h,3);tctx.fill();
+    tctx.fillStyle=inR?'#3c6472':'#9fb4bb';tctx.font='9.5px IBM Plex Mono';tctx.textAlign='center';
+    if(i%2===0)tctx.fillText(MONTHS[i].lab,x+bw/2,H-8);
+  });
+  /* brush handles */
+  [S.m0,S.m1+1].forEach(i=>{const x=pad+i*bw;tctx.strokeStyle='#14333e';tctx.lineWidth=2;
+    tctx.beginPath();tctx.moveTo(x,6);tctx.lineTo(x,H-22);tctx.stroke();
+    tctx.fillStyle='#14333e';roundRect(tctx,x-4,H/2-16,8,20,4);tctx.fill();});
+  document.getElementById('tlRange').innerHTML=`<b>${MONTHS[S.m0].lab} → ${MONTHS[S.m1].lab}</b>`;
+}
+function roundRect(c,x,y,w,h,r){r=Math.min(r,w/2,Math.max(h/2,0.1));c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath();}
+let tlDrag=null;
+const tlIdx=e=>{const r=tl.getBoundingClientRect();return Math.max(0,Math.min(MONTHS.length-1,Math.floor((e.clientX-r.left-6)/((r.width-12)/MONTHS.length))));};
+tl.addEventListener('pointerdown',e=>{tlDrag=tlIdx(e);S.m0=S.m1=tlDrag;drawTimeline();tl.setPointerCapture(e.pointerId);});
+tl.addEventListener('pointermove',e=>{if(tlDrag===null)return;const i=tlIdx(e);S.m0=Math.min(tlDrag,i);S.m1=Math.max(tlDrag,i);drawTimeline();});
+tl.addEventListener('pointerup',()=>{tlDrag=null;refresh();});
+
+/* ============================================================
+   hour slicer
+   ============================================================ */
+const ht=document.getElementById('hourTrack'), hcells=[];
+for(let h=0;h<24;h++){
+  const c=document.createElement('div');c.className='hcell'+((h>=19||h<6)?' nite':'');
+  c.innerHTML='<i style="height:10%"></i>';ht.appendChild(c);hcells.push(c);
+  const lab=document.createElement('span');lab.textContent=h%6===0?String(h).padStart(2,'0'):'·';
+  document.getElementById('hourLabels').appendChild(lab);
+}
+function drawHours(){
+  const arr=new Array(24).fill(0);
+  INCIDENTS.forEach(r=>{if((S.cat==='all'||r.cat===S.cat)&&r.mi>=S.m0&&r.mi<=S.m1&&geoPass(r))arr[r.hr]++;});
+  const mx=Math.max(...arr,1);
+  hcells.forEach((c,h)=>{
+    c.classList.toggle('inr',inHourRange(h));
+    c.firstChild.style.height=Math.max(8,arr[h]/mx*92)+'%';
+    if(S.cat!=='all')c.firstChild.style.background=inHourRange(h)?CATS[S.cat].c:'';
+    else c.firstChild.style.background='';
+  });
+  document.getElementById('clock').textContent = (S.h0===0&&S.h1===23)?'🕗 filter: all hours':
+    `🕗 ${String(S.h0).padStart(2,'0')}:00 – ${String(S.h1).padStart(2,'0')}:59${S.h0>S.h1?' (overnight)':''}`;
+}
+let hDrag=null;
+const hIdx=e=>{const r=ht.getBoundingClientRect();return Math.max(0,Math.min(23,Math.floor((e.clientX-r.left)/r.width*24)));};
+ht.addEventListener('pointerdown',e=>{hDrag=hIdx(e);S.h0=S.h1=hDrag;drawHours();ht.setPointerCapture(e.pointerId);});
+ht.addEventListener('pointermove',e=>{if(hDrag===null)return;const i=hIdx(e);S.h0=Math.min(hDrag,i);S.h1=Math.max(hDrag,i);drawHours();});
+ht.addEventListener('pointerup',()=>{hDrag=null;setPreset(null);refresh();});
+const PRESETS=[['All day',0,23],['Morning rush 7–10',7,10],['Evening rush 17–20',17,20],['Snatching hours 19–23',19,23],['Trailer window 22–06',22,6],['Burglary hours 01–05',1,5]];
+const pWrap=document.getElementById('hourPresets');
+PRESETS.forEach(([nm,a,b],i)=>{const btn=document.createElement('button');btn.className='preset'+(i===0?' on':'');btn.textContent=nm;
+  btn.onclick=()=>{S.h0=a;S.h1=b;setPreset(btn);refresh();};pWrap.appendChild(btn);});
+function setPreset(btn){pWrap.querySelectorAll('.preset').forEach(p=>p.classList.toggle('on',p===btn));}
+
+/* ============================================================
+   KPIs, anchors, hotspots, report
+   ============================================================ */
+const odos={};
+function odometer(id,val,fmt){
+  const e=document.getElementById(id);const from=odos[id]||0;odos[id]=val;
+  const t0=performance.now(),dur=550;
+  const step=t=>{const p=Math.min(1,(t-t0)/dur),ease=1-Math.pow(1-p,3);
+    e.textContent=fmt(Math.round(from+(val-from)*ease));
+    if(p<1)requestAnimationFrame(step);};
+  requestAnimationFrame(step);
+}
+const REAL_ANCHORS={
+  all:`Real 2025 anchors: <b>64,323</b> street-crime FIRs · <b>~800</b> traffic deaths · SBCA lists <b>500+</b> dangerous buildings, most in Lyari & the old city.<span class="src">Sindh Police / CPLC / SBCA · reported figures</span>`,
+  theft:`Real 2025: <b>17,706</b> phones snatched at gunpoint · <b>6,683</b> vehicles hijacked · <b>70</b> citizens killed resisting robbery (99 in 2024).<span class="src">Sindh Police comparative data, Dawn 1 Jan 2026</span>`,
+  burglary:`House crime rides on the same gangs: <b>39,934</b> vehicles lifted from homes & streets in 2025 (43,382 in 2024). Recoveries stay low — ~80 cars/month.<span class="src">CPLC / AVLC monthly bulletins</span>`,
+  accident:`Real 2025: <b>~800</b> road deaths — <b>169</b> by heavy vehicles to Aug alone (63 trailers · 37 tankers · 34 dumpers · 35 buses). 274 motorcyclists, 179 pedestrians, 68 children among Jan–Jul victims.<span class="src">Sindh Police traffic data / Dawn, Oct 2025</span>`,
+  drain:`Every monsoon, open nullahs and missing manhole covers kill — Orangi, Korangi & Lyari corridors flood first; Jul–Aug drive the yearly spike.<span class="src">KMC monsoon reports · modelled distribution</span>`,
+  fire:`Timber Market, Shershah scrap yards, Machar Colony and garment units in Korangi/Landhi carry the city's worst fire load; winter is peak season.<span class="src">Fire brigade callout patterns · modelled</span>`,
+  collapse:`SBCA has notified <b>500+</b> dangerous buildings — the July 2025 Baghdadi (Lyari) collapse killed <b>27</b>. District South holds the deepest risk stock.<span class="src">SBCA notices / press reporting</span>`
+};
+function renderKPIs(list){
+  odometer('kIncidents',list.length,v=>v.toLocaleString());
+  odometer('kFatal',list.filter(r=>r.sev===3).length,v=>v.toLocaleString());
+  const hh=new Array(24).fill(0);list.forEach(r=>hh[r.hr]++);
+  const pk=hh.indexOf(Math.max(...hh));
+  document.getElementById('kPeak').textContent=list.length?String(pk).padStart(2,'0')+':00':'—';
+  document.getElementById('kPeakD').textContent=list.length?hh[pk]+' incidents at peak':'most incidents';
+  /* trend: current window vs preceding window of equal length */
+  const span=S.m1-S.m0+1, p0=S.m0-span, prev=INCIDENTS.filter(r=>(S.cat==='all'||r.cat===S.cat)&&inHourRange(r.hr)&&geoPass(r)&&r.mi>=p0&&r.mi<S.m0).length;
+  const kt=document.getElementById('kTrend');
+  if(p0<0||!prev){kt.textContent='—';}
+  else{const d=(list.length-prev)/prev*100;kt.textContent=(d>0?'+':'')+d.toFixed(0)+'%';kt.style.color=d>0?'#b93c48':'#2e8f6e';}
+  document.getElementById('kIncidentsD').textContent=scopeName();
+  document.getElementById('scopeHint').textContent=scopeName()+' · '+(S.cat==='all'?'all categories':CATS[S.cat].nm);
+  document.getElementById('anchors').innerHTML=REAL_ANCHORS[S.cat==='all'?'all':S.cat];
+}
+function renderHotspots(list){
+  const by={};list.forEach(r=>{if(!r.area)return;(by[r.area]=by[r.area]||{n:0,f:0,d:r.dist}).n++;if(r.sev===3)by[r.area].f++;});
+  const top=Object.entries(by).sort((a,b)=>b[1].n-a[1].n).slice(0,6);
+  const mx=top.length?top[0][1].n:1;
+  const col=S.cat==='all'?'#1b9ec9':CATS[S.cat].c;
+  document.getElementById('hotList').innerHTML=top.map(([nm,o],i)=>`
+    <button class="hot-item" data-area="${nm}">
+      <span class="hot-rank">${i+1}</span>
+      <span class="hot-info"><span class="n">${nm}</span><span class="s">District ${o.d}${o.f?` · ${o.f} fatal`:''}</span>
+        <span class="hot-bar"><i style="width:${o.n/mx*100}%;background:${col}"></i></span></span>
+      <span class="hot-val" style="color:${col}">${o.n}</span>
+    </button>`).join('')||'<div class="rep-empty">No incidents in this slice.</div>';
+  document.getElementById('hotList').querySelectorAll('.hot-item').forEach(b=>b.onclick=()=>{
+    const A=AREA_OBJS.find(a=>a.n===b.dataset.area);if(!A)return;
+    S.cam={x:A.x-110,y:A.y-70,w:220,h:140};applyCam();toast('Zoomed to '+A.n);
+  });
+}
+function renderReport(list){
+  const R=document.getElementById('report');
+  const name=scopeName();
+  if(!list.length){R.innerHTML='<div class="rep-empty">No incidents match the current slice.</div>';return;}
+  const byCat={};CATKEYS.forEach(k=>byCat[k]=0);list.forEach(r=>byCat[r.cat]++);
+  const fatal=list.filter(r=>r.sev===3).length, inj=list.filter(r=>r.sev===2).length;
+  const mm=new Array(MONTHS.length).fill(0);list.forEach(r=>mm[r.mi]++);
+  let worst=S.m0;for(let i=S.m0;i<=S.m1;i++)if(mm[i]>mm[worst])worst=i;
+  const nightShare=list.filter(r=>r.hr>=19||r.hr<6).length/list.length;
+  const lowLit=list.filter(r=>(r.hr>=19||r.hr<6)&&r.lit<0.4).length;
+  const catBar=CATKEYS.map(k=>`<i style="width:${byCat[k]/list.length*100}%;background:${CATS[k].c}" title="${CATS[k].nm}"></i>`).join('');
+  const tsel=S.selTrailer?`<div class="rep-row"><span class="k">Trailer corridor</span><span class="v">${S.selTrailer} · ${(TRAILER_STATS[S.selTrailer]||{}).d||'–'} deaths '25</span></div>`:'';
+  R.innerHTML=`
+    <div class="rep-cats">${catBar}</div>
+    <div class="rep-row"><span class="k">Scope</span><span class="v">${name}</span></div>
+    <div class="rep-row"><span class="k">Incidents / fatal / injured</span><span class="v mono">${list.length} / ${fatal} / ${inj}</span></div>
+    <div class="rep-row"><span class="k">Worst month</span><span class="v">${MONTHS[worst].lab} (${mm[worst]})</span></div>
+    <div class="rep-row"><span class="k">After-dark share</span><span class="v">${(nightShare*100).toFixed(0)}%</span></div>
+    <div class="rep-row"><span class="k">Night incidents in poorly-lit areas</span><span class="v">${lowLit}</span></div>${tsel}`;
+}
+
+/* ============================================================
+   charts
+   ============================================================ */
+function drawDistChart(list){
+  const cv=document.getElementById('chDist');const r=sizeCanvas(cv);const c=cv.getContext('2d');
+  const names=Object.keys(DISTRICTS);const vals=names.map(n=>list.filter(x=>x.dist===n).length);
+  const mx=Math.max(...vals,1);const bw=(r.width-70)/names.length;
+  c.clearRect(0,0,r.width,r.height);
+  names.forEach((n,i)=>{
+    const h=(r.height-52)*vals[i]/mx,x=44+i*bw;
+    const grad=c.createLinearGradient(0,r.height-30-h,0,r.height-30);
+    const col=S.cat==='all'?'#1b9ec9':CATS[S.cat].c;
+    grad.addColorStop(0,col);grad.addColorStop(1,col+'55');
+    c.fillStyle=grad;roundRect(c,x+6,r.height-30-h,bw-14,h,5);c.fill();
+    c.fillStyle='#5c7884';c.font='10px Inter';c.textAlign='center';
+    c.fillText(n,x+bw/2,r.height-14);
+    c.fillStyle='#14333e';c.font='600 10.5px IBM Plex Mono';
+    c.fillText(vals[i],x+bw/2,r.height-36-h);
+  });
+  /* per-100k line */
+  c.strokeStyle='#d9535f';c.lineWidth=1.6;c.beginPath();
+  names.forEach((n,i)=>{
+    const rate=vals[i]/(DIST_META[n].pop*10); /* per 100k of sample */
+    const y=r.height-30-(r.height-52)*Math.min(1,rate/ (Math.max(...names.map(m=>vals[names.indexOf(m)]/(DIST_META[m].pop*10)))||1));
+    const x=44+i*bw+bw/2;i?c.lineTo(x,y):c.moveTo(x,y);
+  });c.stroke();
+  c.fillStyle='#d9535f';c.font='600 9.5px Inter';c.textAlign='right';c.fillText('— per-capita rate',r.width-14,14);
+}
+function drawMixChart(list){
+  const cv=document.getElementById('chMix');const r=sizeCanvas(cv);const c=cv.getContext('2d');
+  c.clearRect(0,0,r.width,r.height);
+  const cx=r.width*0.32,cy=r.height/2,rad=Math.min(cx,cy)-16;
+  const tot=list.length||1;let a0=-Math.PI/2;
+  CATKEYS.forEach(k=>{
+    const v=list.filter(x=>x.cat===k).length;if(!v)return;
+    const a1=a0+v/tot*Math.PI*2;
+    c.beginPath();c.arc(cx,cy,rad,a0,a1);c.arc(cx,cy,rad*0.62,a1,a0,true);c.closePath();
+    c.fillStyle=CATS[k].c;c.fill();a0=a1;
+  });
+  c.fillStyle='#14333e';c.font='700 20px Bricolage Grotesque';c.textAlign='center';
+  c.fillText(tot.toLocaleString(),cx,cy+2);c.font='10px Inter';c.fillStyle='#5c7884';c.fillText('incidents',cx,cy+16);
+  let ly=r.height/2-CATKEYS.length*11+8;
+  CATKEYS.forEach(k=>{
+    const v=list.filter(x=>x.cat===k).length;
+    c.fillStyle=CATS[k].c;roundRect(c,r.width*0.58,ly-7,9,9,3);c.fill();
+    c.fillStyle='#3c4f57';c.font='10.5px Inter';c.textAlign='left';
+    c.fillText(`${CATS[k].nm} — ${v} (${(v/tot*100).toFixed(0)}%)`,r.width*0.58+15,ly+1);ly+=22;
+  });
+}
+function drawHourChart(list){
+  const cv=document.getElementById('chHour');const r=sizeCanvas(cv);const c=cv.getContext('2d');
+  c.clearRect(0,0,r.width,r.height);
+  const hh=new Array(24).fill(0);list.forEach(x=>hh[x.hr]++);const mx=Math.max(...hh,1);
+  /* night shading */
+  c.fillStyle='rgba(20,51,62,.05)';
+  const bw=(r.width-56)/24;
+  c.fillRect(40,10,6*bw,r.height-42); c.fillRect(40+19*bw,10,5*bw,r.height-42);
+  c.beginPath();
+  hh.forEach((v,h)=>{const x=40+h*bw+bw/2,y=r.height-32-(r.height-52)*v/mx;h?c.lineTo(x,y):c.moveTo(x,y);});
+  c.strokeStyle=S.cat==='all'?'#1b9ec9':CATS[S.cat].c;c.lineWidth=2.2;c.lineJoin='round';c.stroke();
+  c.lineTo(40+23*bw+bw/2,r.height-32);c.lineTo(40+bw/2,r.height-32);c.closePath();
+  c.fillStyle=(S.cat==='all'?'#1b9ec9':CATS[S.cat].c)+'22';c.fill();
+  c.fillStyle='#8aa4ae';c.font='9.5px IBM Plex Mono';c.textAlign='center';
+  for(let h=0;h<24;h+=3)c.fillText(String(h).padStart(2,'0'),40+h*bw+bw/2,r.height-14);
+  c.textAlign='left';c.fillStyle='#5c7884';c.font='9.5px Inter';c.fillText('shaded = after dark',44,18);
+}
+
+/* ============================================================
+   AI brief — local analyst + optional live model
+   ============================================================ */
+function composeBrief(list){
+  const name=scopeName();
+  const catNm=S.cat==='all'?'all six hazard types':CATS[S.cat].nm.toLowerCase();
+  if(!list.length)return `No incidents fall inside ${name} for ${catNm} in ${MONTHS[S.m0].lab}–${MONTHS[S.m1].lab}. Widen the calendar or hour slice to see patterns.`;
+  const byCat={};CATKEYS.forEach(k=>byCat[k]=0);list.forEach(r=>byCat[r.cat]++);
+  const topCat=CATKEYS.reduce((a,b)=>byCat[a]>=byCat[b]?a:b);
+  const hh=new Array(24).fill(0);list.forEach(r=>hh[r.hr]++);const pk=hh.indexOf(Math.max(...hh));
+  const by={};list.forEach(r=>{if(r.area)(by[r.area]=by[r.area]||0),by[r.area]++;});
+  const hot=Object.entries(by).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]);
+  const fatal=list.filter(r=>r.sev===3).length;
+  const night=list.filter(r=>r.hr>=19||r.hr<6);
+  const nightLow=night.filter(r=>r.lit<0.4).length;
+  const mm=new Array(MONTHS.length).fill(0);list.forEach(r=>mm[r.mi]++);
+  let worst=S.m0;for(let i=S.m0;i<=S.m1;i++)if(mm[i]>mm[worst])worst=i;
+  const REC={
+    theft:'Prioritise CPLC phone-IMEI registration drives, police pickets at the named junctions between 19:00–23:00, and streetlight repair requests to KMC for the low-lit segments.',
+    burglary:'Push mohalla-level watch groups and door-camera pooling; burglaries here cluster in the 01:00–05:00 window when lighting and foot traffic collapse.',
+    accident:'Advocate enforcement of the 22:00–06:00 heavy-vehicle window, fitness checks on dumpers/tankers, and physical segregation for motorcyclists on the named corridors.',
+    drain:'Log every open nullah and missing manhole cover with KMC before June; the July–August monsoon multiplies this hazard nearly 3× in the flagged areas.',
+    fire:'Target electrical-load audits and extinguisher placement in the flagged industrial and dense-storage clusters; winter overloading drives the seasonal peak.',
+    collapse:'Cross-check the flagged areas against SBCA dangerous-building notices and press for vacate-and-shore orders before the monsoon, when saturation triggers failures.'
+  };
+  let s=`SAFETY BRIEF — ${name}\n`;
+  s+=`Window: ${MONTHS[S.m0].lab}–${MONTHS[S.m1].lab}, ${(S.h0===0&&S.h1===23)?'all hours':String(S.h0).padStart(2,'0')+':00–'+String(S.h1).padStart(2,'0')+':59'} · Lens: ${catNm}\n\n`;
+  s+=`${list.length} modelled incidents sit in this slice, ${fatal} of them fatal. `;
+  s+=`${CATS[topCat].nm} dominates (${(byCat[topCat]/list.length*100).toFixed(0)}%), peaking around ${String(pk).padStart(2,'0')}:00, and ${MONTHS[worst].lab} was the heaviest month. `;
+  if(hot.length)s+=`Pressure concentrates in ${hot.join(', ')}. `;
+  if(night.length)s+=`${(night.length/list.length*100).toFixed(0)}% of incidents happen after dark, and ${nightLow} of those fall in poorly-lit territory — lighting is part of this map, not background. `;
+  s+=`\n\nWhat HEAL can do here: ${REC[topCat]}`;
+  s+=`\n\n— Modelled demonstration data around real CPLC/Sindh Police anchors.`;
+  return s;
+}
+async function liveBrief(list){
+  const agg={scope:scopeName(),window:MONTHS[S.m0].lab+'–'+MONTHS[S.m1].lab,
+    hours:S.h0+'-'+S.h1,total:list.length,fatal:list.filter(r=>r.sev===3).length,
+    byCat:Object.fromEntries(CATKEYS.map(k=>[k,list.filter(r=>r.cat===k).length])),
+    topAreas:Object.entries(list.reduce((m,r)=>{if(r.area)m[r.area]=(m[r.area]||0)+1;return m;},{})).sort((a,b)=>b[1]-a[1]).slice(0,5)};
+  const resp=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:1000,messages:[{role:'user',content:
+      `You are the safety analyst for Heal Social Foundation's Mahfooz Karachi platform. Write a crisp 120–160 word field brief (plain text, no markdown) for this slice of Karachi safety data, ending with one concrete community action. Data: ${JSON.stringify(agg)}. Context: real 2025 anchors — 64,323 street-crime FIRs, 17,706 phone snatchings, ~800 road deaths incl. 169 by heavy vehicles. Note the data is modelled for demonstration.`}]})});
+  const data=await resp.json();
+  return data.content.filter(b=>b.type==='text').map(b=>b.text).join('\n');
+}
+document.getElementById('aiBtn').addEventListener('click',async function(){
+  const list=filtered();const box=document.getElementById('aiText');
+  this.disabled=true;box.innerHTML='Analysing slice… <span class="cursor"></span>';
+  let text;
+  try{ text=await Promise.race([liveBrief(list),new Promise((_,rej)=>setTimeout(()=>rej('timeout'),9000))]); }
+  catch(e){ text=composeBrief(list); }
+  this.disabled=false;
+  /* typewriter */
+  box.textContent='';let i=0;
+  const tick=()=>{box.textContent=text.slice(0,i+=4);if(i<text.length)requestAnimationFrame(tick);};tick();
+});
+document.getElementById('aiCopy').addEventListener('click',()=>{
+  navigator.clipboard.writeText(document.getElementById('aiText').textContent).then(()=>toast('Brief copied'));
+});
+
+/* ============================================================
+   refresh orchestration + init
+   ============================================================ */
+function refreshMapOnly(){
+  const list=filtered();
+  gDots.style.display=(S.view==='scatter'||S.view==='both')?'':'none';
+  renderDots(list);renderHeat(list);
+}
+function refresh(){
+  const list=filtered();
+  gD.querySelectorAll('.dist').forEach(p=>{
+    const d=p.dataset.d;
+    p.classList.toggle('sel',S.selDistricts.has(d));
+    p.classList.toggle('dim',(S.selDistricts.size&&!S.selDistricts.has(d)));
+  });
+  areaEls.forEach(o=>{o.c.setAttribute('fill',S.selAreas.has(o.A.n)?'#1b9ec9':'#fff');});
+  refreshMapOnly();
+  renderKPIs(list);renderHotspots(list);renderReport(list);renderLegend();
+  drawTimeline();drawHours();updateRailCounts();
+  drawDistChart(list);drawMixChart(list);drawHourChart(list);
+  document.getElementById('aiScope').textContent=scopeName();
+  document.getElementById('aiCat').textContent=S.cat==='all'?'All categories':CATS[S.cat].nm;
+}
+buildRail();applyCam();refresh();
+window.addEventListener('resize',()=>{drawTimeline();const l=filtered();drawDistChart(l);drawMixChart(l);drawHourChart(l);});
+</script>
+</body>
+</html>

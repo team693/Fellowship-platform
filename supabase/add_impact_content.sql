@@ -1,24 +1,34 @@
 -- ============================================================================
--- Heal Digital Impact Internships — Seed (OPTIONAL, for local dev / first run)
--- Migration 0004: one example internship with the four shipped simulations,
--- each mapped to the UN SDGs it covers.
+-- Heal — Load the 4 real simulations into your EXISTING internship.
+-- Paste into the Supabase SQL Editor and Run once. Idempotent.
 --
--- Requires 0006_sdgs.sql to have run first (adds the modules.sdgs column).
--- Safe to run more than once (idempotent on slug / order_index).
+-- What it does:
+--   1. Adds the modules.sdgs column (if missing).
+--   2. Renames the internship to "Applied AI Impact Internship".
+--   3. Removes the two placeholder demo modules.
+--   4. Inserts the four simulations, each mapped to its UN SDGs.
+--
+-- The simulation HTML files must be deployed under public/simulations/
+-- (they are, once this branch is deployed).
 -- ============================================================================
 
-insert into public.fellowships (slug, title, description, locale, cover_color, is_published)
-values (
-  'ai-governance',
-  'Applied AI Impact Internship',
-  'Work through real-world impact simulations mapped to the UN Sustainable Development Goals — water intelligence, public health, urban safety, and the future of work — then apply what you learn. Earn a verifiable Impact Certification.',
-  'en',
-  '#0f8b80',
-  true
-)
-on conflict (slug) do nothing;
+-- 1. SDG column.
+alter table public.modules
+  add column if not exists sdgs smallint[] not null default '{}';
 
--- Simulation modules (all engagement-based dashboards/simulations).
+-- 2. Rename the internship (no "digital" on the certificate).
+update public.fellowships
+   set title = 'Applied AI Impact Internship'
+ where slug = 'ai-governance';
+
+-- 3. Remove the placeholder demo modules (frees order_index 0 and 1).
+delete from public.modules m
+using public.fellowships f
+where m.fellowship_id = f.id
+  and f.slug = 'ai-governance'
+  and m.asset_path in ('example-explore.html', 'example-assessed.html');
+
+-- 4. Insert the four simulations.
 insert into public.modules
   (fellowship_id, title, description, type, order_index, asset_path, completion_rule, completion_config, is_required, sdgs)
 select f.id, m.title, m.description, m.type, m.order_index, m.asset_path,

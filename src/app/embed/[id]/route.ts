@@ -128,7 +128,9 @@ function selfHostCdnAssets(html: string): string {
         /https?:\/\/fonts\.googleapis\.com\/css2?\?[^"')]*/g,
         "/fonts/fonts.css",
       )
-      // Google Fonts preconnect/hosts we no longer need.
+      // Neutralise remaining Google Fonts hosts (e.g. preconnect hints) so the
+      // module makes zero outbound font requests at runtime.
+      .replace(/https?:\/\/fonts\.googleapis\.com/g, "/fonts")
       .replace(/https?:\/\/fonts\.gstatic\.com/g, "/fonts")
       // D3 from the common CDNs -> self-hosted copy.
       .replace(
@@ -141,5 +143,15 @@ function selfHostCdnAssets(html: string): string {
       )
       .replace(/https?:\/\/cdn\.jsdelivr\.net\/npm\/d3[^"']*/g, "/vendor/d3.min.js")
       .replace(/https?:\/\/unpkg\.com\/d3[^"']*/g, "/vendor/d3.min.js")
+      // Three.js from the common CDNs -> self-hosted copy.
+      .replace(
+        /https?:\/\/cdnjs\.cloudflare\.com\/ajax\/libs\/three\.js\/[^"']*?three(?:\.min)?\.js/g,
+        "/vendor/three.min.js",
+      )
+      .replace(
+        /https?:\/\/cdn\.jsdelivr\.net\/npm\/three[^"']*?(?:three(?:\.min)?\.js|build\/three(?:\.module)?\.js)/g,
+        "/vendor/three.min.js",
+      )
+      .replace(/https?:\/\/unpkg\.com\/three[^"']*?three(?:\.min)?\.js/g, "/vendor/three.min.js")
   );
 }

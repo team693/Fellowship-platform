@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { AppHeader } from "@/components/app-header";
+import { SdgChips, SdgCoverage } from "@/components/sdg-badges";
 import { requireUser, getProfile } from "@/lib/auth";
 import { ensureOpenAccessEnrollments } from "@/lib/access";
 import { createClient } from "@/lib/supabase/server";
@@ -75,6 +76,19 @@ export default async function FellowshipPage({
     : 0;
   const allDone = required.length > 0 && completedRequired === required.length;
 
+  // SDG coverage: all SDGs in the internship vs. those the student has covered
+  // (via completed modules).
+  const allSdgs = [
+    ...new Set(modules.flatMap((m) => m.sdgs ?? [])),
+  ].sort((a, b) => a - b);
+  const coveredSdgs = [
+    ...new Set(
+      modules
+        .filter((m) => progressByModule.get(m.id)?.status === "completed")
+        .flatMap((m) => m.sdgs ?? []),
+    ),
+  ].sort((a, b) => a - b);
+
   return (
     <div className="min-h-dvh">
       <AppHeader profile={profile} />
@@ -126,6 +140,13 @@ export default async function FellowshipPage({
           )}
         </div>
 
+        {/* SDG coverage */}
+        {allSdgs.length > 0 && (
+          <div className="mt-4 rounded-2xl border border-surface-muted bg-white p-5 shadow-card">
+            <SdgCoverage allSdgs={allSdgs} coveredSdgs={coveredSdgs} />
+          </div>
+        )}
+
         {/* Modules */}
         <ol className="mt-8 space-y-3">
           {modules.map((mod, i) => {
@@ -159,6 +180,11 @@ export default async function FellowshipPage({
                       )}
                     </div>
                     <p className="mt-1 truncate font-semibold text-ink">{mod.title}</p>
+                    {mod.sdgs && mod.sdgs.length > 0 && (
+                      <div className="mt-2">
+                        <SdgChips sdgs={mod.sdgs} size="xs" />
+                      </div>
+                    )}
                   </div>
                   <span className="shrink-0 text-sm font-medium text-ink-muted">
                     {done ? "Completed" : started ? "In progress" : "Start"}

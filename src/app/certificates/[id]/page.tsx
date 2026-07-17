@@ -44,7 +44,7 @@ export default async function CertificatePage({
         <div className="mt-4 overflow-hidden rounded-3xl border border-surface-muted bg-white shadow-lift">
           <div className="bg-heal-gradient px-8 py-6 text-white">
             <p className="font-mono text-xs uppercase tracking-widest text-white/80">
-              Certificate of Completion
+              Impact Certification
             </p>
             <h1 className="mt-2 text-3xl font-extrabold">{cert.recipient_name}</h1>
             <p className="mt-1 text-white/90">{cert.fellowship_title}</p>

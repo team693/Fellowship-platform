@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ActionForm } from "@/components/admin/action-form";
+import { SdgChips } from "@/components/sdg-badges";
 import {
   createModule,
   deleteModule,
@@ -76,6 +77,11 @@ export default async function AdminFellowshipDetailPage({
                         )}
                       </div>
                       <p className="mt-1 font-semibold">{mod.title}</p>
+                      {mod.sdgs && mod.sdgs.length > 0 && (
+                        <div className="mt-1">
+                          <SdgChips sdgs={mod.sdgs} size="xs" />
+                        </div>
+                      )}
                       <p className="font-mono text-xs text-ink-muted">
                         {mod.asset_path}
                         {mod.completion_rule === "engagement" && config.min_seconds != null
@@ -167,6 +173,17 @@ export default async function AdminFellowshipDetailPage({
                     <label className="label" htmlFor="m_pass">Pass score (reported)</label>
                     <input id="m_pass" name="pass_score" type="number" min={0} max={100} defaultValue={70} className="input" />
                   </div>
+                </div>
+                <div>
+                  <label className="label" htmlFor="m_sdgs">
+                    UN SDGs (comma-separated, e.g. 3,6,11)
+                  </label>
+                  <input
+                    id="m_sdgs"
+                    name="sdgs"
+                    className="input font-mono"
+                    placeholder="3, 6, 11"
+                  />
                 </div>
                 <label className="flex items-center gap-2 text-sm">
                   <input type="checkbox" name="is_required" defaultChecked /> Required for certificate
