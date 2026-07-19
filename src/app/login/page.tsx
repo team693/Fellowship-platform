@@ -7,9 +7,10 @@ import { LoginForm } from "./login-form";
 export const metadata = { title: "Sign in" };
 
 export default async function LoginPage() {
-  // Already signed in? Skip the form.
+  // Already signed in with a REAL account? Skip the form. Guests (anonymous
+  // sessions) still see it, so they can upgrade to a real account / Google.
   const user = await getCurrentUser();
-  if (user) redirect("/dashboard");
+  if (user && !user.is_anonymous) redirect("/dashboard");
 
   return (
     <div className="grid min-h-dvh lg:grid-cols-2">
@@ -40,6 +41,12 @@ export default async function LoginPage() {
           <p className="mt-1 text-ink-soft">
             Use a magic link or your Google account.
           </p>
+          {user?.is_anonymous && (
+            <p className="mt-3 rounded-lg bg-gold-50 px-3 py-2 text-sm text-gold-900">
+              You&apos;re browsing as a guest. Sign in to save your progress and
+              earn your certificate.
+            </p>
+          )}
 
           <Suspense
             fallback={<div className="mt-6 h-40 animate-pulse rounded-xl bg-surface-muted" />}
