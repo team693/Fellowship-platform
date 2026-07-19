@@ -63,43 +63,61 @@ export default async function ModulePage({
     typeof config.pass_score === "number" ? config.pass_score : null;
 
   const fellowshipHref = `/fellowships/${mod.fellowship_id}`;
+  const nextHref = nextModule ? `/modules/${nextModule.id}` : null;
 
-  return (
-    <div className="min-h-dvh">
-      <AppHeader profile={profile} />
-      <main className="mx-auto max-w-4xl px-6 py-8">
-        <Link href={fellowshipHref} className="text-sm text-ink-muted hover:text-ink">
-          ← {fellowship?.title ?? "Internship"}
-        </Link>
-
-        <div className="mb-6 mt-3">
-          <h1 className="text-2xl font-extrabold">{mod.title}</h1>
-          {mod.description && (
-            <p className="mt-1 max-w-2xl text-ink-soft">{mod.description}</p>
-          )}
-        </div>
-
-        {mod.kind === "activity" ? (
+  // Native activities scroll (long question lists) — keep the standard layout.
+  if (mod.kind === "activity") {
+    return (
+      <div className="min-h-dvh">
+        <AppHeader profile={profile} />
+        <main className="mx-auto max-w-4xl px-6 py-8">
+          <Link href={fellowshipHref} className="text-sm text-ink-muted hover:text-ink">
+            ← {fellowship?.title ?? "Internship"}
+          </Link>
+          <div className="mb-6 mt-3">
+            <h1 className="text-2xl font-extrabold">{mod.title}</h1>
+            {mod.description && (
+              <p className="mt-1 max-w-2xl text-ink-soft">{mod.description}</p>
+            )}
+          </div>
           <ActivityRunner
             moduleId={mod.id}
-            nextHref={nextModule ? `/modules/${nextModule.id}` : null}
+            nextHref={nextHref}
             fellowshipHref={fellowshipHref}
             alreadyCompleted={progress?.status === "completed"}
           />
-        ) : (
-          <ModuleEmbed
-            moduleId={mod.id}
-            title={mod.title}
-            completionRule={mod.completion_rule}
-            minSeconds={minSeconds}
-            passScore={passScore}
-            initialStatus={progress?.status ?? null}
-            initialScore={progress?.score ?? null}
-            nextHref={nextModule ? `/modules/${nextModule.id}` : null}
-            fellowshipHref={fellowshipHref}
-          />
-        )}
-      </main>
+        </main>
+      </div>
+    );
+  }
+
+  // Embedded sims: full-viewport player, no leftover page scroll.
+  return (
+    <div className="flex h-dvh flex-col overflow-hidden">
+      <AppHeader profile={profile} />
+      <div className="flex shrink-0 items-center gap-2 border-b border-surface-muted bg-white px-4 py-2">
+        <Link
+          href={fellowshipHref}
+          className="shrink-0 text-sm text-ink-muted hover:text-ink"
+        >
+          ← {fellowship?.title ?? "Internship"}
+        </Link>
+        <span className="text-ink-muted">/</span>
+        <h1 className="truncate font-semibold text-ink">{mod.title}</h1>
+      </div>
+      <div className="min-h-0 flex-1">
+        <ModuleEmbed
+          moduleId={mod.id}
+          title={mod.title}
+          completionRule={mod.completion_rule}
+          minSeconds={minSeconds}
+          passScore={passScore}
+          initialStatus={progress?.status ?? null}
+          initialScore={progress?.score ?? null}
+          nextHref={nextHref}
+          fellowshipHref={fellowshipHref}
+        />
+      </div>
     </div>
   );
 }
