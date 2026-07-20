@@ -69,8 +69,8 @@ export async function issueCertificateIfEligible(
   ]);
 
   const recipientName =
-    profile?.full_name?.trim() || profile?.email || "Internship Participant";
-  const fellowshipTitle = fellowship?.title || "Heal Impact Internship";
+    profile?.full_name?.trim() || profile?.email || "Solutions Builder";
+  const fellowshipTitle = fellowship?.title || "IESP";
 
   const { data: inserted, error } = await admin
     .from("certificates")

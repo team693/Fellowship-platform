@@ -15,8 +15,8 @@ export default async function AdminFellowshipsPage() {
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
       <div>
-        <h1 className="text-2xl font-extrabold">Internships</h1>
-        <p className="mt-1 text-ink-soft">Create internships and manage their modules.</p>
+        <h1 className="text-2xl font-extrabold">Programs</h1>
+        <p className="mt-1 text-ink-soft">Create programs and manage their modules.</p>
 
         <div className="mt-6 space-y-3">
           {fellowships.map((f) => (
@@ -41,14 +41,14 @@ export default async function AdminFellowshipsPage() {
             </Link>
           ))}
           {fellowships.length === 0 && (
-            <div className="card text-center text-ink-muted">No internships yet.</div>
+            <div className="card text-center text-ink-muted">No programs yet.</div>
           )}
         </div>
       </div>
 
       <aside>
         <div className="card">
-          <h2 className="text-lg font-bold">New internship</h2>
+          <h2 className="text-lg font-bold">New program</h2>
           <ActionForm action={createFellowship} submitLabel="Create" className="mt-4">
             <div className="space-y-3">
               <div>

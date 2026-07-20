@@ -30,7 +30,7 @@ export function SdgChips({
 }
 
 /**
- * SDG coverage panel: shows every SDG in the internship, highlighting the ones
+ * SDG coverage panel: shows every SDG in the program, highlighting the ones
  * the student has already covered (via completed modules).
  */
 export function SdgCoverage({

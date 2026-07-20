@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { HealLogo } from "@/components/brand";
 import { GuestButton } from "@/components/guest-button";
+import { TrustFooter } from "@/components/trust-footer";
 import { getCurrentUser } from "@/lib/auth";
 
 export default async function LandingPage() {
@@ -12,6 +13,9 @@ export default async function LandingPage() {
       <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
         <HealLogo />
         <nav className="flex items-center gap-3">
+          <Link href="/pricing" className="btn-ghost hidden sm:inline-flex">
+            Pricing
+          </Link>
           {user ? (
             <Link href="/dashboard" className="btn-primary">
               Go to dashboard
@@ -34,10 +38,10 @@ export default async function LandingPage() {
         <div className="mx-auto grid max-w-6xl gap-10 px-6 pb-16 pt-10 lg:grid-cols-2 lg:pt-20">
           <div className="flex flex-col justify-center">
             <span className="badge w-fit bg-mint-100 text-mint-800">
-              Impact Simulations · Case Studies · UN SDGs
+              IESP · Impact Simulations · Case Studies · UN SDGs
             </span>
             <h1 className="mt-4 text-4xl font-extrabold leading-[1.05] sm:text-5xl lg:text-6xl">
-              The Digital Impact Internship for{" "}
+              The Immersive Experience &amp; Simulation Program for{" "}
               <span className="bg-heal-gradient bg-clip-text text-transparent">
                 real-world change
               </span>
@@ -49,7 +53,7 @@ export default async function LandingPage() {
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link href="/login" className="btn-primary px-5 py-3 text-base">
-                Start your internship
+                Become a Solutions Builder
               </Link>
               <GuestButton
                 className="btn-ghost px-5 py-3 text-base"
@@ -71,7 +75,7 @@ export default async function LandingPage() {
                     Impact Certification
                   </p>
                   <p className="mt-6 font-display text-2xl font-bold">
-                    Applied AI Impact Internship
+                    IESP Solutions Builder
                   </p>
                   <p className="mt-1 text-white/80">Heal Social Foundation</p>
                 </div>
@@ -122,6 +126,9 @@ export default async function LandingPage() {
           <HealLogo href={null} />
           <p>© {new Date().getFullYear()} Heal Social Foundation</p>
           <div className="flex gap-4">
+            <Link href="/pricing" className="hover:text-ink">
+              Pricing
+            </Link>
             <Link href="/verify" className="hover:text-ink">
               Verify a certificate
             </Link>
@@ -130,6 +137,7 @@ export default async function LandingPage() {
             </Link>
           </div>
         </div>
+        <TrustFooter />
       </footer>
     </div>
   );

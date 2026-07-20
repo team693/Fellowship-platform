@@ -22,7 +22,7 @@ export default async function LoginPage() {
             Learn deeply. Earn a certificate the world can verify.
           </h1>
           <p className="mt-4 max-w-md text-white/80">
-            Sign in to continue your internship, track your progress, and
+            Sign in to continue your program, track your progress, and
             download your verifiable certificate.
           </p>
         </div>
@@ -56,7 +56,7 @@ export default async function LoginPage() {
 
           <p className="mt-6 text-center text-sm text-ink-muted">
             New here? Signing in creates your account automatically and unlocks
-            your internships.
+            your programs.
           </p>
         </div>
       </div>

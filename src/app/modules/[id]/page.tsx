@@ -6,7 +6,8 @@ import { ActivityRunner } from "@/components/activity-runner";
 import { requireUser, getProfile } from "@/lib/auth";
 import { ensureOpenAccessEnrollments } from "@/lib/access";
 import { createClient } from "@/lib/supabase/server";
-import type { CompletionConfig, Fellowship, Module, Progress } from "@/lib/types";
+import { getEffectiveModuleContent } from "@/lib/route-lens";
+import type { CompletionConfig, Fellowship, Module, ModuleVariant, Progress } from "@/lib/types";
 
 export const metadata = { title: "Module" };
 
@@ -30,7 +31,7 @@ export default async function ModulePage({
   const mod = moduleRow as Module | null;
   if (!mod) notFound();
 
-  const [{ data: fellowshipRow }, { data: siblingRows }, { data: progressRow }] =
+  const [{ data: fellowshipRow }, { data: siblingRows }, { data: progressRow }, { data: variantRows }] =
     await Promise.all([
       supabase
         .from("fellowships")
@@ -47,11 +48,20 @@ export default async function ModulePage({
         .select("*")
         .eq("module_id", id)
         .maybeSingle(),
+      supabase
+        .from("module_variants")
+        .select("lens_id, title, description, asset_path")
+        .eq("module_id", id),
     ]);
 
   const fellowship = fellowshipRow as Pick<Fellowship, "id" | "title"> | null;
   const siblings = (siblingRows as Pick<Module, "id" | "order_index">[]) ?? [];
   const progress = progressRow as Progress | null;
+  const variants = (variantRows as Pick<ModuleVariant, "lens_id" | "title" | "description" | "asset_path">[]) ?? [];
+
+  // A lens-specific content override, if one has been authored; otherwise the
+  // module's own base fields (see src/lib/route-lens.ts for the fallback rule).
+  const effective = getEffectiveModuleContent(mod, variants, profile?.lens_id ?? null);
 
   const idx = siblings.findIndex((s) => s.id === id);
   const nextModule = idx >= 0 && idx < siblings.length - 1 ? siblings[idx + 1] : null;
@@ -72,12 +82,12 @@ export default async function ModulePage({
         <AppHeader profile={profile} />
         <main className="mx-auto max-w-4xl px-6 py-8">
           <Link href={fellowshipHref} className="text-sm text-ink-muted hover:text-ink">
-            ← {fellowship?.title ?? "Internship"}
+            ← {fellowship?.title ?? "Program"}
           </Link>
           <div className="mb-6 mt-3">
-            <h1 className="text-2xl font-extrabold">{mod.title}</h1>
-            {mod.description && (
-              <p className="mt-1 max-w-2xl text-ink-soft">{mod.description}</p>
+            <h1 className="text-2xl font-extrabold">{effective.title}</h1>
+            {effective.description && (
+              <p className="mt-1 max-w-2xl text-ink-soft">{effective.description}</p>
             )}
           </div>
           <ActivityRunner
@@ -100,15 +110,15 @@ export default async function ModulePage({
           href={fellowshipHref}
           className="shrink-0 text-sm text-ink-muted hover:text-ink"
         >
-          ← {fellowship?.title ?? "Internship"}
+          ← {fellowship?.title ?? "Program"}
         </Link>
         <span className="text-ink-muted">/</span>
-        <h1 className="truncate font-semibold text-ink">{mod.title}</h1>
+        <h1 className="truncate font-semibold text-ink">{effective.title}</h1>
       </div>
       <div className="min-h-0 flex-1">
         <ModuleEmbed
           moduleId={mod.id}
-          title={mod.title}
+          title={effective.title}
           completionRule={mod.completion_rule}
           minSeconds={minSeconds}
           passScore={passScore}

@@ -9,7 +9,7 @@ import {
   reorderModule,
   updateFellowship,
 } from "../../actions";
-import type { CompletionConfig, Fellowship, Module } from "@/lib/types";
+import type { CompletionConfig, Fellowship, Module, Route } from "@/lib/types";
 
 export default async function AdminFellowshipDetailPage({
   params,
@@ -27,17 +27,22 @@ export default async function AdminFellowshipDetailPage({
   const fellowship = fellowshipRow as Fellowship | null;
   if (!fellowship) notFound();
 
-  const { data: moduleRows } = await supabase
-    .from("modules")
-    .select("*")
-    .eq("fellowship_id", id)
-    .order("order_index", { ascending: true });
+  const [{ data: moduleRows }, { data: routeRows }] = await Promise.all([
+    supabase
+      .from("modules")
+      .select("*")
+      .eq("fellowship_id", id)
+      .order("order_index", { ascending: true }),
+    supabase.from("routes").select("*").order("sort_order", { ascending: true }),
+  ]);
   const modules = (moduleRows as Module[]) ?? [];
+  const routes = (routeRows as Route[]) ?? [];
+  const routeById = new Map(routes.map((r) => [r.id, r]));
 
   return (
     <div>
       <Link href="/admin/fellowships" className="text-sm text-ink-muted hover:text-ink">
-        ← Internships
+        ← Programs
       </Link>
       <h1 className="mt-2 text-2xl font-extrabold">{fellowship.title}</h1>
       <p className="mt-1 text-ink-soft">
@@ -74,6 +79,11 @@ export default async function AdminFellowshipDetailPage({
                         </span>
                         {!mod.is_required && (
                           <span className="badge bg-surface-muted text-ink-muted">optional</span>
+                        )}
+                        {mod.route_id && routeById.get(mod.route_id) && (
+                          <span className="badge bg-gold-50 text-gold-800">
+                            {routeById.get(mod.route_id)!.title}
+                          </span>
                         )}
                       </div>
                       <p className="mt-1 font-semibold">{mod.title}</p>
@@ -206,6 +216,17 @@ export default async function AdminFellowshipDetailPage({
                     className="input font-mono"
                     placeholder="3, 6, 11"
                   />
+                </div>
+                <div>
+                  <label className="label" htmlFor="m_route">
+                    Route (which real-world problem this module represents)
+                  </label>
+                  <select id="m_route" name="route_id" className="input">
+                    <option value="">None</option>
+                    {routes.map((r) => (
+                      <option key={r.id} value={r.id}>{r.title}</option>
+                    ))}
+                  </select>
                 </div>
                 <label className="flex items-center gap-2 text-sm">
                   <input type="checkbox" name="is_required" defaultChecked /> Required for certificate

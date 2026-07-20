@@ -105,7 +105,7 @@ export async function generateCertificatePdf(
   });
 
   drawCentered(
-    "has successfully completed the impact internship",
+    "has successfully completed the program",
     height - 306,
     13,
     reg,
@@ -195,7 +195,7 @@ export async function generateCertificatePdf(
     font: bold,
     color: BRAND.ink,
   });
-  page.drawText("Impact Internships Programme", {
+  page.drawText("IESP Programme", {
     x: sigRight - sigW,
     y: qrY + 10,
     size: 9,

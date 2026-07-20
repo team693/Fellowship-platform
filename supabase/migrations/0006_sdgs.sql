@@ -1,5 +1,5 @@
 -- ============================================================================
--- Heal Digital Impact Internships — SDG mapping
+-- IESP — SDG mapping
 -- Migration 0006: tag each module with the UN Sustainable Development Goals it
 -- covers, so students can see which SDGs they are progressing through.
 -- ============================================================================

@@ -5,9 +5,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 /**
  * OPEN ACCESS (launch phase).
  *
- * For now, any signed-in user can access every PUBLISHED internship — no seat
+ * For now, any signed-in user can access every PUBLISHED program — no seat
  * code or payment required. We implement this by auto-enrolling the user into
- * published internships, so the rest of the pipeline (module access via RLS,
+ * published programs, so the rest of the pipeline (module access via RLS,
  * server-validated progress, certificate issuance) keeps working unchanged.
  *
  * The seat-code system stays fully intact underneath. When paid access is
@@ -19,7 +19,7 @@ export function isOpenAccess(): boolean {
 }
 
 /**
- * Ensures the user is enrolled in every published internship (idempotent).
+ * Ensures the user is enrolled in every published program (idempotent).
  * No-op when open access is disabled. Uses the service role because enrollments
  * are created server-side only (there is no client write policy).
  */

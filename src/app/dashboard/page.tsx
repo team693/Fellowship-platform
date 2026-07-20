@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { AppHeader } from "@/components/app-header";
 import { requireUser, getProfile } from "@/lib/auth";
 import { ensureOpenAccessEnrollments } from "@/lib/access";
@@ -10,9 +11,11 @@ export const metadata = { title: "Dashboard" };
 export default async function DashboardPage() {
   const user = await requireUser();
   const isGuest = !!user.is_anonymous;
-  // Launch phase: auto-enroll signed-in users into published internships.
+  // Launch phase: auto-enroll signed-in users into published programs.
   await ensureOpenAccessEnrollments(user.id);
   const profile = await getProfile();
+  // Onboarding (lens + route) is required before entering the program.
+  if (profile && (!profile.route_id || !profile.lens_id)) redirect("/onboarding");
   const supabase = await createClient();
 
   // RLS ensures every query below only returns the current user's rows.
@@ -67,7 +70,7 @@ export default async function DashboardPage() {
             <h1 className="text-3xl font-extrabold">
               Welcome{profile?.full_name ? `, ${profile.full_name.split(" ")[0]}` : ""}
             </h1>
-            <p className="mt-1 text-ink-soft">Your internships and progress.</p>
+            <p className="mt-1 text-ink-soft">Your programs and progress.</p>
           </div>
         </div>
 
@@ -97,9 +100,9 @@ function EmptyState() {
       <div className="grid h-14 w-14 place-items-center rounded-2xl bg-heal-gradient text-2xl text-white">
         🎓
       </div>
-      <h2 className="mt-4 text-xl font-bold">No internships available yet</h2>
+      <h2 className="mt-4 text-xl font-bold">No programs available yet</h2>
       <p className="mt-1 max-w-md text-ink-soft">
-        Your internships will appear here as soon as they&apos;re published.
+        Your programs will appear here as soon as they&apos;re published.
         Check back soon.
       </p>
     </div>

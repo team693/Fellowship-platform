@@ -24,10 +24,10 @@ export default async function CompleteFellowshipPage({
   }
 
   const messages: Record<string, string> = {
-    not_enrolled: "You're not enrolled in this internship yet.",
+    not_enrolled: "You're not enrolled in this program yet.",
     incomplete:
       "You haven't completed all the required modules yet. Finish them to earn your certificate.",
-    no_required_modules: "This internship has no required modules configured.",
+    no_required_modules: "This program has no required modules configured.",
   };
 
   return (
@@ -44,7 +44,7 @@ export default async function CompleteFellowshipPage({
               "We couldn't issue your certificate yet."}
           </p>
           <Link href={`/fellowships/${id}`} className="btn-primary mt-6">
-            Back to internship
+            Back to program
           </Link>
         </div>
       </main>

@@ -166,7 +166,7 @@ export function ActivityRunner({
                 </Link>
               ) : result.passed ? (
                 <Link href={fellowshipHref} className="btn-primary">
-                  Back to internship
+                  Back to program
                 </Link>
               ) : (
                 <button className="btn-ghost" onClick={() => setResult(null)}>

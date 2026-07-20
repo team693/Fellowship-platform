@@ -21,7 +21,7 @@ export default async function RedeemPage() {
           <h1 className="mt-3 text-2xl font-extrabold">Redeem your seat code</h1>
           <p className="mt-1 text-ink-soft">
             Enter the code your partner organisation gave you to unlock your
-            internship. There&apos;s no payment — your seat is already sponsored.
+            program. There&apos;s no payment — your seat is already sponsored.
           </p>
 
           <div className="mt-6">

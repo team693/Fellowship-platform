@@ -51,6 +51,7 @@ export async function updateSession(request: NextRequest) {
 
   const isPublic =
     pathname === "/" ||
+    pathname.startsWith("/pricing") ||
     pathname.startsWith("/login") ||
     pathname.startsWith("/auth") ||
     pathname.startsWith("/verify") ||

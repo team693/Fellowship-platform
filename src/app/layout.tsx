@@ -4,18 +4,18 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: {
-    default: "Heal Digital Impact Internships",
-    template: "%s · Heal Digital Impact Internships",
+    default: "IESP — Heal Social Foundation",
+    template: "%s · IESP",
   },
   description:
-    "The Digital Impact Internship — impact simulations, case studies, and real-world applications mapped to the UN SDGs. Earn a verifiable Impact Certification.",
+    "IESP — the Immersive Experience & Simulation Program. Impact simulations, case studies, and real-world applications mapped to the UN SDGs. Earn a verifiable Impact Certification.",
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
   ),
   openGraph: {
-    title: "Heal Digital Impact Internships",
+    title: "IESP — Heal Social Foundation",
     description:
-      "Impact simulations, case studies & real-world applications mapped to the UN SDGs — with a verifiable Impact Certification.",
+      "The Immersive Experience & Simulation Program — impact simulations, case studies & real-world applications mapped to the UN SDGs — with a verifiable Impact Certification.",
     type: "website",
   },
 };

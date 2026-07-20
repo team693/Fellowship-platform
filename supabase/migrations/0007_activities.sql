@@ -1,5 +1,5 @@
 -- ============================================================================
--- Heal Digital Impact Internships — Native server-graded activities
+-- IESP — Native server-graded activities
 -- Migration 0007: case studies / quizzes / matching / drag-order / math / essay.
 --
 -- Integrity model:

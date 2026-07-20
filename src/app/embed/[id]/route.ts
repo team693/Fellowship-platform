@@ -50,8 +50,27 @@ export async function GET(
     return new NextResponse("Module not found or access denied", { status: 403 });
   }
 
+  // If the learner has a lens picked and a lens-specific asset override has
+  // been authored for this module, serve that instead of the base asset —
+  // same fallback rule as src/lib/route-lens.ts.
+  let assetPath = mod.asset_path;
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("lens_id")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (profile?.lens_id) {
+    const { data: variant } = await supabase
+      .from("module_variants")
+      .select("asset_path")
+      .eq("module_id", mod.id)
+      .eq("lens_id", profile.lens_id)
+      .maybeSingle();
+    if (variant?.asset_path) assetPath = variant.asset_path;
+  }
+
   // Validate the asset filename to prevent any path shenanigans.
-  if (!/^[a-zA-Z0-9._-]+\.html$/.test(mod.asset_path)) {
+  if (!/^[a-zA-Z0-9._-]+\.html$/.test(assetPath)) {
     return new NextResponse("Invalid module asset", { status: 400 });
   }
 
@@ -59,7 +78,7 @@ export async function GET(
   // (rather than fs) works reliably on Vercel where public assets live on the
   // CDN, not in the serverless function's filesystem.
   const origin = new URL(request.url).origin;
-  const assetRes = await fetch(`${origin}/simulations/${mod.asset_path}`, {
+  const assetRes = await fetch(`${origin}/simulations/${assetPath}`, {
     cache: "no-store",
   });
   if (!assetRes.ok) {

@@ -9,7 +9,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   code_used: "That code has already been redeemed by someone else.",
   code_revoked: "That code has been revoked. Contact your partner for a new one.",
   no_seats: "Your partner's seats are all used up. Contact them for more.",
-  already_enrolled: "You already have access to this internship.",
+  already_enrolled: "You already have access to this program.",
 };
 
 export type RedeemResult =

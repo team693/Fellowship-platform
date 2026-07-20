@@ -1,5 +1,7 @@
+import Link from "next/link";
 import { AppHeader } from "@/components/app-header";
 import { requireUser, getProfile } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 import { AccountForm } from "./account-form";
 import { SpotlightSection } from "./spotlight-section";
 import { getSpotlightProfile } from "./spotlight-data";
@@ -12,6 +14,16 @@ export default async function ProfilePage() {
   if (!profile) return null;
 
   const { spotlight, photoUrl } = await getSpotlightProfile();
+
+  const supabase = await createClient();
+  const [{ data: route }, { data: lens }] = await Promise.all([
+    profile.route_id
+      ? supabase.from("routes").select("title").eq("id", profile.route_id).maybeSingle()
+      : Promise.resolve({ data: null }),
+    profile.lens_id
+      ? supabase.from("lenses").select("title").eq("id", profile.lens_id).maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
 
   return (
     <div className="min-h-dvh">
@@ -28,6 +40,20 @@ export default async function ProfilePage() {
             Your name and language preference.
           </p>
           <AccountForm profile={profile} />
+        </section>
+
+        <section className="card mt-6">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-lg font-bold">Your problem &amp; lens</h2>
+              <p className="mt-1 text-sm text-ink-soft">
+                {route?.title ?? "Not chosen yet"} · {lens?.title ?? "Not chosen yet"}
+              </p>
+            </div>
+            <Link href="/onboarding?edit=1" className="btn-ghost">
+              Change
+            </Link>
+          </div>
         </section>
 
         <SpotlightSection

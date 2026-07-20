@@ -1,7 +1,7 @@
 -- ============================================================================
--- Heal Digital Impact Internships — Seed (OPTIONAL, for local dev / first run)
--- Migration 0004: one example internship with the four shipped simulations,
--- each mapped to the UN SDGs it covers.
+-- IESP (Immersive Experience & Simulation Program) — Seed (OPTIONAL, for local
+-- dev / first run). Migration 0004: one example program with the four shipped
+-- simulations, each mapped to the UN SDGs it covers.
 --
 -- Requires 0006_sdgs.sql to have run first (adds the modules.sdgs column).
 -- Safe to run more than once (idempotent on slug / order_index).
@@ -10,8 +10,8 @@
 insert into public.fellowships (slug, title, description, locale, cover_color, is_published)
 values (
   'ai-governance',
-  'Applied AI Impact Internship',
-  'Work through real-world impact simulations mapped to the UN Sustainable Development Goals — water intelligence, public health, urban safety, and the future of work — then apply what you learn. Earn a verifiable Impact Certification.',
+  'IESP',
+  'Work through real-world impact simulations mapped to the UN Sustainable Development Goals — water intelligence, public health, urban safety, and the future of work — then apply what you learn. Earn a verifiable Impact Certification as a Solutions Builder.',
   'en',
   '#0f8b80',
   true

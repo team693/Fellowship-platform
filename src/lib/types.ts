@@ -33,8 +33,48 @@ export interface Profile {
   full_name: string | null;
   locale: Locale;
   role: UserRole;
+  /** Onboarding picks — the problem domain and the learner's discipline. */
+  route_id: string | null;
+  lens_id: string | null;
   created_at: string;
   updated_at: string;
+}
+
+/**
+ * Route = the real Karachi problem a learner works on. Lens = the learner's
+ * discipline. Both are extensible lookup tables (rows, not enums) so a 5th
+ * route or a new lens can be added later with zero schema change.
+ */
+export interface Route {
+  id: string;
+  key: string;
+  title: string;
+  description: string | null;
+  tool_asset_path: string | null;
+  sort_order: number;
+  is_active: boolean;
+}
+
+export interface Lens {
+  id: string;
+  key: string;
+  title: string;
+  description: string | null;
+  sort_order: number;
+  is_active: boolean;
+}
+
+/**
+ * A per-lens override of a module's content. Absence of a row for a given
+ * (module, lens) means: use the module's own base title/description/asset_path.
+ */
+export interface ModuleVariant {
+  id: string;
+  module_id: string;
+  lens_id: string;
+  title: string | null;
+  description: string | null;
+  asset_path: string | null;
 }
 
 export interface Partner {
@@ -86,6 +126,8 @@ export interface Module {
   is_required: boolean;
   /** UN SDG numbers (1-17) this module covers. */
   sdgs: number[];
+  /** Which route (real-world problem) this module represents, if any. */
+  route_id: string | null;
   created_at: string;
 }
 
@@ -153,4 +195,4 @@ export interface SpotlightProfile {
 /** The exact scope string students consent to. Kept in one place so the UI
  * preview and the stored consent_scope always match. */
 export const SPOTLIGHT_CONSENT_SCOPE =
-  "My photo, name, and role/headline may be published by Heal on LinkedIn and Heal's own channels to feature me as a digital internship participant.";
+  "My photo, name, and role/headline may be published by Heal on LinkedIn and Heal's own channels to feature me as a Solutions Builder in Heal's IESP program.";

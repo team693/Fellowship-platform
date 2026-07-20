@@ -200,7 +200,7 @@ export function ModuleEmbed({
               </Link>
             ) : (
               <Link href={fellowshipHref} className="btn-primary py-1.5">
-                Back to internship
+                Back to program
               </Link>
             )}
           </>

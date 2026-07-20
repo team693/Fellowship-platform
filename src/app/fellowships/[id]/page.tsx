@@ -7,7 +7,7 @@ import { ensureOpenAccessEnrollments } from "@/lib/access";
 import { createClient } from "@/lib/supabase/server";
 import type { Certificate, Fellowship, Module, Progress } from "@/lib/types";
 
-export const metadata = { title: "Internship" };
+export const metadata = { title: "Program" };
 
 const TYPE_LABEL: Record<Module["type"], string> = {
   explore: "Explore",
@@ -43,7 +43,7 @@ export default async function FellowshipPage({
     .maybeSingle();
 
   if (!enrollment && profile?.role !== "admin") {
-    // Not enrolled (e.g. an unpublished internship under open access).
+    // Not enrolled (e.g. an unpublished program under open access).
     redirect("/dashboard");
   }
 
@@ -76,7 +76,7 @@ export default async function FellowshipPage({
     : 0;
   const allDone = required.length > 0 && completedRequired === required.length;
 
-  // SDG coverage: all SDGs in the internship vs. those the student has covered
+  // SDG coverage: all SDGs in the program vs. those the student has covered
   // (via completed modules).
   const allSdgs = [
     ...new Set(modules.flatMap((m) => m.sdgs ?? [])),
@@ -195,7 +195,7 @@ export default async function FellowshipPage({
           })}
           {modules.length === 0 && (
             <li className="card text-center text-ink-muted">
-              No modules have been added to this internship yet.
+              No modules have been added to this program yet.
             </li>
           )}
         </ol>

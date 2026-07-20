@@ -93,7 +93,7 @@ export async function generateCodes(formData: FormData) {
   const fellowshipId = String(formData.get("fellowship_id") ?? "");
   const count = Math.min(500, Math.max(1, parseInt(String(formData.get("count") ?? "1"), 10) || 1));
   if (!partnerId || !fellowshipId) {
-    return { ok: false, error: "Choose a partner and an internship." };
+    return { ok: false, error: "Choose a partner and a program." };
   }
 
   // Generate unique codes; retry the whole batch a few times on the (rare)
@@ -261,6 +261,8 @@ export async function createModule(formData: FormData) {
     completionConfig.pass_score = Math.max(0, Math.min(100, ps));
   }
 
+  const routeId = String(formData.get("route_id") ?? "").trim() || null;
+
   const { data: inserted, error } = await gate.supabase
     .from("modules")
     .insert({
@@ -274,6 +276,7 @@ export async function createModule(formData: FormData) {
       completion_config: completionConfig,
       is_required: formData.get("is_required") !== "off",
       sdgs,
+      route_id: routeId,
       order_index: nextIndex,
     })
     .select("id")

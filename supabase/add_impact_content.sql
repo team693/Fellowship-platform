@@ -1,10 +1,10 @@
 -- ============================================================================
--- Heal — Load the 4 real simulations into your EXISTING internship.
+-- Heal — Load the 4 real simulations into your EXISTING program.
 -- Paste into the Supabase SQL Editor and Run once. Idempotent.
 --
 -- What it does:
 --   1. Adds the modules.sdgs column (if missing).
---   2. Renames the internship to "Applied AI Impact Internship".
+--   2. Renames the program to "IESP".
 --   3. Removes the two placeholder demo modules.
 --   4. Inserts the four simulations, each mapped to its UN SDGs.
 --
@@ -59,9 +59,9 @@ drop policy if exists submissions_select_own_or_admin on public.submissions;
 create policy submissions_select_own_or_admin on public.submissions
   for select to authenticated using (user_id = auth.uid() or public.is_admin());
 
--- 2. Rename the internship (no "digital" on the certificate).
+-- 2. Rename the program.
 update public.fellowships
-   set title = 'Applied AI Impact Internship'
+   set title = 'IESP'
  where slug = 'ai-governance';
 
 -- 3. Remove the placeholder demo modules (frees order_index 0 and 1).
