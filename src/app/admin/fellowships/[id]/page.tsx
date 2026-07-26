@@ -219,7 +219,7 @@ export default async function AdminFellowshipDetailPage({
                 </div>
                 <div>
                   <label className="label" htmlFor="m_route">
-                    Route (which real-world problem this module represents)
+                    Topic (leave blank to make this week-1 core content)
                   </label>
                   <select id="m_route" name="route_id" className="input">
                     <option value="">None</option>

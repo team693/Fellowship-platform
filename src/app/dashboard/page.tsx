@@ -3,8 +3,15 @@ import { redirect } from "next/navigation";
 import { AppHeader } from "@/components/app-header";
 import { requireUser, getProfile } from "@/lib/auth";
 import { ensureOpenAccessEnrollments } from "@/lib/access";
+import { getProgramStructure } from "@/lib/program";
 import { createClient } from "@/lib/supabase/server";
-import type { Certificate, Enrollment, Fellowship, Module, Progress } from "@/lib/types";
+import type {
+  Certificate,
+  Fellowship,
+  Module,
+  Progress,
+  Route,
+} from "@/lib/types";
 
 export const metadata = { title: "Dashboard" };
 
@@ -19,13 +26,17 @@ export default async function DashboardPage() {
   const supabase = await createClient();
 
   // RLS ensures every query below only returns the current user's rows.
-  const [{ data: enrollments }, { data: certificates }] = await Promise.all([
-    supabase
-      .from("enrollments")
-      .select("id, fellowship_id, created_at")
-      .order("created_at", { ascending: true }),
-    supabase.from("certificates").select("*"),
-  ]);
+  const [{ data: enrollments }, { data: certificates }, { data: routeRows }] =
+    await Promise.all([
+      supabase
+        .from("enrollments")
+        .select("id, fellowship_id, created_at")
+        .order("created_at", { ascending: true }),
+      supabase.from("certificates").select("*"),
+      supabase.from("routes").select("*").eq("is_active", true),
+    ]);
+
+  const routes = (routeRows as Route[]) ?? [];
 
   const fellowshipIds = (enrollments ?? []).map((e) => e.fellowship_id);
 
@@ -84,6 +95,7 @@ export default async function DashboardPage() {
                 fellowship={fellowship}
                 modules={modules.filter((m) => m.fellowship_id === fellowship.id)}
                 progress={progress.filter((p) => p.fellowship_id === fellowship.id)}
+                routes={routes}
                 certificate={certByFellowship.get(fellowship.id) ?? null}
               />
             ))}
@@ -113,22 +125,18 @@ function FellowshipCard({
   fellowship,
   modules,
   progress,
+  routes,
   certificate,
 }: {
   fellowship: Fellowship;
   modules: Module[];
   progress: Progress[];
+  routes: Route[];
   certificate: Certificate | null;
 }) {
-  const required = modules.filter((m) => m.is_required);
-  const completedIds = new Set(
-    progress.filter((p) => p.status === "completed").map((p) => p.module_id),
-  );
-  const completedRequired = required.filter((m) => completedIds.has(m.id)).length;
-  const pct = required.length
-    ? Math.round((completedRequired / required.length) * 100)
-    : 0;
-  const done = required.length > 0 && completedRequired === required.length;
+  const structure = getProgramStructure(modules, progress, routes);
+  const pct = structure.percent;
+  const done = structure.isComplete;
 
   return (
     <div className="card flex flex-col">
@@ -151,7 +159,9 @@ function FellowshipCard({
       <div className="mt-4">
         <div className="flex items-center justify-between text-sm">
           <span className="text-ink-muted">
-            {completedRequired}/{required.length} required modules
+            Core {structure.coreCompleted}/{structure.coreRequired}
+            <span className="mx-1.5 text-surface-muted">·</span>
+            Topics {structure.topicsCompleted}/{structure.topicsRequired}
           </span>
           <span className="font-semibold text-teal-700">{pct}%</span>
         </div>

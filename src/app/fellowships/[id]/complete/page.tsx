@@ -5,9 +5,10 @@ import { requireUser, getProfile } from "@/lib/auth";
 import { issueCertificateIfEligible } from "@/lib/certificates";
 
 /**
- * Claim page. Re-runs server-side eligibility (all required modules complete)
- * and, if eligible, issues the certificate and redirects to it. This is a
- * fallback to the automatic issuance that happens on final-module completion.
+ * Claim page. Re-runs server-side eligibility (week-1 core plus the required
+ * number of topics) and, if eligible, issues the certificate and redirects to
+ * it. This is a fallback to the automatic issuance that happens on final-module
+ * completion.
  */
 export default async function CompleteFellowshipPage({
   params,
@@ -26,7 +27,8 @@ export default async function CompleteFellowshipPage({
   const messages: Record<string, string> = {
     not_enrolled: "You're not enrolled in this program yet.",
     incomplete:
-      "You haven't completed all the required modules yet. Finish them to earn your certificate.",
+      "You still have the week-1 core or some of your topics to finish. Complete them to earn your certificate.",
+    no_topics: "This program has no topics configured yet.",
     no_required_modules: "This program has no required modules configured.",
   };
 

@@ -33,7 +33,12 @@ export interface Profile {
   full_name: string | null;
   locale: Locale;
   role: UserRole;
-  /** Onboarding picks — the problem domain and the learner's discipline. */
+  /**
+   * Onboarding picks. `route_id` is the learner's PRIMARY topic — the one
+   * their capstone is written on. It does not restrict which topics they may
+   * open; the three they must complete are derived from `progress`
+   * (see src/lib/program.ts). `lens_id` is their discipline.
+   */
   route_id: string | null;
   lens_id: string | null;
   created_at: string;
@@ -41,9 +46,11 @@ export interface Profile {
 }
 
 /**
- * Route = the real Karachi problem a learner works on. Lens = the learner's
- * discipline. Both are extensible lookup tables (rows, not enums) so a 5th
- * route or a new lens can be added later with zero schema change.
+ * Route = a topic: one real Karachi problem, with its own set of modules.
+ * Surfaced to learners and admins as "Topic"; the table keeps its original
+ * name. Lens = the learner's discipline. Both are extensible lookup tables
+ * (rows, not enums) so a 5th topic or a new lens can be added later with zero
+ * schema change.
  */
 export interface Route {
   id: string;

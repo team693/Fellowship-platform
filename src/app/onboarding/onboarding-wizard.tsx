@@ -31,7 +31,9 @@ export function OnboardingWizard({
       <div className="mb-6 flex items-center gap-2 text-xs font-semibold text-ink-muted">
         <span className={step === 1 ? "text-teal-700" : ""}>1. About you</span>
         <span>—</span>
-        <span className={step === 2 ? "text-teal-700" : ""}>2. Your problem</span>
+        <span className={step === 2 ? "text-teal-700" : ""}>
+          2. Your capstone topic
+        </span>
       </div>
 
       {step === 1 && (
@@ -72,9 +74,13 @@ export function OnboardingWizard({
           >
             ← Back
           </button>
-          <h1 className="text-2xl font-extrabold">Which problem do you want to work on?</h1>
+          <h1 className="text-2xl font-extrabold">
+            Which topic is your capstone on?
+          </h1>
           <p className="mt-1 text-ink-soft">
-            Each is built on real Karachi data. You can only pick one for now.
+            Each is built on real Karachi data. This is the one your final
+            capstone is written on — you&apos;ll still work through three topics
+            of your choosing, and you can change this later.
           </p>
           <form
             action={async (formData) => {

@@ -49,6 +49,13 @@ export default async function AdminOverviewPage() {
       </div>
 
       <div className="mt-8 grid gap-4 sm:grid-cols-2">
+        <Link href="/admin/cohort" className="card hover:shadow-lift">
+          <h2 className="font-bold">Cohort progress →</h2>
+          <p className="mt-1 text-sm text-ink-soft">
+            Every learner&apos;s position: week-1 core, topics completed, and
+            who has stalled.
+          </p>
+        </Link>
         <Link href="/admin/partners" className="card hover:shadow-lift">
           <h2 className="font-bold">Partners &amp; seat codes →</h2>
           <p className="mt-1 text-sm text-ink-soft">
