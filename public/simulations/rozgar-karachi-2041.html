@@ -767,7 +767,12 @@ function smoothPath(raw,step){
   var v=[],i;for(i=0;i<raw.length;i++)v.push(new THREE.Vector3(raw[i][0],0,raw[i][1]));
   var cur=new THREE.CatmullRomCurve3(v,false,"catmullrom",0.35);
   var n=Math.max(12,Math.round(cur.getLength()/step)),pts=[];
-  for(i=0;i<=n;i++){var p=cur.getPoint(i/n);p.y=terrainH(p.x,p.z)+0.55;pts.push(p);}
+  /* +4.0, not +0.55: the terrain mesh is a 196-segment plane over 5200 units, so ~26.5
+     units between vertices. Its surface is linearly interpolated between those, which
+     over a rise sits well above the true terrainH sampled mid-span — at +0.55 the road
+     ribbons ended up under the ground and were invisible. Verified by raycasting down
+     onto road centrelines: at +0.55 the terrain was hit first on every sample. */
+  for(i=0;i<=n;i++){var p=cur.getPoint(i/n);p.y=terrainH(p.x,p.z)+4.0;pts.push(p);}
   return pts;
 }
 var ROADS=[];
@@ -3056,33 +3061,42 @@ function buildRoads(){
   addRoad([[-1000,620],[-1090,320],[-1050,-40]],13,false);
   addRoad([[820,170],[1020,300],[1180,560]],14,false);
   addRoad([[-160,-340],[-60,-620],[0,-760]],13,false);
-  /* Mid-grey asphalt with 4-lane markings.
+  /* Dark asphalt with 4-lane markings.
      Deliberately lighter than real asphalt: the default camera sits ~2100 units up,
      where a 13-30 unit ribbon is only a few pixels wide. At the old near-black
      #26292d the roads disappeared against terrain and building shadows. This tone
      still reads as asphalt up close but holds contrast against the sandy terrain
      (0xd9c49a) when zoomed out. */
   var asphalt=canvasTex(128,256,function(ctx,w,h){
-    ctx.fillStyle="#4e555d";ctx.fillRect(0,0,w,h);
-    for(var i=0;i<800;i++){ctx.fillStyle="rgba(255,255,255,"+(Math.random()*0.05)+")";
+    ctx.fillStyle="#33383e";ctx.fillRect(0,0,w,h);
+    for(var i=0;i<700;i++){ctx.fillStyle="rgba(255,255,255,"+(Math.random()*0.04)+")";
       ctx.fillRect(Math.random()*w,Math.random()*h,2,2);}
-    for(i=0;i<9;i++){ctx.fillStyle="rgba(0,0,0,"+(0.08+Math.random()*0.10)+")";
+    for(i=0;i<8;i++){ctx.fillStyle="rgba(0,0,0,"+(0.10+Math.random()*0.12)+")";
       var pw=10+Math.random()*26,phh=8+Math.random()*20;
       ctx.fillRect(Math.random()*(w-pw),Math.random()*(h-phh),pw,phh);}
-    ctx.fillStyle="#f2d857";
-    for(var y=0;y<h;y+=40)ctx.fillRect(w/2-3,y,6,24);
-    ctx.fillStyle="rgba(252,252,252,0.98)";
-    for(y=8;y<h;y+=36){ctx.fillRect(w*0.28-3,y,5,22);ctx.fillRect(w*0.72-3,y,5,22);}
+    /* markings sized to still read when a 20-unit road is only a few pixels wide */
+    ctx.fillStyle="#ffd93b";
+    for(var y=0;y<h;y+=34)ctx.fillRect(w/2-4,y,8,22);
     ctx.fillStyle="#ffffff";
-    ctx.fillRect(2,0,5,h);ctx.fillRect(w-8,0,5,h);
+    for(y=6;y<h;y+=30){ctx.fillRect(w*0.27-3,y,7,18);ctx.fillRect(w*0.73-4,y,7,18);}
+    ctx.fillRect(2,0,6,h);ctx.fillRect(w-8,0,6,h);
   });
   asphalt.encoding=THREE.sRGBEncoding;
   /* polygonOffset pushes the ribbon behind co-planar terrain in depth only, killing
      the z-fighting shimmer without lifting the mesh visibly off the ground. */
+  /* side:DoubleSide is load-bearing, not defensive. ribbon() writes normals pointing
+     up (+Y) but emits its triangles with the opposite winding, so their geometric face
+     normal is -Y. Under the default FrontSide the GPU back-face-culls every road
+     triangle when viewed from above, which is why the roads rendered as nothing at any
+     colour or height. Confirmed by comparing stored vs geometric normals, and by a
+     downward raycast that passed straight through the road mesh onto the terrain.
+     Fixed here rather than in ribbon() because that helper is shared with the coast
+     foam and medians, whose current appearance depends on the existing winding. */
   var mat=new THREE.MeshStandardMaterial({map:asphalt,roughness:0.96,metalness:0,
+    side:THREE.DoubleSide,
     polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
   var items=[];
-  for(var r=0;r<ROADS.length;r++)items.push({g:ribbon(ROADS[r].pts,ROADS[r].w,0.55)});
+  for(var r=0;r<ROADS.length;r++)items.push({g:ribbon(ROADS[r].pts,ROADS[r].w,0,true)});
   var mesh=new THREE.Mesh(mergeGeo(items),mat);
   mesh.receiveShadow=true;scene.add(mesh);
   /* raised medians on majors (yellow-black kerb) */
@@ -3093,17 +3107,17 @@ function buildRoads(){
   var mItems=[];
   for(r=0;r<ROADS.length;r++){
     if(!ROADS[r].major)continue;
-    mItems.push({g:ribbon(ROADS[r].pts,1.7,0.92)});
+    mItems.push({g:ribbon(ROADS[r].pts,1.7,3.5)});
   }
   var med=new THREE.Mesh(mergeGeo(mItems),
-    new THREE.MeshStandardMaterial({map:kerb,roughness:0.85}));
+    new THREE.MeshStandardMaterial({map:kerb,roughness:0.85,side:THREE.DoubleSide}));
   med.receiveShadow=true;scene.add(med);
   /* jam overlays + hotspots */
   for(r=0;r<ROADS.length;r++){
     if(!ROADS[r].major)continue;
-    var jm=new THREE.Mesh(ribbon(ROADS[r].pts,ROADS[r].w*0.7,0.78),
+    var jm=new THREE.Mesh(ribbon(ROADS[r].pts,ROADS[r].w*0.7,0,true),
       new THREE.MeshBasicMaterial({color:0xff3b2f,transparent:true,opacity:0,
-        blending:THREE.AdditiveBlending,depthWrite:false}));
+        side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false}));
     jm.renderOrder=3;scene.add(jm);
     ROADS[r].jamMesh=jm;
     var hp=ROADS[r].curve.getPointAt(0.42+rr(-0.12,0.18));
@@ -3415,9 +3429,11 @@ function buildTerrain(){
   g.setAttribute("color",new THREE.Float32BufferAttribute(colors,3));
   g.computeVertexNormals();
   var det=canvasTex(256,256,function(ctx,w,h){
-    ctx.fillStyle="#f2f2f2";ctx.fillRect(0,0,w,h);
+    /* was #f2f2f2 — a near-white multiply over already-light sand vertex colours,
+       which is what made the ground read as a white sheet under a 2.5-intensity sun. */
+    ctx.fillStyle="#d8cfbe";ctx.fillRect(0,0,w,h);
     for(var i2=0;i2<3200;i2++){
-      var gr=190+Math.floor(Math.random()*65);
+      var gr=168+Math.floor(Math.random()*58);
       ctx.fillStyle="rgb("+gr+","+gr+","+gr+")";
       ctx.fillRect(Math.random()*w,Math.random()*h,2,2);
     }
@@ -4897,6 +4913,15 @@ function loop(){
       /* Factory plumes always smoke — that is the point of showing them.
          Power-plant steam stays tied to the power KPI as before. */
       var op=sm2.fac?(0.26+0.16*(G.kpi.pow>=45?1:0)):(G.kpi.pow>=45?0.38:0.06);
+      if(sm2.fac){
+        /* Sooty by day so it reads as pollution against the pale ground; pale by
+           night so it stays visible against a dark sky. nightAmt is 0 by day, 1 at
+           night, so one lerp covers dawn and dusk too. Opacity lifts slightly at
+           night because a light plume on dark sky needs more presence. */
+        var nAmt=(typeof nightAmt==="number")?nightAmt:0;
+        sm2.s.material.color.setRGB(0.16+0.74*nAmt,0.16+0.73*nAmt,0.17+0.71*nAmt);
+        op*=(1+0.35*nAmt);
+      }
       sm2.s.material.opacity=op*(0.7+0.3*Math.sin(t*0.9+sm2.ph));
       sm2.s.position.y=sm2.base+Math.sin(t*0.5+sm2.ph)*2;
       if(sm2.fac)sm2.s.position.y+=Math.sin(t*0.32+sm2.ph)*1.6*sm2.drift;
