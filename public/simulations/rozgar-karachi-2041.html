@@ -458,11 +458,27 @@ renderer.setSize(innerWidth,innerHeight);
 /* camera rig */
 var rig={target:new THREE.Vector3(-80,0,120),dist:1750,yaw:Math.PI*0.02,pitch:0.62,
          tDist:1750,tYaw:Math.PI*0.02,tPitch:0.62,tTarget:new THREE.Vector3(-80,0,120)};
+/* FogExp2 saturates as (density*distance)^2. At a steep camera angle you mostly see
+   near ground and the haze reads as intended, but as the camera flattens the sightline
+   runs all the way to the 9000-unit far plane, where fog is ~90% opaque — the city
+   renders as a near-white sheet. The sky is a raw ShaderMaterial and three.js never
+   applies fog to those, which is why the sky kept looking correct while everything lit
+   blew out. Phones in landscape sit at a much flatter angle than a desktop view, which
+   is why this only showed up on mobile.
+   Keep the tuned density for steep views; thin it as the camera flattens. */
+var FOG_BASE=0.00017;
+function fogForPitch(){
+  if(!scene.fog)return;
+  var p=Math.max(0.12,Math.min(1.40,rig.pitch));
+  var k=Math.min(1,Math.max(0,(p-0.12)/(0.85-0.12)));
+  scene.fog.density=FOG_BASE*(0.34+0.66*k);
+}
 function rigApply(){
   rig.yaw=lerp(rig.yaw,rig.tYaw,0.09);
   rig.pitch=lerp(rig.pitch,rig.tPitch,0.09);
   rig.dist=lerp(rig.dist,rig.tDist,0.09);
   rig.target.lerp(rig.tTarget,0.09);
+  fogForPitch();
   var cp=Math.cos(rig.pitch),sp=Math.sin(rig.pitch);
   camera.position.set(
     rig.target.x+Math.sin(rig.yaw)*cp*rig.dist,
@@ -3040,23 +3056,31 @@ function buildRoads(){
   addRoad([[-1000,620],[-1090,320],[-1050,-40]],13,false);
   addRoad([[820,170],[1020,300],[1180,560]],14,false);
   addRoad([[-160,-340],[-60,-620],[0,-760]],13,false);
-  /* graphite asphalt with 4-lane markings */
+  /* Mid-grey asphalt with 4-lane markings.
+     Deliberately lighter than real asphalt: the default camera sits ~2100 units up,
+     where a 13-30 unit ribbon is only a few pixels wide. At the old near-black
+     #26292d the roads disappeared against terrain and building shadows. This tone
+     still reads as asphalt up close but holds contrast against the sandy terrain
+     (0xd9c49a) when zoomed out. */
   var asphalt=canvasTex(128,256,function(ctx,w,h){
-    ctx.fillStyle="#26292d";ctx.fillRect(0,0,w,h);
-    for(var i=0;i<800;i++){ctx.fillStyle="rgba(255,255,255,"+(Math.random()*0.045)+")";
+    ctx.fillStyle="#4e555d";ctx.fillRect(0,0,w,h);
+    for(var i=0;i<800;i++){ctx.fillStyle="rgba(255,255,255,"+(Math.random()*0.05)+")";
       ctx.fillRect(Math.random()*w,Math.random()*h,2,2);}
-    for(i=0;i<9;i++){ctx.fillStyle="rgba(0,0,0,"+(0.12+Math.random()*0.15)+")";
+    for(i=0;i<9;i++){ctx.fillStyle="rgba(0,0,0,"+(0.08+Math.random()*0.10)+")";
       var pw=10+Math.random()*26,phh=8+Math.random()*20;
       ctx.fillRect(Math.random()*(w-pw),Math.random()*(h-phh),pw,phh);}
-    ctx.fillStyle="#e5cf5e";
-    for(var y=0;y<h;y+=44)ctx.fillRect(w/2-2,y,4,22);
-    ctx.fillStyle="rgba(244,244,244,0.95)";
-    for(y=8;y<h;y+=40){ctx.fillRect(w*0.28-2,y,4,20);ctx.fillRect(w*0.72-2,y,4,20);}
-    ctx.fillStyle="rgba(248,248,248,0.95)";
-    ctx.fillRect(3,0,4,h);ctx.fillRect(w-7,0,4,h);
+    ctx.fillStyle="#f2d857";
+    for(var y=0;y<h;y+=40)ctx.fillRect(w/2-3,y,6,24);
+    ctx.fillStyle="rgba(252,252,252,0.98)";
+    for(y=8;y<h;y+=36){ctx.fillRect(w*0.28-3,y,5,22);ctx.fillRect(w*0.72-3,y,5,22);}
+    ctx.fillStyle="#ffffff";
+    ctx.fillRect(2,0,5,h);ctx.fillRect(w-8,0,5,h);
   });
   asphalt.encoding=THREE.sRGBEncoding;
-  var mat=new THREE.MeshStandardMaterial({map:asphalt,roughness:0.96,metalness:0});
+  /* polygonOffset pushes the ribbon behind co-planar terrain in depth only, killing
+     the z-fighting shimmer without lifting the mesh visibly off the ground. */
+  var mat=new THREE.MeshStandardMaterial({map:asphalt,roughness:0.96,metalness:0,
+    polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
   var items=[];
   for(var r=0;r<ROADS.length;r++)items.push({g:ribbon(ROADS[r].pts,ROADS[r].w,0.55)});
   var mesh=new THREE.Mesh(mergeGeo(items),mat);
@@ -4742,12 +4766,96 @@ function buildGame(){
   setPeds(136);
   refreshLang();
 }
+/* ---------------------------------------------------------------------------
+   Industrial estates + stack emissions.
+   Karachi's job story is inseparable from SITE, Korangi and Landhi, so the
+   city reads wrong without visible industry. Each estate is a shed cluster
+   with banded stacks; the plumes are Sprites pushed onto the existing SMOKE
+   array so the live per-frame updater animates them with everything else.
+   Entries are tagged fac:true so that updater can hold them at a visible
+   baseline instead of the power-plant opacity curve.
+--------------------------------------------------------------------------- */
+var FACTORIES=[];
+function buildFactories(){
+  /* Candidate estates, roughly SITE / Korangi / Landhi / Port Qasim side.
+     Each is validated against terrainH so nothing lands in the sea. */
+  var spots=[[-980,-560],[-540,-870],[430,-770],[1010,-520],[1470,-250],[-1190,170],[790,430]];
+  var wall=canvasTex(64,64,function(ctx,w,h){
+    ctx.fillStyle="#9aa2a8";ctx.fillRect(0,0,w,h);
+    ctx.strokeStyle="rgba(0,0,0,0.16)";ctx.lineWidth=2;
+    for(var x=4;x<w;x+=8){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}
+    ctx.fillStyle="rgba(60,68,74,0.20)";ctx.fillRect(0,h-10,w,10);
+  },3,2);
+  wall.encoding=THREE.sRGBEncoding;
+  var wallM=new THREE.MeshStandardMaterial({map:wall,roughness:0.88,metalness:0.05});
+  var roofM=new THREE.MeshStandardMaterial({color:0x6f777e,roughness:0.8,metalness:0.1});
+  var stackM=new THREE.MeshStandardMaterial({color:0xd8d3c8,roughness:0.85});
+  var bandM =new THREE.MeshStandardMaterial({color:0xc2412c,roughness:0.8});
+
+  /* Soft grey puff, a touch warmer and denser than the power-plant sprite so
+     industrial haze reads differently from steam. */
+  var ftex=canvasTex(64,64,function(ctx,w,h){
+    var gr=ctx.createRadialGradient(w/2,h/2,3,w/2,h/2,w/2);
+    gr.addColorStop(0,"rgba(176,172,166,0.62)");
+    gr.addColorStop(0.55,"rgba(168,164,158,0.28)");
+    gr.addColorStop(1,"rgba(160,156,150,0)");
+    ctx.fillStyle=gr;ctx.fillRect(0,0,w,h);
+  });
+
+  for(var i=0;i<spots.length;i++){
+    var fx=spots[i][0],fz=spots[i][1];
+    var gy=terrainH(fx,fz);
+    if(gy<2.0)continue;                       /* skip anything at/below waterline */
+    var g=new THREE.Group();
+    g.position.set(fx,gy,fz);
+    g.rotation.y=rr(0,Math.PI*2);
+
+    /* two or three sheds of slightly different footprint */
+    var sheds=2+(rng()<0.5?1:0);
+    for(var s=0;s<sheds;s++){
+      var sw=rr(46,74),sd=rr(30,46),sh=rr(14,20);
+      var shed=new THREE.Mesh(new THREE.BoxGeometry(sw,sh,sd),wallM);
+      shed.position.set(s*rr(52,72)-30,sh/2,rr(-16,16));
+      shed.castShadow=shed.receiveShadow=true;g.add(shed);
+      var roof=new THREE.Mesh(new THREE.BoxGeometry(sw+3,2.2,sd+3),roofM);
+      roof.position.set(shed.position.x,sh+1.1,shed.position.z);
+      roof.castShadow=true;g.add(roof);
+    }
+
+    /* banded stacks, each with a rising plume */
+    var stacks=2+(rng()<0.4?1:0);
+    for(var c=0;c<stacks;c++){
+      var sr=rr(2.6,3.8),shh=rr(46,72);
+      var st=new THREE.Mesh(new THREE.CylinderGeometry(sr*0.78,sr,shh,12),stackM);
+      var sx=rr(-40,40),sz=rr(-22,22);
+      st.position.set(sx,shh/2,sz);
+      st.castShadow=true;g.add(st);
+      var band=new THREE.Mesh(new THREE.CylinderGeometry(sr*0.82,sr*0.82,6,12),bandM);
+      band.position.set(sx,shh-9,sz);g.add(band);
+
+      for(var j=0;j<4;j++){
+        var puff=new THREE.Sprite(new THREE.SpriteMaterial({map:ftex,transparent:true,
+          opacity:0,depthWrite:false}));
+        var py=gy+shh+5+j*8;
+        puff.position.set(fx+sx,py,fz+sz);
+        puff.scale.setScalar(11+j*7);
+        scene.add(puff);
+        SMOKE.push({s:puff,ph:rr(0,6.3),base:py,fac:true,drift:rr(0.5,1.4)});
+      }
+    }
+    scene.add(g);
+    FACTORIES.push(g);
+  }
+}
+
 STEPS=[
  ["laying the coastline…",buildTerrain],
+
  ["filling the Arabian Sea…",buildSea],
  ["tracing the Lyari & Malir…",buildRivers],
  ["paving the arteries…",buildRoads],
  ["raising the city…",buildBuildings],
+ ["firing the kilns…",buildFactories],
  ["carving Mazar-e-Quaid…",buildLandmarks],
  ["opening the shipping lane…",buildShips],
  ["planting neem & palms…",buildTrees],
@@ -4786,9 +4894,12 @@ function loop(){
     updateStory(dt,t);
     for(var i=0;i<SMOKE.length;i++){
       var sm2=SMOKE[i];
-      var op=G.kpi.pow>=45?0.38:0.06;
+      /* Factory plumes always smoke — that is the point of showing them.
+         Power-plant steam stays tied to the power KPI as before. */
+      var op=sm2.fac?(0.26+0.16*(G.kpi.pow>=45?1:0)):(G.kpi.pow>=45?0.38:0.06);
       sm2.s.material.opacity=op*(0.7+0.3*Math.sin(t*0.9+sm2.ph));
       sm2.s.position.y=sm2.base+Math.sin(t*0.5+sm2.ph)*2;
+      if(sm2.fac)sm2.s.position.y+=Math.sin(t*0.32+sm2.ph)*1.6*sm2.drift;
     }
     for(i=0;i<ACC.length;i++)if(ACC[i].on){
       var fl=Math.floor(t*7)%2;
