@@ -82,28 +82,25 @@ body{font-family:"Bricolage Grotesque",system-ui,sans-serif;color:#EAF2F0}
 
 /* v5: word-art, tutorial, arrows, heat */
 #bigT{position:fixed;inset:0;display:flex;align-items:flex-start;justify-content:center;pointer-events:none;z-index:44}
-.bt{margin-top:15vh;text-align:center;transform:rotate(-2deg);animation:btIn .5s cubic-bezier(.16,1.5,.3,1) both}
-.bt.hold{animation:btIn .5s cubic-bezier(.16,1.5,.3,1) both}
-.bt .en{display:block;font:900 min(12vw,96px)/1.02 "Bricolage Grotesque";letter-spacing:.02em;
-  background:linear-gradient(180deg,#fff 18%,var(--gold) 52%,var(--coral) 100%);
-  -webkit-background-clip:text;background-clip:text;color:transparent;
-  -webkit-text-stroke:2px rgba(20,10,5,.45);
-  filter:drop-shadow(0 5px 0 rgba(0,0,0,.45)) drop-shadow(0 0 30px rgba(228,99,90,.75)) drop-shadow(0 0 80px rgba(232,194,53,.4))}
-.bt .uw{display:block;font-family:"Noto Nastaliq Urdu";font-size:min(6.5vw,40px);color:#fff;
-  text-shadow:0 2px 0 rgba(0,0,0,.55),0 0 22px rgba(46,159,208,.9),0 0 46px rgba(46,159,208,.5);margin-top:14px}
-.bt .st{color:var(--gold);font-size:min(4vw,24px);letter-spacing:.5em;display:block;margin-top:8px;
-  text-shadow:0 0 16px rgba(232,194,53,.9)}
-.bt.warn{margin-top:8vh}
-.bt.warn .en{font-size:min(6.5vw,44px);letter-spacing:.14em;
-  background:linear-gradient(180deg,#fff 25%,var(--gold) 100%);
-  -webkit-background-clip:text;background-clip:text;color:transparent;
-  -webkit-text-stroke:1.5px rgba(20,10,5,.4);
-  filter:drop-shadow(0 3px 0 rgba(0,0,0,.5)) drop-shadow(0 0 22px rgba(232,194,53,.75))}
-.bt.warn .uw{font-size:min(4.6vw,26px)}
-@keyframes btIn{0%{transform:rotate(-2deg) scale(2.6);opacity:0;filter:blur(10px)}
-  60%{opacity:1;filter:blur(0)}
-  78%{transform:rotate(-2deg) scale(.96)}
-  100%{transform:rotate(-2deg) scale(1);opacity:1;filter:blur(0)}}
+.bt{margin-top:6vh;text-align:center;animation:btIn .42s cubic-bezier(.2,.9,.3,1) both}
+.bt.hold{animation:btIn .42s cubic-bezier(.2,.9,.3,1) both}
+/* Deliberately restrained. This used to be 96px at weight 900 with a gradient fill,
+   a 2px stroke, an 80px glow and a bouncy -2deg overshoot landing mid-screen, which
+   read as a game-over card every time it fired — and it fires for monsoon, heatwave,
+   grid failure and gridlock. It now sits high, out of the city view, at a size that
+   informs without taking the screen. */
+.bt .en{display:block;font:800 min(4.4vw,30px)/1.15 "Bricolage Grotesque";letter-spacing:.10em;
+  color:#fff8ec;text-shadow:0 1px 2px rgba(0,0,0,.55),0 0 14px rgba(0,0,0,.45)}
+.bt .uw{display:block;font-family:"Noto Nastaliq Urdu";font-size:min(3.1vw,17px);
+  color:rgba(255,255,255,.82);text-shadow:0 1px 2px rgba(0,0,0,.6);margin-top:6px}
+.bt .st{color:var(--gold);font-size:min(1.7vw,11px);letter-spacing:.42em;display:block;margin-top:5px;
+  opacity:.75}
+.bt.warn{margin-top:6vh}
+.bt.warn .en{font-size:min(3.6vw,23px);letter-spacing:.12em;color:var(--gold);
+  text-shadow:0 1px 2px rgba(0,0,0,.55),0 0 12px rgba(0,0,0,.4)}
+.bt.warn .uw{font-size:min(2.7vw,15px)}
+@keyframes btIn{0%{transform:translateY(-8px);opacity:0}
+  100%{transform:translateY(0);opacity:1}}
 #heatVg{position:fixed;inset:0;pointer-events:none;z-index:3;opacity:0;
   background:radial-gradient(ellipse at 50% 12%,rgba(255,176,64,.42),rgba(255,120,40,.14) 45%,rgba(120,30,0,.28) 100%);
   mix-blend-mode:screen;transition:opacity .8s}
@@ -4246,7 +4243,8 @@ function bigTitle(en,ur,warn,stars){
   d.className="bt hold"+(warn?" warn":"");
   d.innerHTML="<span class='en'>"+en+"</span>"+(stars?"<span class='st'>✦ ✦ ✦</span>":"")+"<span class='uw'>"+ur+"</span>";
   box.appendChild(d);
-  var life=warn?2800:3600;
+  /* was 2800/3600 — long enough to feel like an interruption */
+  var life=warn?1800:2400;
   setTimeout(function(){d.style.transition="opacity .5s";d.style.opacity=0;},life-500);
   setTimeout(function(){if(d.parentNode)d.parentNode.removeChild(d);},life);
 }
@@ -4604,14 +4602,17 @@ function tick(){
      sun-dimming storm lands every third year rather than annually, so it reads as an
      event instead of the default weather. Flood damage still keys off the monsoon
      month, so the Water Plant lesson survives — it just is not relentless. */
-  var msnYr=G.y-2026;
-  var msnActive=msnYr>=1&&G.m===7;
-  var msnHeavy=msnYr>=1&&msnYr%3===0;
-  G.rainT=msnActive?1:0;
-  G.stormT=msnHeavy?(G.m===6?0.5:(G.m===7?1:0)):0;
-  if(msnYr>=1&&G.m===6&&G.warnY!==G.y){G.warnY=G.y;
+  /* Monsoon runs July-August as before, but only every other year. A game year is
+     only ~26s (monthLen 2.2 x 12), so an annual two-month monsoon put heavy weather
+     on screen for a quarter of the run and recurred every ~9s at 3x speed. Alternate
+     years keeps the flood-damage lesson while leaving dry years to build in:
+     2026 wet, 2027 dry, 2028 wet, and so on. */
+  var msnOn=((G.y-2026)%2===0);
+  G.rainT=(msnOn&&(G.m===6||G.m===7))?1:0;
+  G.stormT=msnOn?(G.m===5?0.55:((G.m===6||G.m===7)?1:0)):0;
+  if(msnOn&&G.m===5&&G.warnY!==G.y){G.warnY=G.y;
     bigTitle("MONSOON INCOMING","مون سون آ رہا ہے",true);}
-  if(msnYr>=1&&G.m===7&&G.msn!==G.y){G.msn=G.y;
+  if(msnOn&&G.m===6&&G.msn!==G.y){G.msn=G.y;
     bigTitle("MONSOON HAS ARRIVED","مون سون آ گیا",false,true);
     if(k.wat<45){var dmg=3+ri(0,3);G.tre-=dmg;
       toast(["Flood damage — ₨"+dmg+"B repair bill · build Water Plants","سیلابی نقصان — ₨"+dmg+"B مرمت · واٹر پلانٹ بنائیں",1]);
