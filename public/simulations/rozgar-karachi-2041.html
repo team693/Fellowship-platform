@@ -4594,11 +4594,24 @@ function tick(){
   k.wat+=(tWat-k.wat)*0.035;k.gre+=(tGre-k.gre)*0.035;k.edu+=(tEdu-k.edu)*0.035;
   k.hea+=(tHea-k.hea)*0.035;
   refreshJams();
-  G.rainT=(G.m===6||G.m===7)?1:0;
-  G.stormT=G.m===5?0.55:(G.m===6||G.m===7?1:0);
-  if(G.m===5&&G.warnY!==G.y){G.warnY=G.y;
+  /* Monsoon pacing. A game year is only ~26s (monthLen 2.2 x 12), and rain was set
+     for BOTH July and August every single year — so the monsoon covered roughly a
+     sixth of the calendar but, with the storm ramp in June, dominated the screen and
+     landed ~13s after the player's first click, before they had built anything. At 3x
+     speed it recurred every ~9s.
+     Now: the opening year (2026) stays dry so the player gets a clean run at the city;
+     after that the monsoon is the single peak month (August); and the heavy,
+     sun-dimming storm lands every third year rather than annually, so it reads as an
+     event instead of the default weather. Flood damage still keys off the monsoon
+     month, so the Water Plant lesson survives — it just is not relentless. */
+  var msnYr=G.y-2026;
+  var msnActive=msnYr>=1&&G.m===7;
+  var msnHeavy=msnYr>=1&&msnYr%3===0;
+  G.rainT=msnActive?1:0;
+  G.stormT=msnHeavy?(G.m===6?0.5:(G.m===7?1:0)):0;
+  if(msnYr>=1&&G.m===6&&G.warnY!==G.y){G.warnY=G.y;
     bigTitle("MONSOON INCOMING","مون سون آ رہا ہے",true);}
-  if(G.m===6&&G.msn!==G.y){G.msn=G.y;
+  if(msnYr>=1&&G.m===7&&G.msn!==G.y){G.msn=G.y;
     bigTitle("MONSOON HAS ARRIVED","مون سون آ گیا",false,true);
     if(k.wat<45){var dmg=3+ri(0,3);G.tre-=dmg;
       toast(["Flood damage — ₨"+dmg+"B repair bill · build Water Plants","سیلابی نقصان — ₨"+dmg+"B مرمت · واٹر پلانٹ بنائیں",1]);
