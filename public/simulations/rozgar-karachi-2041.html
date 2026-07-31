@@ -3065,18 +3065,26 @@ function buildRoads(){
      still reads as asphalt up close but holds contrast against the sandy terrain
      (0xd9c49a) when zoomed out. */
   var asphalt=canvasTex(128,256,function(ctx,w,h){
-    ctx.fillStyle="#33383e";ctx.fillRect(0,0,w,h);
-    for(var i=0;i<700;i++){ctx.fillStyle="rgba(255,255,255,"+(Math.random()*0.04)+")";
-      ctx.fillRect(Math.random()*w,Math.random()*h,2,2);}
-    for(i=0;i<8;i++){ctx.fillStyle="rgba(0,0,0,"+(0.10+Math.random()*0.12)+")";
-      var pw=10+Math.random()*26,phh=8+Math.random()*20;
-      ctx.fillRect(Math.random()*(w-pw),Math.random()*(h-phh),pw,phh);}
-    /* markings sized to still read when a 20-unit road is only a few pixels wide */
-    ctx.fillStyle="#ffd93b";
-    for(var y=0;y<h;y+=34)ctx.fillRect(w/2-4,y,8,22);
-    ctx.fillStyle="#ffffff";
-    for(y=6;y<h;y+=30){ctx.fillRect(w*0.27-3,y,7,18);ctx.fillRect(w*0.73-4,y,7,18);}
-    ctx.fillRect(2,0,6,h);ctx.fillRect(w-8,0,6,h);
+    /* Worn, sun-bleached asphalt. Real Karachi roads are a dusty mid-grey, not
+       fresh black tarmac, and near-black ribbons read as hard ugly lines from a
+       zoomed-out camera. Base is grey with warm dust in it, patched unevenly, and
+       the markings are faded rather than fresh paint. */
+    ctx.fillStyle="#6f7276";ctx.fillRect(0,0,w,h);
+    for(var i=0;i<10;i++){
+      ctx.fillStyle=Math.random()<0.5?"rgba(150,146,138,0.18)":"rgba(58,60,64,0.16)";
+      var pw=14+Math.random()*40,phh=18+Math.random()*46;
+      ctx.fillRect(Math.random()*(w-pw),Math.random()*(h-phh),pw,phh);
+    }
+    for(var i2=0;i2<620;i2++){
+      ctx.fillStyle="rgba(196,186,168,"+(Math.random()*0.07)+")";
+      ctx.fillRect(Math.random()*w,Math.random()*h,2,2);
+    }
+    ctx.fillStyle="rgba(214,188,96,0.62)";
+    for(var y=0;y<h;y+=34)ctx.fillRect(w/2-3,y,7,20);
+    ctx.fillStyle="rgba(226,224,216,0.52)";
+    for(y=6;y<h;y+=30){ctx.fillRect(w*0.27-3,y,6,17);ctx.fillRect(w*0.73-3,y,6,17);}
+    ctx.fillStyle="rgba(226,224,216,0.44)";
+    ctx.fillRect(3,0,5,h);ctx.fillRect(w-8,0,5,h);
   });
   asphalt.encoding=THREE.sRGBEncoding;
   /* polygonOffset pushes the ribbon behind co-planar terrain in depth only, killing
@@ -3089,7 +3097,7 @@ function buildRoads(){
      downward raycast that passed straight through the road mesh onto the terrain.
      Fixed here rather than in ribbon() because that helper is shared with the coast
      foam and medians, whose current appearance depends on the existing winding. */
-  var mat=new THREE.MeshStandardMaterial({map:asphalt,roughness:0.96,metalness:0,
+  var mat=new THREE.MeshStandardMaterial({map:asphalt,roughness:1,metalness:0,
     side:THREE.DoubleSide,
     polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
   var items=[];
@@ -3403,10 +3411,14 @@ function buildTerrain(){
   var g=new THREE.PlaneGeometry(W,D,SEG,Math.round(SEG*D/W));
   g.rotateX(-Math.PI/2);
   var p=g.attributes.position,colors=[];
-  var cSand=new THREE.Color(0xd9c49a),cCity=new THREE.Color(0xb9b0a0),
-      cScrub=new THREE.Color(0xa9a179),cGreen=new THREE.Color(0x7d955f),
-      cRock=new THREE.Color(0x9a8f7e),cWet=new THREE.Color(0xc4b490),
-      cRiv=new THREE.Color(0x8fa06a);
+  /* Ground palette. Everything used to sit inside a narrow tan band, so the whole
+     map read as one flat sheet of sand. These are pulled apart just enough to tell
+     surfaces apart — cooler concrete, greyer rock, darker damp soil, a slightly
+     richer green — while staying muted so the buildings remain the focus. */
+  var cSand=new THREE.Color(0xd6c39c),cCity=new THREE.Color(0xada9a3),
+      cScrub=new THREE.Color(0xa79e77),cGreen=new THREE.Color(0x6f8a55),
+      cRock=new THREE.Color(0x8d8478),cWet=new THREE.Color(0xa2977d),
+      cRiv=new THREE.Color(0x8fa06a),cConc=new THREE.Color(0x9c9b97);
   var c=new THREE.Color();
   for(var i=0;i<p.count;i++){
     var x=p.getX(i),z=p.getZ(i),h=terrainH(x,z);
@@ -3420,7 +3432,14 @@ function buildTerrain(){
     c.lerp(cRock,smooth(14,30,h));
     c.lerp(cWet,smooth(-140,-40,dc)*0.55);
     c.lerp(cSand,smooth(-60,-6,dc));
-    var shade=0.9+n*0.2;
+    /* A second, much lower-frequency octave breaks the map into broad districts:
+       paved concrete where it runs high, stonier ground where it runs low. Weights
+       are deliberately small — this should read as texture underfoot, not as
+       coloured zones competing with the buildings. */
+    var n2=fbm(x*0.0012-13,z*0.0012+21);
+    c.lerp(cConc,smooth(0.56,0.84,n2)*0.42);
+    c.lerp(cRock,smooth(0.44,0.16,n2)*0.26);
+    var shade=0.88+n*0.2+(n2-0.5)*0.07;
     colors.push(c.r*shade,c.g*shade,c.b*shade);
   }
   g.setAttribute("color",new THREE.Float32BufferAttribute(colors,3));
@@ -4878,6 +4897,100 @@ function buildFactories(){
   }
 }
 
+/* ---------------------------------------------------------------------------
+   Unrest fires. When happiness collapses — halaat kharab — buildings start
+   burning. Night only, and that is a design choice rather than a limitation:
+   a flame against a dark skyline is unmistakable, whereas the same sprite in
+   daylight over pale ground is invisible, so a daytime fire would be a penalty
+   the player never actually sees. The count scales with how far happiness has
+   fallen, so a city in real trouble visibly burns in several places at once
+   while a mildly unhappy one shows a single blaze.
+--------------------------------------------------------------------------- */
+var FIRES=[],FIRESITES=[];
+function buildFires(){
+  /* Candidate rooftops, pulled from the building registry that is already
+     populated by buildBuildings(). */
+  var pools=[B.mid,B.ware,B.fac].concat(B.low||[]);
+  for(var pi=0;pi<pools.length;pi++){
+    var arr=pools[pi]; if(!arr)continue;
+    for(var i=0;i<arr.length;i++){
+      var bq=arr[i];
+      if(bq&&typeof bq.x==="number"&&typeof bq.z==="number")FIRESITES.push(bq);
+    }
+  }
+  var flameTex=canvasTex(64,64,function(ctx,w,h){
+    var g=ctx.createRadialGradient(w/2,h*0.62,2,w/2,h*0.55,w*0.46);
+    g.addColorStop(0,"rgba(255,246,204,0.95)");
+    g.addColorStop(0.30,"rgba(255,178,54,0.85)");
+    g.addColorStop(0.65,"rgba(228,86,28,0.45)");
+    g.addColorStop(1,"rgba(150,40,10,0)");
+    ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+  });
+  var sootTex=canvasTex(64,64,function(ctx,w,h){
+    var g=ctx.createRadialGradient(w/2,h/2,3,w/2,h/2,w/2);
+    g.addColorStop(0,"rgba(46,42,40,0.55)");
+    g.addColorStop(1,"rgba(40,36,34,0)");
+    ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+  });
+  for(var f=0;f<7;f++){
+    var fl=new THREE.Sprite(new THREE.SpriteMaterial({map:flameTex,transparent:true,
+      opacity:0,depthWrite:false,blending:THREE.AdditiveBlending}));
+    fl.visible=false;fl.renderOrder=4;scene.add(fl);
+    var li=new THREE.PointLight(0xff7a2e,0,190,2);
+    li.visible=false;scene.add(li);
+    var puffs=[];
+    for(var q=0;q<3;q++){
+      var sp=new THREE.Sprite(new THREE.SpriteMaterial({map:sootTex,transparent:true,
+        opacity:0,depthWrite:false}));
+      sp.visible=false;scene.add(sp);puffs.push(sp);
+    }
+    FIRES.push({fl:fl,li:li,puffs:puffs,on:false,site:null,ph:rr(0,6.3)});
+  }
+}
+function igniteFire(fire){
+  if(!FIRESITES.length)return;
+  var st=FIRESITES[Math.floor(rng()*FIRESITES.length)];
+  var topY=(typeof st.y==="number"?st.y:terrainH(st.x,st.z))+(st.sy||18)*0.95;
+  fire.site=st;fire.on=true;
+  fire.fl.position.set(st.x,topY+5,st.z);
+  fire.li.position.set(st.x,topY+12,st.z);
+  for(var q=0;q<fire.puffs.length;q++)fire.puffs[q].position.set(st.x,topY+16+q*13,st.z);
+  fire.fl.visible=fire.li.visible=true;
+  for(q=0;q<fire.puffs.length;q++)fire.puffs[q].visible=true;
+}
+function douseFire(fire){
+  fire.on=false;fire.site=null;
+  fire.fl.visible=fire.li.visible=false;
+  for(var q=0;q<fire.puffs.length;q++)fire.puffs[q].visible=false;
+}
+function updateFires(t){
+  if(!FIRES.length)return;
+  var nAmt=(typeof nightAmt==="number")?nightAmt:0;
+  var hap=(G.kpi&&typeof G.kpi.hap==="number")?G.kpi.hap:50;
+  /* Nothing below 40 happiness; full seven blazes only if it falls to ~10. */
+  var unrest=clamp((40-hap)/30,0,1);
+  var want=(nAmt>0.45&&G.started)?Math.round(unrest*FIRES.length):0;
+  var live=0;
+  for(var i=0;i<FIRES.length;i++)if(FIRES[i].on)live++;
+  for(i=0;i<FIRES.length&&live<want;i++)if(!FIRES[i].on){igniteFire(FIRES[i]);live++;}
+  for(i=FIRES.length-1;i>=0&&live>want;i--)if(FIRES[i].on){douseFire(FIRES[i]);live--;}
+  for(i=0;i<FIRES.length;i++){
+    var fr=FIRES[i]; if(!fr.on)continue;
+    /* Two out-of-phase sines give an irregular flicker; a single one pulses too
+       evenly and reads as a beacon rather than a fire. */
+    var fk=0.62+0.38*Math.sin(t*7.3+fr.ph)*Math.sin(t*3.1+fr.ph*1.7);
+    fr.fl.material.opacity=(0.55+0.35*unrest)*fk*nAmt;
+    fr.fl.scale.setScalar(20+10*unrest+5*fk);
+    fr.li.intensity=(1.5+1.6*unrest)*fk*nAmt;
+    for(var q=0;q<fr.puffs.length;q++){
+      var pf=fr.puffs[q];
+      pf.material.opacity=0.30*nAmt*(0.65+0.35*Math.sin(t*0.8+fr.ph+q));
+      pf.scale.setScalar(16+q*9);
+      pf.position.y=fr.fl.position.y+11+q*13+Math.sin(t*0.5+q+fr.ph)*2.2;
+    }
+  }
+}
+
 STEPS=[
  ["laying the coastline…",buildTerrain],
 
@@ -4886,6 +4999,7 @@ STEPS=[
  ["paving the arteries…",buildRoads],
  ["raising the city…",buildBuildings],
  ["firing the kilns…",buildFactories],
+ ["counting the grievances…",buildFires],
  ["carving Mazar-e-Quaid…",buildLandmarks],
  ["opening the shipping lane…",buildShips],
  ["planting neem & palms…",buildTrees],
@@ -4922,6 +5036,7 @@ function loop(){
     updateFX(dt);
     updateSugPulse(t);
     updateStory(dt,t);
+    updateFires(t);
     for(var i=0;i<SMOKE.length;i++){
       var sm2=SMOKE[i];
       /* Factory plumes always smoke — that is the point of showing them.
