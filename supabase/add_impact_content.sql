@@ -97,7 +97,7 @@ cross join (values
     '{"min_seconds": 45}', true, array[11,16,3]::smallint[]
   ),
   (
-    'Rozgar — Karachi 2041',
+    'Rozgaar',
     'A 3D simulation of jobs and economic futures for the city. Explore the scenarios.',
     'explore', 3, 'rozgar-karachi-2041.html', 'engagement',
     '{"min_seconds": 45}', true, array[8,9,11]::smallint[]
