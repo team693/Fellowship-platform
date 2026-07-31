@@ -77,10 +77,24 @@ export async function GET(
   // Fetch the static HTML asset from our own /simulations directory. Fetching
   // (rather than fs) works reliably on Vercel where public assets live on the
   // CDN, not in the serverless function's filesystem.
+  //
+  // The `?v=` build stamp is load-bearing, not cosmetic. `cache: "no-store"`
+  // only bypasses this runtime's own HTTP cache — it does nothing about the CDN
+  // edge in front of the asset, and Vercel's edges cache per region. That let a
+  // learner in one region keep receiving a superseded build of a simulation long
+  // after a deploy, while the same URL fetched from another region returned the
+  // new one, which is exactly as confusing to debug as it sounds. Keying the URL
+  // to the deployment makes every deploy a cache miss by construction, so a
+  // published simulation can never be served stale.
   const origin = new URL(request.url).origin;
-  const assetRes = await fetch(`${origin}/simulations/${assetPath}`, {
-    cache: "no-store",
-  });
+  const buildId =
+    process.env.VERCEL_DEPLOYMENT_ID ||
+    process.env.VERCEL_GIT_COMMIT_SHA ||
+    "dev";
+  const assetRes = await fetch(
+    `${origin}/simulations/${assetPath}?v=${encodeURIComponent(buildId)}`,
+    { cache: "no-store" },
+  );
   if (!assetRes.ok) {
     return new NextResponse("Module asset unavailable", { status: 502 });
   }
