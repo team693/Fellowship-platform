@@ -581,21 +581,92 @@ function buildEnv(){
 }
 
 /* ============================================================
+   CITIES — every city is a parameter set, not a hand-built world.
+   terrainH() is procedural, so a city is defined by: an optional coastline,
+   a handful of Gaussian hills, optional mountain ridges, rivers, district
+   anchors, a monument, and a dominant challenge. Landlocked cities simply
+   have coast:null, which pushes the sea infinitely far away and switches off
+   the coastal terrain shaping, foam, ships and gulls.
+   District IDs are shared across cities on purpose — building density is
+   keyed to them (see caps/steps in buildBuildings) — so a city changes their
+   POSITIONS and LABELS, not their ids.
+============================================================ */
+var CITIES={
+ karachi:{
+  en:"Karachi", ur:"کراچی", icon:"🌊",
+  tagEn:"Coastal megacity · water & flooding", tagUr:"ساحلی شہر · پانی اور سیلاب",
+  challenge:"water", monument:"mazar",
+  coast:{base:880,a1:120,f1:0.00085,a2:60,f2:0.0021,p2:1.7,
+         notch:{x:1120,w:170,d:380}, bulge:{x:-1330,w:200,d:300}},
+  base:3.5, noise:4.5,
+  hills:[{x:-1150,z:-560,h:30,rx:560,rz:430},{x:1850,z:-400,h:10,rx:700,rz:600}],
+  ridge:null, snow:0, lake:null,
+  rivers:[
+   [[-1500,-980],[-1210,-640],[-930,-380],[-740,-70],[-750,250],[-880,520],[-980,720]],
+   [[1950,-880],[1680,-520],[1430,-190],[1280,120],[1200,420],[1150,660]]
+  ],
+  districts:[
+   {id:"south",  x:-260,z:660,r:430,rot:0.12},
+   {id:"keamari",x:-1280,z:520,r:360,rot:-0.25},
+   {id:"west",   x:-1080,z:-430,r:520,rot:0.35},
+   {id:"central",x:-140,z:-320,r:470,rot:0.02},
+   {id:"east",   x:660,z:60,r:480,rot:-0.14},
+   {id:"korangi",x:940,z:660,r:430,rot:0.18},
+   {id:"malir",  x:1720,z:-170,r:520,rot:-0.05}
+  ],
+  names:{
+   south:{en:"SOUTH · SADDAR",ur:"جنوبی · صدر"},keamari:{en:"KEAMARI · PORT",ur:"کیماڑی · بندرگاہ"},
+   west:{en:"WEST · ORANGI",ur:"غربی · اورنگی"},central:{en:"CENTRAL",ur:"وسطی"},
+   east:{en:"EAST · GULSHAN",ur:"شرقی · گلشن"},korangi:{en:"KORANGI",ur:"کورنگی"},
+   malir:{en:"MALIR",ur:"ملیر"}
+  }
+ }
+};
+var CITY=CITIES.karachi;
+function applyCity(key){
+  CITY=CITIES[key]||CITIES.karachi;
+  RIVERS=CITY.rivers;
+  RIVPTS.length=0;
+  DIST=CITY.districts;
+  for(var k in CITY.names)if(DNAMES[k])DNAMES[k]=CITY.names[k];
+}
+
+/* ============================================================
    TERRAIN + RIVERS + SEA
 ============================================================ */
 function coastZ(x){
-  return 880+120*Math.sin(x*0.00085)+60*Math.sin(x*0.0021+1.7)
-   -380*Math.exp(-Math.pow((x-1120)/170,2))
-   +300*Math.exp(-Math.pow((x+1330)/200,2));
+  var C=CITY.coast;
+  /* Landlocked: put the shoreline effectively at infinity. Everything keyed on
+     dc = z - coastZ(x) then falls outside its ramp, so the coastal flattening,
+     the sea-bed drop, the wet-ground tint and the sand override all switch
+     themselves off with no further branching. */
+  if(!C)return 1e6;
+  return C.base+C.a1*Math.sin(x*C.f1)+C.a2*Math.sin(x*C.f2+C.p2)
+   -C.notch.d*Math.exp(-Math.pow((x-C.notch.x)/C.notch.w,2))
+   +C.bulge.d*Math.exp(-Math.pow((x-C.bulge.x)/C.bulge.w,2));
 }
 function terrainH(x,z){
   var dc=z-coastZ(x);
-  var h=3.5
-    +30*Math.exp(-(Math.pow((x+1150)/560,2)+Math.pow((z+560)/430,2)))
-    +10*Math.exp(-(Math.pow((x-1850)/700,2)+Math.pow((z+400)/600,2)))
-    +fbm(x*0.0016,z*0.0016)*4.5;
-  h=lerp(h,h*0.35,smooth(-320,-60,dc));
-  h-=14*smooth(-8,70,dc);
+  var h=CITY.base,i;
+  for(i=0;i<CITY.hills.length;i++){
+    var H=CITY.hills[i];
+    h+=H.h*Math.exp(-(Math.pow((x-H.x)/H.rx,2)+Math.pow((z-H.z)/H.rz,2)));
+  }
+  h+=fbm(x*0.0016,z*0.0016)*CITY.noise;
+  /* Mountain ridges: a wandering Gaussian wall rather than a flat backdrop, so
+     the range has real relief and the city genuinely sits in a valley. */
+  if(CITY.ridge){
+    for(i=0;i<CITY.ridge.length;i++){
+      var R=CITY.ridge[i];
+      var cz=R.z+Math.sin(x*R.wig+R.ph)*R.amp;
+      var d=(z-cz)/R.w;
+      h+=R.h*Math.exp(-d*d)*(0.72+0.28*fbm(x*0.0035+i*9,z*0.0035));
+    }
+  }
+  if(CITY.coast){
+    h=lerp(h,h*0.35,smooth(-320,-60,dc));
+    h-=14*smooth(-8,70,dc);
+  }
   return h;
 }
 /* rivers (Lyari west, Malir east) */
@@ -607,7 +678,7 @@ var RIVPTS=[];
 function riverInit(){
   for(var r=0;r<RIVERS.length;r++){
     var raw=RIVERS[r];
-    raw[raw.length-1][1]=coastZ(raw[raw.length-1][0])+20;
+    if(CITY.coast)raw[raw.length-1][1]=coastZ(raw[raw.length-1][0])+20;
     var v=[],i;for(i=0;i<raw.length;i++)v.push(new THREE.Vector3(raw[i][0],0,raw[i][1]));
     var cur=new THREE.CatmullRomCurve3(v,false,"catmullrom",0.4);
     var n=Math.round(cur.getLength()/34),pts=[];
