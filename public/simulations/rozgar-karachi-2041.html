@@ -3249,21 +3249,26 @@ function buildRoads(){
        fresh black tarmac, and near-black ribbons read as hard ugly lines from a
        zoomed-out camera. Base is grey with warm dust in it, patched unevenly, and
        the markings are faded rather than fresh paint. */
-    ctx.fillStyle="#6f7276";ctx.fillRect(0,0,w,h);
+    /* Roads are now LIGHTER than the ground, not darker. In the Age of Empires
+       references the path is always the pale element — grey stone or packed dust
+       against darker earth — and at a top-down zoom that reads far better than a
+       dark ribbon, which just looks like a line scratched across the map. This is
+       also true to a lot of Karachi: sun-bleached concrete, not fresh tarmac. */
+    ctx.fillStyle="#a8a196";ctx.fillRect(0,0,w,h);
     for(var i=0;i<10;i++){
-      ctx.fillStyle=Math.random()<0.5?"rgba(150,146,138,0.18)":"rgba(58,60,64,0.16)";
+      ctx.fillStyle=Math.random()<0.5?"rgba(196,190,178,0.20)":"rgba(112,106,96,0.18)";
       var pw=14+Math.random()*40,phh=18+Math.random()*46;
       ctx.fillRect(Math.random()*(w-pw),Math.random()*(h-phh),pw,phh);
     }
     for(var i2=0;i2<620;i2++){
-      ctx.fillStyle="rgba(196,186,168,"+(Math.random()*0.07)+")";
+      ctx.fillStyle="rgba(88,82,72,"+(Math.random()*0.06)+")";
       ctx.fillRect(Math.random()*w,Math.random()*h,2,2);
     }
-    ctx.fillStyle="rgba(214,188,96,0.62)";
+    ctx.fillStyle="rgba(168,138,52,0.70)";
     for(var y=0;y<h;y+=34)ctx.fillRect(w/2-3,y,7,20);
-    ctx.fillStyle="rgba(226,224,216,0.52)";
+    ctx.fillStyle="rgba(250,249,245,0.60)";
     for(y=6;y<h;y+=30){ctx.fillRect(w*0.27-3,y,6,17);ctx.fillRect(w*0.73-3,y,6,17);}
-    ctx.fillStyle="rgba(226,224,216,0.44)";
+    ctx.fillStyle="rgba(250,249,245,0.52)";
     ctx.fillRect(3,0,5,h);ctx.fillRect(w-8,0,5,h);
   });
   asphalt.encoding=THREE.sRGBEncoding;
@@ -3595,10 +3600,16 @@ function buildTerrain(){
      map read as one flat sheet of sand. These are pulled apart just enough to tell
      surfaces apart — cooler concrete, greyer rock, darker damp soil, a slightly
      richer green — while staying muted so the buildings remain the focus. */
-  var cSand=new THREE.Color(0xd6c39c),cCity=new THREE.Color(0xada9a3),
-      cScrub=new THREE.Color(0xa79e77),cGreen=new THREE.Color(0x6f8a55),
-      cRock=new THREE.Color(0x8d8478),cWet=new THREE.Color(0xa2977d),
-      cRiv=new THREE.Color(0x8fa06a),cConc=new THREE.Color(0x9c9b97);
+  /* Warmer and more saturated than before. The old palette was a narrow band of
+     pale desaturated tan, which is why the ground read as blank paper and why a
+     grey road looked like a line drawn on it. Ochre, olive and rust give the
+     surface something to be, and give the roads something to sit against. */
+  var cSand=new THREE.Color(0xc9ae7e),cCity=new THREE.Color(0x9d968c),
+      cScrub=new THREE.Color(0x9a8d61),cGreen=new THREE.Color(0x5f7d42),
+      cRock=new THREE.Color(0x7d7263),cWet=new THREE.Color(0x8d7f61),
+      cRiv=new THREE.Color(0x7d9152),cConc=new THREE.Color(0x93918b),
+      cDust=new THREE.Color(0xb08a55),cSnow=new THREE.Color(0xe8edf2),
+      cSnowShade=new THREE.Color(0xc2cddb);
   var c=new THREE.Color();
   for(var i=0;i<p.count;i++){
     var x=p.getX(i),z=p.getZ(i),h=terrainH(x,z);
@@ -3616,10 +3627,31 @@ function buildTerrain(){
        paved concrete where it runs high, stonier ground where it runs low. Weights
        are deliberately small — this should read as texture underfoot, not as
        coloured zones competing with the buildings. */
+    /* Districts of ground type. Tighter smoothstep bands than before so a patch
+       has a visible edge instead of dissolving into a gradient — in the AoE
+       references you can always tell where dirt becomes rock becomes scrub, and
+       that legibility is most of why their ground reads as terrain rather than
+       as a texture. */
     var n2=fbm(x*0.0012-13,z*0.0012+21);
-    c.lerp(cConc,smooth(0.56,0.84,n2)*0.54);
-    c.lerp(cRock,smooth(0.44,0.16,n2)*0.34);
-    var shade=0.88+n*0.2+(n2-0.5)*0.07;
+    c.lerp(cConc,smooth(0.60,0.72,n2)*0.62);
+    c.lerp(cRock,smooth(0.40,0.28,n2)*0.46);
+    var n3=fbm(x*0.0026+41,z*0.0026-17);
+    c.lerp(cDust,smooth(0.62,0.74,n3)*0.34);
+    var shade=0.86+n*0.22+(n2-0.5)*0.09;
+    /* Snow, for cities that have it. Coverage is driven by altitude and by slope,
+       not painted on: high flat ground holds snow, steep faces shed it and stay
+       rock. Noise breaks the altitude line so it never reads as a contour. The
+       references are emphatic that snow is patchy — uniform white is exactly the
+       blown-out look we just spent a while removing. */
+    if(CITY.snow>0){
+      var slope=Math.abs(terrainH(x+26,z)-terrainH(x-26,z))
+               +Math.abs(terrainH(x,z+26)-terrainH(x,z-26));
+      var alt=smooth(70,240,h+fbm(x*0.005+3,z*0.005-8)*90);
+      var flat=smooth(34,10,slope);
+      var cover=clamp(alt*flat*CITY.snow*1.35,0,1);
+      c.lerp(cSnowShade,cover*0.45);
+      c.lerp(cSnow,cover*0.8);
+    }
     colors.push(c.r*shade,c.g*shade,c.b*shade);
   }
   g.setAttribute("color",new THREE.Float32BufferAttribute(colors,3));
@@ -5171,6 +5203,137 @@ function updateFires(t){
   }
 }
 
+/* ---------------------------------------------------------------------------
+   Ground clutter — boulders and scrub.
+   The single biggest difference between our ground and the Age of Empires
+   references is not colour, it is that theirs has things sitting ON it. Bare
+   coloured terrain reads as a texture; the same terrain with rocks and tufts
+   scattered over it reads as ground. Two InstancedMeshes, so a few thousand
+   pieces cost two draw calls.
+   Placement avoids roads, rivers, water and building plots, and thins out
+   inside dense districts where the buildings already carry the detail.
+--------------------------------------------------------------------------- */
+function buildGroundDetail(){
+  var rocks=[],scrub=[],tries=0;
+  var wantRock=CITY.snow>0?520:420, wantScrub=CITY.snow>0?200:460;
+  while((rocks.length<wantRock||scrub.length<wantScrub)&&tries++<9000){
+    var x=rr(-2450,2450),z=rr(-1720,1460);
+    var h=terrainH(x,z);
+    if(h<2.2)continue;                                  /* keep out of the water */
+    if(distToRoads(x,z)<11)continue;                    /* and off the roads */
+    if(distToRivers(x,z)<20)continue;
+    if(inExcl(x,z)||!occFree(x,z))continue;
+    /* Thin inside the built-up core — the buildings are the detail there. */
+    var d=distOf(x,z);
+    if(d&&rng()<0.55)continue;
+    var slope=Math.abs(terrainH(x+24,z)-terrainH(x-24,z))
+             +Math.abs(terrainH(x,z+24)-terrainH(x,z-24));
+    var rocky=fbm(x*0.0021-5,z*0.0021+11);
+    if(rocks.length<wantRock&&(slope>7||rocky>0.56)&&rng()<0.7){
+      rocks.push({x:x,y:h-0.6,z:z,ry:rr(0,6.3),
+        sx:rr(1.6,5.2),sy:rr(1.0,3.2),sz:rr(1.6,5.2)});
+      continue;
+    }
+    if(scrub.length<wantScrub&&slope<9&&rng()<0.8){
+      scrub.push({x:x,y:h,z:z,ry:rr(0,6.3),
+        sx:rr(1.5,3.4),sy:rr(0.9,2.1),sz:rr(1.5,3.4)});
+    }
+  }
+  /* Irregular low boulders. An icosahedron reads as a rock at this distance and
+     is far cheaper than anything sculpted. */
+  var rg=new THREE.IcosahedronGeometry(1.7,0);
+  var rm=new THREE.MeshStandardMaterial({
+    color:CITY.snow>0?0x8b8578:0x877b6a,roughness:1,flatShading:true});
+  inst(rg,rm,rocks,true);
+  /* Scrub tufts: a squat cone reads as dry brush from above. */
+  var sgeo=new THREE.ConeGeometry(1.5,2.2,5,1);
+  var sm=new THREE.MeshStandardMaterial({
+    color:CITY.snow>0?0x6a7358:0x7d7a45,roughness:1,flatShading:true});
+  inst(sgeo,sm,scrub,false);
+}
+
+/* ---------------------------------------------------------------------------
+   Lahore landmarks: Minar-e-Pakistan and the Badshahi Mosque.
+   Built from primitives, like Mazar-e-Quaid — the sim self-hosts only the
+   Three.js core, so there is no model loader and nothing can be imported.
+   At the default camera these stand ~60 units tall in a 5200-unit world, so
+   they are silhouettes first: the Minar's taper and the mosque's three domes
+   and four corner minarets are what actually register. Detail below that
+   threshold is deliberately left out rather than modelled and lost.
+--------------------------------------------------------------------------- */
+function buildLahoreLandmarks(){
+  var marble=new THREE.MeshStandardMaterial({color:0xf2efe6,roughness:0.4,metalness:0.04,envMapIntensity:0.6});
+  var marbleGlow=new THREE.MeshStandardMaterial({color:0xf2efe6,roughness:0.4,metalness:0.04,
+    emissive:new THREE.Color(0xfff0cc),emissiveIntensity:0});
+  NIGHTMATS.push({mat:marbleGlow,day:0,night:0.5});
+  var sandstone=new THREE.MeshStandardMaterial({color:0xc2705e,roughness:0.85});
+  var sandDark=new THREE.MeshStandardMaterial({color:0xa85c4d,roughness:0.9});
+
+  /* ---- Minar-e-Pakistan ---- */
+  var mn=new THREE.Group();
+  var mx=-120,mz=-560;
+  mn.position.set(mx,terrainH(mx,mz),mz);
+  var plat=new THREE.Mesh(new THREE.CylinderGeometry(46,50,4,10),marble);
+  plat.position.y=2;plat.receiveShadow=true;mn.add(plat);
+  /* the four curved petals at the base */
+  for(var i=0;i<4;i++){
+    var petal=new THREE.Mesh(new THREE.CylinderGeometry(15,4,26,10,1,true,0,Math.PI),marble);
+    var a=i*Math.PI/2+Math.PI/4;
+    petal.position.set(Math.sin(a)*13,16,Math.cos(a)*13);
+    petal.rotation.set(0.32,-a,0);
+    petal.castShadow=true;mn.add(petal);
+  }
+  /* the tower: stacked tapering drums, which reads as the real lattice taper */
+  var segs=[[7.0,5.6,24],[5.6,4.4,22],[4.4,3.3,20],[3.3,2.4,17]],yy=8;
+  for(i=0;i<segs.length;i++){
+    var t=new THREE.Mesh(new THREE.CylinderGeometry(segs[i][1],segs[i][0],segs[i][2],10),
+      i===0?marbleGlow:marble);
+    t.position.y=yy+segs[i][2]/2;yy+=segs[i][2];
+    t.castShadow=true;mn.add(t);
+    var band=new THREE.Mesh(new THREE.CylinderGeometry(segs[i][1]*1.22,segs[i][1]*1.22,1.6,10),marble);
+    band.position.y=yy;mn.add(band);
+  }
+  var crown=new THREE.Mesh(new THREE.SphereGeometry(3.0,16,12),marbleGlow);
+  crown.position.y=yy+2.4;crown.castShadow=true;mn.add(crown);
+  var spike=new THREE.Mesh(new THREE.CylinderGeometry(0.25,0.7,12,8),marble);
+  spike.position.y=yy+10;mn.add(spike);
+  scene.add(mn);
+
+  /* ---- Badshahi Mosque ---- */
+  var bd=new THREE.Group();
+  var bx=140,bz=-760;
+  bd.position.set(bx,terrainH(bx,bz),bz);
+  var court=new THREE.Mesh(new THREE.BoxGeometry(150,3,110),marble);
+  court.position.y=1.5;court.receiveShadow=true;bd.add(court);
+  var hall=new THREE.Mesh(new THREE.BoxGeometry(96,26,52),sandstone);
+  hall.position.set(0,16,-22);hall.castShadow=hall.receiveShadow=true;bd.add(hall);
+  /* central iwan — the big arched gateway */
+  var iwan=new THREE.Mesh(new THREE.BoxGeometry(30,34,10),sandstone);
+  iwan.position.set(0,20,3);iwan.castShadow=true;bd.add(iwan);
+  var arch=new THREE.Mesh(new THREE.CylinderGeometry(9,9,11,18,1,false,0,Math.PI),sandDark);
+  arch.position.set(0,22,3.2);arch.rotation.set(Math.PI/2,0,Math.PI/2);bd.add(arch);
+  /* three bulbous domes */
+  var domes=[[0,20],[-33,15],[33,15]];
+  for(i=0;i<domes.length;i++){
+    var dr=domes[i][1];
+    var dm=new THREE.Mesh(new THREE.SphereGeometry(dr,28,20,0,Math.PI*2,0,Math.PI*0.58),marbleGlow);
+    dm.scale.y=1.24;dm.position.set(domes[i][0],29,-22);dm.castShadow=true;bd.add(dm);
+    var dn=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.9,dr*0.42,8),marble);
+    dn.position.set(domes[i][0],29+dr*1.32,-22);bd.add(dn);
+  }
+  /* four corner minarets — the other half of the silhouette */
+  var mc=[[-72,26],[72,26],[-72,-68],[72,-68]];
+  for(i=0;i<4;i++){
+    var sh=new THREE.Mesh(new THREE.CylinderGeometry(3.6,4.4,46,12),sandstone);
+    sh.position.set(mc[i][0],26,mc[i][1]);sh.castShadow=true;bd.add(sh);
+    var cap=new THREE.Mesh(new THREE.CylinderGeometry(5.2,5.2,3,12),marble);
+    cap.position.set(mc[i][0],50,mc[i][1]);bd.add(cap);
+    var cd=new THREE.Mesh(new THREE.SphereGeometry(4.6,16,12,0,Math.PI*2,0,Math.PI*0.6),marbleGlow);
+    cd.scale.y=1.2;cd.position.set(mc[i][0],52,mc[i][1]);cd.castShadow=true;bd.add(cd);
+  }
+  scene.add(bd);
+}
+
 STEPS=[
  ["laying the coastline…",buildTerrain],
 
@@ -5180,10 +5343,11 @@ STEPS=[
  ["raising the city…",buildBuildings],
  ["firing the kilns…",buildFactories],
  ["counting the grievances…",buildFires],
- ["carving Mazar-e-Quaid…",buildLandmarks],
+ ["raising the landmarks…",function(){if(CITY.monument==="minar")buildLahoreLandmarks();else if(CITY.monument==="mazar")buildLandmarks();}],
  ["opening the shipping lane…",function(){if(CITY.coast)buildShips();}],
  ["planting neem & palms…",buildTrees],
  ["patching the potholes…",buildRoadDetail],
+ ["scattering rocks & scrub…",buildGroundDetail],
  ["releasing the traffic…",buildTraffic],
  ["waking the streets…",function(){buildPeds();if(CITY.coast)buildGulls();buildNightPoints();}],
  ["breathing life into it…",buildKPIVisuals],
