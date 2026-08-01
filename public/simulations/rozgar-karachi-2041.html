@@ -175,7 +175,7 @@ body{font-family:"Bricolage Grotesque",system-ui,sans-serif;color:#EAF2F0}
    picker appears, and would otherwise swallow the clicks. It stays visible behind
    as the branded backdrop. */
 #citysel{z-index:40}
-.panel.cityp{max-width:760px}
+.panel.cityp{max-width:820px;max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .cityq{margin:10px 0 4px;font-size:14px;letter-spacing:.05em;opacity:.75}
 .citygrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:16px 0 6px}
 .citybtn{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:13px 14px;
@@ -312,7 +312,7 @@ body{font-family:"Bricolage Grotesque",system-ui,sans-serif;color:#EAF2F0}
     <h1>ROZGAAR <span class="u ur">روزگار</span></h1>
     <p class="cityq">Choose your city · اپنا شہر چنیں</p>
     <div id="cityGrid" class="citygrid"></div>
-    <p class="citynote">More cities are on the way · مزید شہر جلد</p>
+    <p class="citynote">Every city plays differently — its own ground, its own landmark, its own emergency · ہر شہر مختلف ہے</p>
   </div>
 </div>
 
@@ -511,10 +511,27 @@ function rigApply(){
   camera.lookAt(rig.target);
 }
 var drag=null,keys={},downAt=null;
+/* Touch browsers replay a tap as a synthetic mousedown/mouseup pair a few hundred
+   milliseconds later. Without this guard one tap ran the placement path twice and
+   put down two buildings for one tap. */
+var lastTouch=0;
+function touchEcho(){return lastTouch>0&&TT-lastTouch<1.0;}
 canvas.addEventListener("contextmenu",function(e){e.preventDefault();if(TOOL)setTool(null);});
 canvas.addEventListener("mousedown",function(e){drag={x:e.clientX,y:e.clientY,b:e.button};downAt={x:e.clientX,y:e.clientY,b:e.button};});
 addEventListener("mouseup",function(e){
-  if(downAt&&downAt.b===0&&Math.hypot(e.clientX-downAt.x,e.clientY-downAt.y)<6&&TOOL)tryPlace();
+  if(touchEcho()){drag=null;downAt=null;return;}
+  if(downAt&&downAt.b===0&&Math.hypot(e.clientX-downAt.x,e.clientY-downAt.y)<6&&TOOL){
+    /* Resolve the pointer and the ghost RIGHT NOW rather than trusting whatever the
+       render loop last computed. updateGhost() runs once per frame, so on a heavy
+       scene the ghost trailed the cursor by several frames: click promptly and there
+       was no valid ghost yet, so the placement silently aborted. That is why it took
+       a double or triple click, or moving away and coming back — both just bought
+       enough time for a frame to run. Placement is now frame-rate independent. */
+    hoverXY.x=(e.clientX/innerWidth)*2-1;
+    hoverXY.y=-(e.clientY/innerHeight)*2+1;
+    if(typeof updateGhost==="function")updateGhost();
+    tryPlace();
+  }
   drag=null;downAt=null;
 });
 addEventListener("mousemove",function(e){
@@ -539,6 +556,7 @@ addEventListener("keydown",function(e){var kk=e.key.toLowerCase();if(kk==="arrow
 addEventListener("keyup",function(e){var kk=e.key.toLowerCase();if(kk==="arrowup")kk="w";if(kk==="arrowdown")kk="s";if(kk==="arrowleft")kk="a";if(kk==="arrowright")kk="d";keys[kk]=false;});
 var tch=null;
 canvas.addEventListener("touchstart",function(e){
+  lastTouch=TT;
   if(e.touches.length===1)tch={m:"o",x:e.touches[0].clientX,y:e.touches[0].clientY};
   else if(e.touches.length===2){var a=e.touches[0],b=e.touches[1];
     tch={m:"p",x:(a.clientX+b.clientX)/2,y:(a.clientY+b.clientY)/2,
@@ -561,7 +579,14 @@ canvas.addEventListener("touchmove",function(e){
   }
 },{passive:true});
 canvas.addEventListener("touchend",function(e){
-  if(tch&&tch.m==="o"&&TOOL&&e.changedTouches.length===1)tryPlace();
+  lastTouch=TT;
+  if(tch&&tch.m==="o"&&TOOL&&e.changedTouches.length===1){
+    var ct=e.changedTouches[0];
+    hoverXY.x=(ct.clientX/innerWidth)*2-1;
+    hoverXY.y=-(ct.clientY/innerHeight)*2+1;
+    if(typeof updateGhost==="function")updateGhost();
+    tryPlace();
+  }
   tch=null;
 });
 
@@ -620,7 +645,7 @@ var CITIES={
  karachi:{
   en:"Karachi", ur:"کراچی", icon:"🌊",
   tagEn:"Coastal megacity · water & flooding", tagUr:"ساحلی شہر · پانی اور سیلاب",
-  challenge:"water", monument:"mazar", startTOD:20.4,
+  challenge:"water", hazard:"fire", monument:"mazar", startTOD:20.4,
   coast:{base:880,a1:120,f1:0.00085,a2:60,f2:0.0021,p2:1.7,
          notch:{x:1120,w:170,d:380}, bulge:{x:-1330,w:200,d:300}},
   base:3.5, noise:4.5,
@@ -650,7 +675,7 @@ var CITIES={
  lahore:{
   en:"Lahore", ur:"لاہور", icon:"🏛️",
   tagEn:"Inland plains · smog & air quality", tagUr:"میدانی شہر · دھواں اور فضا",
-  challenge:"smog", monument:"minar", startTOD:9.2,
+  challenge:"smog", hazard:"flood", monument:"minar", startTOD:9.2,
   coast:null,                       /* landlocked — see coastZ() */
   base:6.0, noise:3.2,
   /* Punjab plains: green almost everywhere, no directional bias. Lahore is
@@ -688,7 +713,7 @@ var CITIES={
  gilgit:{
   en:"Gilgit", ur:"گلگت", icon:"🏔️",
   tagEn:"Mountain valley · isolation & winter", tagUr:"پہاڑی وادی · تنہائی اور سردی",
-  challenge:"isolation", monument:null, startTOD:9.6,
+  challenge:"isolation", hazard:"slide", monument:"fort", startTOD:9.6,
   coast:null,
   base:34, noise:6.5,
   /* Alpine: thin green on the valley floor only, and snow starting just above it
@@ -727,8 +752,187 @@ var CITIES={
    keamari:{en:"RIVERSIDE",ur:"دریا کنارہ"}
   }
  }
+ ,
+ islamabad:{
+  en:"Islamabad", ur:"اسلام آباد", icon:"🌲",
+  tagEn:"Planned capital · Margalla slopes", tagUr:"منصوبہ بند دارالحکومت · مارگلہ",
+  challenge:"planning", hazard:"slide", monument:"faisal", startTOD:7.4,
+  coast:null,
+  base:12, noise:3.0,
+  /* The greenest city in the set: forested hills to the north and a grid of
+     tree-lined sectors below them. */
+  green:{lo:0.18,hi:0.54,amt:0.95,eastBias:false},
+  snowBand:[172,300], rockBand:[74,155], roadScale:1.0, minorKeep:0.85, density:0.7,
+  hills:[{x:-500,z:250,h:-8,rx:1000,rz:520}],
+  /* The Margallas along the north. One range only — the city opens southward. */
+  ridge:[{z:-1180,w:520,h:230,wig:0.0010,amp:180,ph:1.2}],
+  snow:0.14,
+  rivers:[], lake:{x:1150,z:250,rx:290,rz:190},          /* Rawal Lake */
+  districts:[
+   {id:"central",x:-60,z:-120,r:470,rot:0.01},
+   {id:"south",  x:180,z:560,r:430,rot:0.06},
+   {id:"west",   x:-1150,z:120,r:450,rot:0.14},
+   {id:"east",   x:900,z:-140,r:430,rot:-0.08},
+   {id:"korangi",x:1450,z:600,r:380,rot:0.11},
+   {id:"malir",  x:-1450,z:640,r:380,rot:-0.07},
+   {id:"keamari",x:-420,z:-700,r:320,rot:-0.16}
+  ],
+  names:{
+   central:{en:"BLUE AREA",ur:"بلیو ایریا"},
+   south:{en:"SECTOR G-9",ur:"سیکٹر جی-۹"},
+   west:{en:"SECTOR H-11",ur:"سیکٹر ایچ-۱۱"},
+   east:{en:"SECTOR F-6",ur:"سیکٹر ایف-۶"},
+   korangi:{en:"BANI GALA",ur:"بنی گالا"},
+   malir:{en:"I-10 INDUSTRIAL",ur:"آئی-۱۰ صنعتی"},
+   keamari:{en:"BHARA KAHU",ur:"بھارہ کہو"}
+  }
+ },
+ peshawar:{
+  en:"Peshawar", ur:"پشاور", icon:"🏰",
+  tagEn:"Frontier city · trade & congestion", tagUr:"سرحدی شہر · تجارت اور بھیڑ",
+  challenge:"congestion", hazard:"fire", monument:"khyber", startTOD:17.6,
+  coast:null,
+  base:8, noise:3.4,
+  green:{lo:0.34,hi:0.68,amt:0.78,eastBias:true},
+  snowBand:[150,280], rockBand:[34,86], roadScale:0.9, minorKeep:0.85, density:0.85,
+  /* The ground climbs toward the Khyber in the west. */
+  hills:[{x:-1750,z:-200,h:110,rx:720,rz:950},{x:-1500,z:700,h:52,rx:520,rz:480}],
+  ridge:[{z:-1320,w:560,h:150,wig:0.0012,amp:200,ph:2.6}],
+  snow:0.12,
+  /* The Bara, a modest stream rather than a great river. */
+  rivers:[
+   [[-2300,620],[-1600,520],[-900,470],[-200,430],[500,420],[1200,450],[1900,520],[2300,580]]
+  ],
+  lake:null,
+  districts:[
+   {id:"central",x:-180,z:-60,r:470,rot:0.04},
+   {id:"south",  x:60,z:620,r:430,rot:0.09},
+   {id:"west",   x:-1150,z:-260,r:440,rot:0.20},
+   {id:"east",   x:880,z:60,r:470,rot:-0.11},
+   {id:"korangi",x:1480,z:560,r:390,rot:0.13},
+   {id:"malir",  x:-1420,z:520,r:370,rot:-0.09},
+   {id:"keamari",x:-520,z:-720,r:330,rot:-0.18}
+  ],
+  names:{
+   central:{en:"QISSA KHWANI",ur:"قصہ خوانی"},
+   south:{en:"HAYATABAD",ur:"حیات آباد"},
+   west:{en:"KHYBER ROAD",ur:"خیبر روڈ"},
+   east:{en:"UNIVERSITY TOWN",ur:"یونیورسٹی ٹاؤن"},
+   korangi:{en:"RING ROAD",ur:"رنگ روڈ"},
+   malir:{en:"WARSAK ROAD",ur:"ورسک روڈ"},
+   keamari:{en:"PESHAWAR CANTT",ur:"پشاور چھاؤنی"}
+  }
+ },
+ quetta:{
+  en:"Quetta", ur:"کوئٹہ", icon:"⛰️",
+  tagEn:"High basin · water table & winter", tagUr:"بلند وادی · پانی اور سردی",
+  challenge:"aquifer", hazard:"slide", monument:"residency", startTOD:8.8,
+  coast:null,
+  base:26, noise:5.0,
+  /* Arid orchard country: apple and grape belts on the basin floor, bare rock
+     everywhere above them. */
+  green:{lo:0.50,hi:0.80,amt:0.55,eastBias:false},
+  snowBand:[112,250], rockBand:[42,112], roadScale:0.7, minorKeep:0.6, density:0.55,
+  hills:[{x:-200,z:120,h:-12,rx:1000,rz:560}],
+  /* Chiltan to the south-west, Takatu to the north — a bowl with a city in it. */
+  ridge:[
+   {z:-1300,w:600,h:260,wig:0.0010,amp:210,ph:1.7},
+   {z:1330, w:640,h:230,wig:0.0012,amp:190,ph:0.6}
+  ],
+  snow:0.5,
+  rivers:[], lake:{x:1280,z:-560,rx:210,rz:150},          /* Hanna Lake */
+  districts:[
+   {id:"central",x:-120,z:20,r:420,rot:0.02},
+   {id:"south",  x:220,z:520,r:370,rot:0.07},
+   {id:"west",   x:-1000,z:-80,r:390,rot:0.17},
+   {id:"east",   x:860,z:140,r:390,rot:-0.10},
+   {id:"korangi",x:1380,z:480,r:330,rot:0.12},
+   {id:"malir",  x:-1380,z:420,r:330,rot:-0.06},
+   {id:"keamari",x:-480,z:-520,r:300,rot:-0.15}
+  ],
+  names:{
+   central:{en:"JINNAH ROAD",ur:"جناح روڈ"},
+   south:{en:"SARIAB ROAD",ur:"سریاب روڈ"},
+   west:{en:"HAZARA TOWN",ur:"ہزارہ ٹاؤن"},
+   east:{en:"QUETTA CANTT",ur:"کوئٹہ چھاؤنی"},
+   korangi:{en:"SAMUNGLI",ur:"سمنگلی"},
+   malir:{en:"BREWERY ROAD",ur:"بریوری روڈ"},
+   keamari:{en:"KILLI ISMAIL",ur:"کلی اسماعیل"}
+  }
+ },
+ multan:{
+  en:"Multan", ur:"ملتان", icon:"🕌",
+  tagEn:"City of saints · heat & power", tagUr:"اولیا کا شہر · گرمی اور بجلی",
+  challenge:"heat", hazard:"fire", monument:"rukn", startTOD:15.2,
+  coast:null,
+  base:5, noise:2.6,
+  green:{lo:0.36,hi:0.72,amt:0.72,eastBias:false},
+  snowBand:[70,240], rockBand:[24,58], roadScale:0.85, minorKeep:0.8, density:0.8,
+  /* The old mound the fort and the shrines stand on. */
+  hills:[{x:-260,z:-180,h:34,rx:360,rz:300},{x:1400,z:500,h:8,rx:800,rz:600}],
+  ridge:null, snow:0,
+  /* The Chenab down the western side. */
+  rivers:[
+   [[-1500,-1400],[-1620,-800],[-1700,-200],[-1660,400],[-1520,1000],[-1300,1450]]
+  ],
+  lake:null,
+  districts:[
+   {id:"central",x:-140,z:-60,r:450,rot:0.03},
+   {id:"south",  x:120,z:600,r:420,rot:0.08},
+   {id:"west",   x:-950,z:180,r:400,rot:0.18},
+   {id:"east",   x:880,z:20,r:450,rot:-0.09},
+   {id:"korangi",x:1450,z:560,r:380,rot:0.12},
+   {id:"malir",  x:-900,z:900,r:360,rot:-0.07},
+   {id:"keamari",x:-420,z:-720,r:330,rot:-0.17}
+  ],
+  names:{
+   central:{en:"OLD CITY · HARAM GATE",ur:"اندرونِ شہر · حرم گیٹ"},
+   south:{en:"SHAH RUKN-E-ALAM COLONY",ur:"شاہ رکنِ عالم کالونی"},
+   west:{en:"CHENAB SIDE",ur:"چناب کنارہ"},
+   east:{en:"BOSAN ROAD",ur:"بوسن روڈ"},
+   korangi:{en:"VEHARI ROAD",ur:"وہاڑی روڈ"},
+   malir:{en:"CHOWK KUMHARAN",ur:"چوک کمہاراں"},
+   keamari:{en:"MULTAN CANTT",ur:"ملتان چھاؤنی"}
+  }
+ },
+ hyderabad:{
+  en:"Hyderabad", ur:"حیدرآباد", icon:"🌬️",
+  tagEn:"Indus city · wind, heat & floods", tagUr:"دریائی شہر · ہوا، گرمی، سیلاب",
+  challenge:"river", hazard:"flood", monument:"qillo", startTOD:18.2,
+  coast:null,
+  base:6, noise:2.8,
+  green:{lo:0.52,hi:0.84,amt:0.58,eastBias:true},
+  snowBand:[70,240], rockBand:[18,46], roadScale:0.85, minorKeep:0.8, density:0.8,
+  /* The limestone ridge the old city sits on. */
+  hills:[{x:-220,z:-120,h:28,rx:820,rz:430},{x:1500,z:-500,h:10,rx:700,rz:520}],
+  ridge:null, snow:0,
+  /* The Indus down the western edge, wide and slow. */
+  rivers:[
+   [[-1750,-1400],[-1820,-750],[-1860,-100],[-1790,520],[-1620,1050],[-1400,1450]]
+  ],
+  lake:null,
+  districts:[
+   {id:"central",x:-160,z:-80,r:440,rot:0.02},
+   {id:"south",  x:180,z:600,r:450,rot:0.07},
+   {id:"west",   x:-1000,z:240,r:390,rot:0.16},
+   {id:"east",   x:900,z:60,r:440,rot:-0.10},
+   {id:"korangi",x:1450,z:560,r:380,rot:0.13},
+   {id:"malir",  x:-880,z:920,r:350,rot:-0.08},
+   {id:"keamari",x:-460,z:-700,r:320,rot:-0.16}
+  ],
+  names:{
+   central:{en:"SADDAR",ur:"صدر"},
+   south:{en:"LATIFABAD",ur:"لطیف آباد"},
+   west:{en:"KOTRI SIDE",ur:"کوٹری کنارہ"},
+   east:{en:"QASIMABAD",ur:"قاسم آباد"},
+   korangi:{en:"CITIZEN COLONY",ur:"سٹیزن کالونی"},
+   malir:{en:"TANDO YOUSUF",ur:"ٹنڈو یوسف"},
+   keamari:{en:"HIRABAD",ur:"ہیرآباد"}
+  }
+ }
 };
 var CITY=CITIES.karachi;
+var TOOLBASE=null;
 function applyCity(key){
   CITY=CITIES[key]||CITIES.karachi;
   RIVERS=CITY.rivers;
@@ -751,7 +955,30 @@ function applyCity(key){
      read best at night. The smaller cities open in daylight, where their terrain
      and low-rise character is the thing worth seeing. */
   if(CITY.startTOD!==undefined)TOD=CITY.startTOD;
-  var ct=CITYTOOL[key]||CITYTOOL.karachi;
+  /* Gilgit's economy is tourism, not heavy industry — an industrial estate in a
+     mountain valley is the wrong lesson as well as the wrong building. The original
+     labels are stashed on first call and put back for every other city, so picking
+     Gilgit and then switching does not leave hotels in Karachi. */
+  if(!TOOLBASE){
+    TOOLBASE={};
+    ["itp","itpS","itpI"].forEach(function(tk){
+      TOOLBASE[tk]={ic:TOOLS[tk].ic,en:TOOLS[tk].en,ur:TOOLS[tk].ur,
+                    fxE:TOOLS[tk].fxE,fxU:TOOLS[tk].fxU};
+    });
+  }
+  ["itp","itpS","itpI"].forEach(function(tk){
+    for(var f in TOOLBASE[tk])TOOLS[tk][f]=TOOLBASE[tk][f];
+  });
+  if(CITY.challenge==="isolation"){
+    TOOLS.itp.ic="🏨";TOOLS.itp.en="Hotel / Resort";TOOLS.itp.ur="ہوٹل / ریزورٹ";
+    TOOLS.itp.fxE="Choose a type — tourism is the valley's job engine";
+    TOOLS.itp.fxU="قسم چنیں — سیاحت وادی کا روزگار";
+    TOOLS.itpS.ic="🏨";TOOLS.itpS.en="Mountain Resort";TOOLS.itpS.ur="پہاڑی ریزورٹ";
+    TOOLS.itpI.ic="🛖";TOOLS.itpI.en="Guest House";TOOLS.itpI.ur="گیسٹ ہاؤس";
+    TOOLS.itpI.fxE="Jobs +6 · no prerequisites · low impact";
+    TOOLS.itpI.fxU="روزگار +6 · شرط نہیں · کم اثر";
+  }
+  var ct=HAZTOOL[CITY.hazard]||CITYTOOL[key]||"fst";
   for(var pi=PALORDER.length-1;pi>=0;pi--)
     if(PALORDER[pi]==="fst"||PALORDER[pi]==="dam"||PALORDER[pi]==="mrd")PALORDER.splice(pi,1);
   PALORDER.push(ct);
@@ -2423,7 +2650,9 @@ var TOOLS={
 };
 var PALORDER=["sel","cor","upg","sol","wat","par","sch","hos","itp"];
 /* The city's emergency tool is appended when the city is chosen, so the dock only
-   ever shows the one that is relevant. */
+   ever shows the one that is relevant. Keyed by the hazard, not by the city name,
+   so adding a city is a matter of declaring which hazard it faces. */
+var HAZTOOL={fire:"fst",flood:"dam",slide:"mrd"};
 var CITYTOOL={karachi:"fst",lahore:"dam",gilgit:"mrd"};
 var TOOL=null,ghost=null,ghostOK=false,ghostPt=new THREE.Vector3();
 function buildPalette(){
@@ -2714,7 +2943,9 @@ var STEPS=[
 var stepI=0,running=false;
 function runLoader(){
   if(stepI<STEPS.length){
-    lmsg.textContent=STEPS[stepI][0];
+    /* A step label may be a function when it depends on which city was picked. */
+    var lm=STEPS[stepI][0];
+    lmsg.textContent=(typeof lm==="function")?lm():lm;
     lbar.style.width=Math.round(stepI/STEPS.length*100)+"%";
     setTimeout(function(){
       STEPS[stepI][1]();
@@ -2956,10 +3187,16 @@ function updateFX(dt){
     if(f.t>=1)f.m.visible=false;
   }
 }
-/* --- camera glide to effect --- */
-function flyTo(x,z,d){
+/* --- camera glide to effect ---
+   Two modes. The default only ever moves the camera CLOSER, because a small
+   effect (a building going up) should not yank a player who is deliberately
+   zoomed in back out to a wide shot. `frame` overrides that and sets the
+   distance outright, which is what a city-scale hazard needs: a flood or a
+   landslide is unreadable from 300 units up. */
+function flyTo(x,z,d,frame){
   rig.tTarget.set(clamp(x,-2300,2300),0,clamp(z,-1600,1500));
-  rig.tDist=Math.min(Math.max(d||460,300),rig.tDist);
+  var want=Math.max(d||460,300);
+  rig.tDist=frame?clamp(want,300,2900):Math.min(want,rig.tDist);
   rig.tPitch=Math.max(rig.tPitch,0.62);
 }
 /* --- KPI floaters --- */
@@ -3339,8 +3576,17 @@ var HALO=null,haloUsed=0;
 var DENS={};
 function buildRoads(){
   addRoad([[-420,700],[-160,560],[120,430],[450,300],[820,170],[1250,-30],[1720,-160]],30,true);
-  var cst=[];for(var x=-1550;x<=1350;x+=180)cst.push([x,coastZ(x)-70]);
-  addRoad(cst,24,true);
+  /* The coastal road only exists where there is a coast. Inland, coastZ() returns
+     a sentinel a million units away and this laid a road off the edge of the world
+     that every distance query then had to walk past. */
+  if(CITY.coast){
+    var cst=[];for(var x=-1550;x<=1350;x+=180)cst.push([x,coastZ(x)-70]);
+    addRoad(cst,24,true);
+  }else{
+    /* Inland cities get a southern bypass in its place, so the network keeps the
+       same shape and the same number of through-routes. */
+    addRoad([[-1550,880],[-900,940],[-200,960],[500,930],[1150,860],[1350,800]],24,true);
+  }
   addRoad([[-1360,-380],[-1050,-450],[-620,-430],[-160,-340],[300,-180],[660,40]],24,true);
   addRoad([[-1320,540],[-1000,620],[-640,690],[-300,680]],22,true);
   addRoad([[940,700],[840,430],[700,120]],22,true);
@@ -3793,7 +4039,10 @@ function buildTerrain(){
          snow line, so snow crept onto the flat ground and squeezed out the greenery.
          Enough to break the contour, not enough to bury the valley. */
       var alt=smooth(CITY.snowBand[0],CITY.snowBand[1],h+fbm(x*0.005+3,z*0.005-8)*35);
-      var flat=smooth(34,10,slope);
+      /* The slope term was shedding snow from anything steep — but the ridges ARE
+         steep, so the mountains came out bare while only flat ground held snow,
+         the opposite of how a snowline works. Only near-cliff faces shed now. */
+      var flat=smooth(96,54,slope);
       var cover=clamp(alt*flat*CITY.snow*1.35,0,1);
       /* Was topping out at 0.8 toward an off-white, which under the reduced key
          light read as pale grey rather than snow. Full coverage now goes to actual
@@ -4245,10 +4494,15 @@ function sellInfo(){
   refreshJams();updateHUD();closeInfo();
 }
 addEventListener("mouseup",function(e){
-  if(TOOL||PEND||!downAt2)return;
+  if(TOOL||PEND||!downAt2||touchEcho())return;
   if(Math.hypot(e.clientX-downAt2.x,e.clientY-downAt2.y)>6||downAt2.b!==0){downAt2=null;return;}
   downAt2=null;
   if(!PLACED.length){closeInfo();return;}
+  /* Resolve the pointer from this event rather than trusting the last mousemove:
+     on touch and on a stalled frame hoverXY can be several frames stale, which is
+     what made a building need a second click before its card opened. */
+  hoverXY.x=(e.clientX/innerWidth)*2-1;
+  hoverXY.y=-(e.clientY/innerHeight)*2+1;
   ray.setFromCamera(hoverXY,camera);
   var meshes=[];
   for(var i=0;i<PLACED.length;i++)
@@ -4827,6 +5081,7 @@ function tryPlace(){
        Dam and the Mountain Road are responses to a specific live event. */
     if(TOOL==="fst"){
       G.tre-=cost;
+      buildResponse("fst",x,z);
       G.kpi.hap=clamp(G.kpi.hap+2,0,100);
       if(DZ.on&&DZ.kind==="fire")dzClear("fixed");
       else{
@@ -4842,6 +5097,7 @@ function tryPlace(){
       if(dd>150){toast(["Place it on the marked slide site","نشان زدہ جگہ پر رکھیں",1]);return;}
     }
     G.tre-=cost;
+    buildResponse(TOOL,x,z);
     dzClear("fixed");
     setTool(null);
     return;
@@ -5337,7 +5593,7 @@ function buildFires(){
     g.addColorStop(1,"rgba(40,36,34,0)");
     ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
   });
-  for(var f=0;f<7;f++){
+  for(var f=0;f<14;f++){
     var fl=new THREE.Sprite(new THREE.SpriteMaterial({map:flameTex,transparent:true,
       opacity:0,depthWrite:false,blending:THREE.AdditiveBlending}));
     fl.visible=false;fl.renderOrder=4;scene.add(fl);
@@ -5375,6 +5631,8 @@ function updateFires(t){
   /* Nothing below 40 happiness; full seven blazes only if it falls to ~10. */
   var unrest=clamp((40-hap)/30,0,1);
   var want=(nAmt>0.45&&G.started)?Math.round(unrest*FIRES.length):0;
+  var emerg=DZ.on&&DZ.kind==="fire";
+  if(emerg)want=FIRES.length;                     /* a declared emergency burns city-wide */
   var live=0;
   for(var i=0;i<FIRES.length;i++)if(FIRES[i].on)live++;
   for(i=0;i<FIRES.length&&live<want;i++)if(!FIRES[i].on){igniteFire(FIRES[i]);live++;}
@@ -5384,13 +5642,18 @@ function updateFires(t){
     /* Two out-of-phase sines give an irregular flicker; a single one pulses too
        evenly and reads as a beacon rather than a fire. */
     var fk=0.62+0.38*Math.sin(t*7.3+fr.ph)*Math.sin(t*3.1+fr.ph*1.7);
-    fr.fl.material.opacity=(0.55+0.35*unrest)*fk*nAmt;
-    fr.fl.scale.setScalar(20+10*unrest+5*fk);
-    fr.li.intensity=(1.5+1.6*unrest)*fk*nAmt;
+    /* Ordinary unrest fires are a night phenomenon and fade out with the dark,
+       which is what was asked for. A declared emergency is different: it can be
+       triggered at any hour and has to be visible when it is, so it keeps a
+       daylight floor instead of vanishing at dawn. */
+    var vis=emerg?Math.max(nAmt,0.62):nAmt;
+    fr.fl.material.opacity=(0.55+0.35*unrest)*fk*vis;
+    fr.fl.scale.setScalar(46+26*unrest+12*fk);
+    fr.li.intensity=(1.5+1.6*unrest)*fk*vis;
     for(var q=0;q<fr.puffs.length;q++){
       var pf=fr.puffs[q];
-      pf.material.opacity=0.30*nAmt*(0.65+0.35*Math.sin(t*0.8+fr.ph+q));
-      pf.scale.setScalar(16+q*9);
+      pf.material.opacity=0.30*vis*(0.65+0.35*Math.sin(t*0.8+fr.ph+q));
+      pf.scale.setScalar(34+q*20);
       pf.position.y=fr.fl.position.y+11+q*13+Math.sin(t*0.5+q+fr.ph)*2.2;
     }
   }
@@ -5527,6 +5790,368 @@ function buildLahoreLandmarks(){
   scene.add(bd);
 }
 
+/* ---- Baltit Fort, Gilgit-Baltistan ----------------------------------------
+   The valley's landmark: a stacked stone-and-timber fort on a rock spur above
+   the town. Built from primitives like the others — no loader is available in
+   the sandbox — but the silhouette people recognise is specific and cheap to
+   get right: a battered rubble plinth, three storeys stepping back, a jettied
+   timber upper floor that overhangs the stone, and a flat roof on a row of
+   posts. Everything else is detail.
+--------------------------------------------------------------------------- */
+function buildGilgitFort(){
+  var stone=new THREE.MeshStandardMaterial({color:0xb8a684,roughness:1});
+  var rubble=new THREE.MeshStandardMaterial({color:0x9a8a6c,roughness:1,flatShading:true});
+  var plaster=new THREE.MeshStandardMaterial({color:0xd7c5a0,roughness:0.95});
+  var timber=new THREE.MeshStandardMaterial({color:0x6b4a2f,roughness:0.9});
+  var pane=new THREE.MeshStandardMaterial({color:0x2a2118,roughness:0.7,
+    emissive:new THREE.Color(0xffb457),emissiveIntensity:0});
+  NIGHTMATS.push({mat:pane,day:0,night:0.8});
+
+  var g=new THREE.Group();
+  var fx=-260,fz=-540;
+  g.position.set(fx,terrainH(fx,fz),fz);
+  g.rotation.y=-0.22;
+
+  /* the spur it stands on — a rough rock knoll so it reads as being above the town */
+  for(var i=0;i<9;i++){
+    var k=new THREE.Mesh(new THREE.IcosahedronGeometry(rr(14,26),0),rubble);
+    k.position.set(rr(-34,34),rr(-6,9),rr(-26,26));
+    k.rotation.set(rr(0,6.3),rr(0,6.3),rr(0,6.3));
+    k.scale.y=rr(0.5,0.85);k.receiveShadow=true;g.add(k);
+  }
+  /* battered plinth: two boxes, the lower one wider, so the walls lean inward */
+  var p1=new THREE.Mesh(new THREE.BoxGeometry(56,14,42),stone);
+  p1.position.y=13;p1.castShadow=p1.receiveShadow=true;g.add(p1);
+  var p2=new THREE.Mesh(new THREE.BoxGeometry(50,12,37),stone);
+  p2.position.y=26;p2.castShadow=true;g.add(p2);
+
+  /* main block, plastered, stepping back once */
+  var m1=new THREE.Mesh(new THREE.BoxGeometry(46,13,34),plaster);
+  m1.position.y=38.5;m1.castShadow=m1.receiveShadow=true;g.add(m1);
+
+  /* jettied timber storey: wider than the stone below it, which is the detail
+     that makes the profile read as Baltit rather than as any old block */
+  var j=new THREE.Mesh(new THREE.BoxGeometry(52,11,39),plaster);
+  j.position.y=50.5;j.castShadow=true;g.add(j);
+  var band=new THREE.Mesh(new THREE.BoxGeometry(53,1.6,40),timber);
+  band.position.y=45.2;g.add(band);
+  /* the beam ends that carry the overhang */
+  for(i=0;i<7;i++){
+    var bm=new THREE.Mesh(new THREE.BoxGeometry(1.6,1.6,42),timber);
+    bm.position.set(-21+i*7,44.2,0);g.add(bm);
+  }
+  /* open veranda along the valley face */
+  var vr=new THREE.Mesh(new THREE.BoxGeometry(46,0.9,7),timber);
+  vr.position.set(0,45.6,22.5);g.add(vr);
+  for(i=0;i<8;i++){
+    var po=new THREE.Mesh(new THREE.BoxGeometry(1.3,10,1.3),timber);
+    po.position.set(-19.5+i*5.6,51,25.4);g.add(po);
+  }
+  var rail=new THREE.Mesh(new THREE.BoxGeometry(46,1,1.2),timber);
+  rail.position.set(0,49.5,25.6);g.add(rail);
+
+  /* flat roof + parapet + roof posts */
+  var rf=new THREE.Mesh(new THREE.BoxGeometry(54,1.8,41),timber);
+  rf.position.y=57;rf.castShadow=true;g.add(rf);
+  var pw=[[0,20.9],[0,-20.9]],ph=[[26.9,0],[-26.9,0]];
+  for(i=0;i<2;i++){
+    var pa=new THREE.Mesh(new THREE.BoxGeometry(54,3,1.4),plaster);
+    pa.position.set(pw[i][0],59.4,pw[i][1]);g.add(pa);
+    var pb=new THREE.Mesh(new THREE.BoxGeometry(1.4,3,41),plaster);
+    pb.position.set(ph[i][0],59.4,ph[i][1]);g.add(pb);
+  }
+
+  /* small deep-set windows, warm at night */
+  var wrows=[[32,3.0],[44,2.6],[54,2.4]];
+  for(var r2=0;r2<wrows.length;r2++){
+    var wy=wrows[r2][0],ws=wrows[r2][1];
+    for(i=0;i<6;i++){
+      var wn=new THREE.Mesh(new THREE.BoxGeometry(ws,ws*1.25,1),pane);
+      wn.position.set(-17.5+i*7,wy,r2===2?19.9:17.6);g.add(wn);
+      var fr2=new THREE.Mesh(new THREE.BoxGeometry(ws+1.4,ws*1.25+1.4,0.6),timber);
+      fr2.position.set(-17.5+i*7,wy,(r2===2?19.9:17.6)+0.5);g.add(fr2);
+    }
+  }
+  /* watch turret on the uphill corner */
+  var tw=new THREE.Mesh(new THREE.BoxGeometry(11,16,11),plaster);
+  tw.position.set(-21,66,-14);tw.castShadow=true;g.add(tw);
+  var twr=new THREE.Mesh(new THREE.BoxGeometry(13,1.6,13),timber);
+  twr.position.set(-21,74.6,-14);g.add(twr);
+
+  /* the stepped path up from the town */
+  for(i=0;i<7;i++){
+    var st=new THREE.Mesh(new THREE.BoxGeometry(9,2.4,5),stone);
+    st.position.set(6,4+i*3.1,30+i*5.4);st.receiveShadow=true;g.add(st);
+  }
+  scene.add(g);
+}
+
+/* ---- Faisal Mosque, Islamabad ---------------------------------------------
+   Not a dome mosque at all — a folded eight-sided tent on a wide platform with
+   four very tall, very thin minarets. The proportions are the whole point: the
+   minarets are more than twice the height of the tent, which is why it reads at
+   any distance.
+--------------------------------------------------------------------------- */
+function buildFaisalMosque(){
+  var white=new THREE.MeshStandardMaterial({color:0xf4f2ec,roughness:0.45,metalness:0.03});
+  var glow=new THREE.MeshStandardMaterial({color:0xf4f2ec,roughness:0.45,metalness:0.03,
+    emissive:new THREE.Color(0xdfe9ff),emissiveIntensity:0});
+  NIGHTMATS.push({mat:glow,day:0,night:0.55});
+  var grey=new THREE.MeshStandardMaterial({color:0xd9d6cd,roughness:0.8});
+  var g=new THREE.Group();
+  var mx=-60,mz=-880;
+  g.position.set(mx,terrainH(mx,mz),mz);
+
+  var plat=new THREE.Mesh(new THREE.BoxGeometry(210,6,210),grey);
+  plat.position.y=3;plat.receiveShadow=true;g.add(plat);
+  var court=new THREE.Mesh(new THREE.BoxGeometry(150,3,150),white);
+  court.position.y=7.5;court.receiveShadow=true;g.add(court);
+
+  /* the tent: eight sloping faces, so a cone with eight radial segments */
+  var tent=new THREE.Mesh(new THREE.ConeGeometry(58,46,8),glow);
+  tent.position.y=32;tent.rotation.y=Math.PI/8;tent.castShadow=true;g.add(tent);
+  /* a shallow skirt under it so the roof does not float on nothing */
+  var skirt=new THREE.Mesh(new THREE.CylinderGeometry(60,62,10,8),white);
+  skirt.position.y=14;skirt.rotation.y=Math.PI/8;skirt.castShadow=true;g.add(skirt);
+  var fin=new THREE.Mesh(new THREE.CylinderGeometry(0.6,1.8,14,8),white);
+  fin.position.y=60;g.add(fin);
+
+  /* four pencil minarets at the platform corners */
+  var mc=[[-92,-92],[92,-92],[-92,92],[92,92]];
+  for(var i=0;i<4;i++){
+    var sh=new THREE.Mesh(new THREE.CylinderGeometry(3.4,5.0,150,4),white);
+    sh.position.set(mc[i][0],81,mc[i][1]);sh.rotation.y=Math.PI/4;
+    sh.castShadow=true;g.add(sh);
+    var cap=new THREE.Mesh(new THREE.ConeGeometry(4.6,13,4),glow);
+    cap.position.set(mc[i][0],162,mc[i][1]);cap.rotation.y=Math.PI/4;g.add(cap);
+    var bal=new THREE.Mesh(new THREE.BoxGeometry(11,2.4,11),white);
+    bal.position.set(mc[i][0],140,mc[i][1]);g.add(bal);
+  }
+  scene.add(g);
+}
+
+/* ---- Bab-e-Khyber, Peshawar ------------------------------------------------
+   The gateway on the Khyber road: two square crenellated towers with a tall
+   pointed arch slung between them.
+--------------------------------------------------------------------------- */
+function buildKhyberGate(){
+  var stone=new THREE.MeshStandardMaterial({color:0xc9b48d,roughness:0.95});
+  var dark=new THREE.MeshStandardMaterial({color:0x6f5f45,roughness:1});
+  var green=new THREE.MeshStandardMaterial({color:0x0f8b80,roughness:0.7,side:THREE.DoubleSide});
+  var g=new THREE.Group();
+  var gx=-1180,gz=-360;
+  g.position.set(gx,terrainH(gx,gz),gz);
+  g.rotation.y=0.34;
+
+  function tower(sx){
+    var t=new THREE.Mesh(new THREE.BoxGeometry(30,62,30),stone);
+    t.position.set(sx,31,0);t.castShadow=t.receiveShadow=true;g.add(t);
+    var base=new THREE.Mesh(new THREE.BoxGeometry(36,10,36),stone);
+    base.position.set(sx,5,0);base.receiveShadow=true;g.add(base);
+    /* merlons */
+    for(var m=0;m<5;m++){
+      for(var side=0;side<4;side++){
+        var mo=new THREE.Mesh(new THREE.BoxGeometry(4.4,7,4.4),stone);
+        var off=-12+m*6;
+        if(side===0)mo.position.set(sx+off,65.5,15);
+        else if(side===1)mo.position.set(sx+off,65.5,-15);
+        else if(side===2)mo.position.set(sx+15,65.5,off);
+        else mo.position.set(sx-15,65.5,off);
+        g.add(mo);
+      }
+    }
+    /* arrow slits */
+    for(var w=0;w<3;w++){
+      var sl=new THREE.Mesh(new THREE.BoxGeometry(2.2,7,1),dark);
+      sl.position.set(sx-8+w*8,40,15.4);g.add(sl);
+    }
+  }
+  tower(-38);tower(38);
+
+  /* the span and the arch under it */
+  var span=new THREE.Mesh(new THREE.BoxGeometry(52,20,22),stone);
+  span.position.set(0,52,0);span.castShadow=true;g.add(span);
+  var pier=new THREE.Mesh(new THREE.BoxGeometry(52,44,22),stone);
+  pier.position.set(0,22,0);pier.castShadow=true;g.add(pier);
+  /* punch the opening: a dark recess plus a half-cylinder head */
+  var void1=new THREE.Mesh(new THREE.BoxGeometry(24,30,24),dark);
+  void1.position.set(0,15,0);g.add(void1);
+  var head=new THREE.Mesh(new THREE.CylinderGeometry(12,12,24,16,1,false,0,Math.PI),dark);
+  head.position.set(0,30,0);head.rotation.set(Math.PI/2,0,Math.PI/2);g.add(head);
+  /* name panel + flag */
+  var panel=new THREE.Mesh(new THREE.BoxGeometry(34,8,1.6),green);
+  panel.position.set(0,58,11.6);g.add(panel);
+  var pole=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.5,26,6),dark);
+  pole.position.set(0,75,0);g.add(pole);
+  var flag=new THREE.Mesh(new THREE.PlaneGeometry(16,10),green);
+  flag.position.set(8,83,0);g.add(flag);
+  scene.add(g);
+}
+
+/* ---- Quaid-e-Azam Residency, Ziarat (Balochistan's landmark) --------------
+   A two-storey timber bungalow with a deep wrap-around veranda and a shingle
+   roof, standing in juniper. Included as the province's landmark rather than a
+   Quetta city building — it is the building people picture.
+--------------------------------------------------------------------------- */
+function buildZiaratResidency(){
+  var cream=new THREE.MeshStandardMaterial({color:0xe8e0cd,roughness:0.85});
+  var timber=new THREE.MeshStandardMaterial({color:0x6e4c31,roughness:0.9});
+  var roofM=new THREE.MeshStandardMaterial({color:0x4d4a44,roughness:1,flatShading:true});
+  var pane=new THREE.MeshStandardMaterial({color:0x2b241a,roughness:0.6,
+    emissive:new THREE.Color(0xffc06a),emissiveIntensity:0});
+  NIGHTMATS.push({mat:pane,day:0,night:0.7});
+  var juniper=new THREE.MeshStandardMaterial({color:0x3d5a3a,roughness:1,flatShading:true});
+  var g=new THREE.Group();
+  var rx=-620,rz=-760;
+  g.position.set(rx,terrainH(rx,rz),rz);
+  g.rotation.y=0.16;
+
+  var plinth=new THREE.Mesh(new THREE.BoxGeometry(74,5,54),cream);
+  plinth.position.y=2.5;plinth.receiveShadow=true;g.add(plinth);
+  var body=new THREE.Mesh(new THREE.BoxGeometry(56,24,38),cream);
+  body.position.y=17;body.castShadow=body.receiveShadow=true;g.add(body);
+
+  /* veranda decks and posts, both floors */
+  for(var f=0;f<2;f++){
+    var dy=f===0?6.6:19.2;
+    var deck=new THREE.Mesh(new THREE.BoxGeometry(72,1.4,52),timber);
+    deck.position.y=dy;g.add(deck);
+    for(var i=0;i<9;i++){
+      var px=-32+i*8;
+      var po=new THREE.Mesh(new THREE.BoxGeometry(1.5,12,1.5),timber);
+      po.position.set(px,dy+6,25);g.add(po);
+      var po2=po.clone();po2.position.z=-25;g.add(po2);
+    }
+    var rail=new THREE.Mesh(new THREE.BoxGeometry(72,1.1,1.3),timber);
+    rail.position.set(0,dy+5,25);g.add(rail);
+    var rail2=rail.clone();rail2.position.z=-25;g.add(rail2);
+  }
+  /* hipped shingle roof */
+  var roof=new THREE.Mesh(new THREE.ConeGeometry(48,17,4),roofM);
+  roof.position.y=37;roof.rotation.y=Math.PI/4;roof.scale.z=0.72;
+  roof.castShadow=true;g.add(roof);
+  var chim=new THREE.Mesh(new THREE.BoxGeometry(5,14,5),cream);
+  chim.position.set(-18,42,10);chim.castShadow=true;g.add(chim);
+  /* windows */
+  for(f=0;f<2;f++)for(i=0;i<5;i++){
+    var wn=new THREE.Mesh(new THREE.BoxGeometry(5,7.5,1),pane);
+    wn.position.set(-20+i*10,f===0?13:25,19.4);g.add(wn);
+  }
+  /* junipers */
+  for(i=0;i<7;i++){
+    var a=i/7*6.283, rr2=rr(58,86);
+    var tr=new THREE.Mesh(new THREE.ConeGeometry(rr(7,12),rr(24,40),6),juniper);
+    tr.position.set(Math.cos(a)*rr2,rr(12,20),Math.sin(a)*rr2);
+    tr.castShadow=true;g.add(tr);
+  }
+  scene.add(g);
+}
+
+/* ---- Shah Rukn-e-Alam, Multan ---------------------------------------------
+   Three tiers: a huge octagonal brick drum with battered walls and corner
+   turrets, a smaller octagon above it, and a white hemispherical dome on top.
+   The batter (walls leaning inward) is what makes it look massive rather than
+   like a tin of biscuits.
+--------------------------------------------------------------------------- */
+function buildRuknAlam(){
+  var brick=new THREE.MeshStandardMaterial({color:0xa8613f,roughness:0.95});
+  var brickD=new THREE.MeshStandardMaterial({color:0x8d4e33,roughness:1});
+  var tile=new THREE.MeshStandardMaterial({color:0x2f7ea8,roughness:0.5,metalness:0.15});
+  var white=new THREE.MeshStandardMaterial({color:0xefeade,roughness:0.5});
+  var whiteGlow=new THREE.MeshStandardMaterial({color:0xefeade,roughness:0.5,
+    emissive:new THREE.Color(0xffeec9),emissiveIntensity:0});
+  NIGHTMATS.push({mat:whiteGlow,day:0,night:0.5});
+  var g=new THREE.Group();
+  var sx=-300,sz=-230;
+  g.position.set(sx,terrainH(sx,sz),sz);
+  g.rotation.y=0.2;
+
+  var plinth=new THREE.Mesh(new THREE.CylinderGeometry(56,58,6,8),brickD);
+  plinth.position.y=3;plinth.receiveShadow=true;g.add(plinth);
+  /* tier one: battered octagon */
+  var t1=new THREE.Mesh(new THREE.CylinderGeometry(41,50,34,8),brick);
+  t1.position.y=23;t1.castShadow=t1.receiveShadow=true;g.add(t1);
+  var band1=new THREE.Mesh(new THREE.CylinderGeometry(42.5,42.5,3,8),tile);
+  band1.position.y=41;g.add(band1);
+  /* eight corner turrets, leaning with the wall */
+  for(var i=0;i<8;i++){
+    var a=i/8*6.283+Math.PI/8;
+    var tu=new THREE.Mesh(new THREE.CylinderGeometry(4.4,5.6,40,8),brick);
+    tu.position.set(Math.cos(a)*47,22,Math.sin(a)*47);tu.castShadow=true;g.add(tu);
+    var tc=new THREE.Mesh(new THREE.SphereGeometry(4.8,12,8,0,6.283,0,Math.PI*0.55),whiteGlow);
+    tc.position.set(Math.cos(a)*47,42,Math.sin(a)*47);g.add(tc);
+  }
+  /* tier two */
+  var t2=new THREE.Mesh(new THREE.CylinderGeometry(29,34,22,8),brick);
+  t2.position.y=54;t2.castShadow=true;g.add(t2);
+  var band2=new THREE.Mesh(new THREE.CylinderGeometry(30,30,2.4,8),tile);
+  band2.position.y=65.5;g.add(band2);
+  /* the dome */
+  var dome=new THREE.Mesh(new THREE.SphereGeometry(28,28,18,0,6.283,0,Math.PI*0.56),whiteGlow);
+  dome.scale.y=1.05;dome.position.y=65;dome.castShadow=true;g.add(dome);
+  var neck=new THREE.Mesh(new THREE.CylinderGeometry(1.0,2.4,11,8),white);
+  neck.position.y=95;g.add(neck);
+  /* recessed arches around the base so it is not a blank drum */
+  for(i=0;i<8;i++){
+    var a2=i/8*6.283;
+    var ar=new THREE.Mesh(new THREE.BoxGeometry(13,20,2),brickD);
+    ar.position.set(Math.cos(a2)*47.5,17,Math.sin(a2)*47.5);
+    ar.rotation.y=-a2+Math.PI/2;g.add(ar);
+  }
+  scene.add(g);
+}
+
+/* ---- Pacco Qillo, Hyderabad -----------------------------------------------
+   The mud-brick fort on the ridge: a long curtain wall with heavy round
+   bastions and a gate. Blunt, and that is how it looks.
+--------------------------------------------------------------------------- */
+function buildPaccoQillo(){
+  var mud=new THREE.MeshStandardMaterial({color:0xb08055,roughness:1});
+  var mudD=new THREE.MeshStandardMaterial({color:0x946843,roughness:1});
+  var dark=new THREE.MeshStandardMaterial({color:0x5a4230,roughness:1});
+  var g=new THREE.Group();
+  var qx=-180,qz=-260;
+  g.position.set(qx,terrainH(qx,qz),qz);
+  g.rotation.y=-0.12;
+
+  /* curtain walls around a rectangle */
+  var W=190,D=130,H=26;
+  var runs=[[0,-D/2,W,8],[0,D/2,W,8],[-W/2,0,8,D],[W/2,0,8,D]];
+  for(var i=0;i<runs.length;i++){
+    var r=runs[i];
+    var wall=new THREE.Mesh(new THREE.BoxGeometry(r[2],H,r[3]),mud);
+    wall.position.set(r[0],H/2,r[1]);wall.castShadow=wall.receiveShadow=true;g.add(wall);
+    var cap=new THREE.Mesh(new THREE.BoxGeometry(r[2]+2,3,r[3]+2),mudD);
+    cap.position.set(r[0],H+1.5,r[1]);g.add(cap);
+  }
+  /* the bastions — the thing you actually recognise it by */
+  var bs=[[-W/2,-D/2],[W/2,-D/2],[-W/2,D/2],[W/2,D/2],[0,-D/2],[0,D/2]];
+  for(i=0;i<bs.length;i++){
+    var big=i<4;
+    var rad=big?17:13;
+    var b=new THREE.Mesh(new THREE.CylinderGeometry(rad*0.88,rad,H+7,16),mud);
+    b.position.set(bs[i][0],(H+7)/2,bs[i][1]);b.castShadow=b.receiveShadow=true;g.add(b);
+    var bc=new THREE.Mesh(new THREE.CylinderGeometry(rad*0.98,rad*0.98,3,16),mudD);
+    bc.position.set(bs[i][0],H+8.5,bs[i][1]);g.add(bc);
+    /* merlons around the top */
+    for(var m=0;m<10;m++){
+      var a=m/10*6.283;
+      var mo=new THREE.Mesh(new THREE.BoxGeometry(3.6,6,3.6),mud);
+      mo.position.set(bs[i][0]+Math.cos(a)*rad*0.86,H+13,bs[i][1]+Math.sin(a)*rad*0.86);
+      mo.rotation.y=-a;g.add(mo);
+    }
+  }
+  /* gate on the south face */
+  var gate=new THREE.Mesh(new THREE.BoxGeometry(22,20,10),dark);
+  gate.position.set(-34,10,D/2);g.add(gate);
+  var head=new THREE.Mesh(new THREE.CylinderGeometry(11,11,10,14,1,false,0,Math.PI),dark);
+  head.position.set(-34,20,D/2);head.rotation.set(Math.PI/2,0,Math.PI/2);g.add(head);
+  /* the mound it stands on */
+  var mound=new THREE.Mesh(new THREE.CylinderGeometry(140,168,10,20),mudD);
+  mound.position.y=-4;mound.receiveShadow=true;g.add(mound);
+  scene.add(g);
+}
+
 /* ---------------------------------------------------------------------------
    City emergencies. One per city, reactive: the event happens, a matching tool
    unlocks, and placing it resolves the event.
@@ -5541,6 +6166,16 @@ function dzTitle(en,ur){bigTitle(en,ur,true);}
 function dzStart(kind,x,z){
   if(DZ.on)return;
   DZ.on=true;DZ.kind=kind;DZ.x=x||0;DZ.z=z||0;DZ.age=0;DZ.slid=0;
+  /* Swing the camera to the event so it is never missed. flyTo only sets the rig's
+     targets, which the player can override immediately by dragging — it pulls
+     attention without taking control away. */
+  var fx=DZ.x,fz=DZ.z;
+  if(kind==="flood"&&RIVPTS.length){var mp=RIVPTS[0][Math.floor(RIVPTS[0].length/2)];fx=mp.x;fz=mp.z;}
+  if(kind==="fire"&&typeof FIRES!=="undefined"){
+    for(var ff=0;ff<FIRES.length;ff++)if(FIRES[ff].on&&FIRES[ff].site){
+      fx=FIRES[ff].site.x;fz=FIRES[ff].site.z;break;}
+  }
+  flyTo(fx,fz,kind==="slide"?1250:920,true);
   G.tre-=2;                                  /* mild, not punishing */
   if(kind==="flood"){
     dzTitle("THE RAVI HAS BURST","دریائے راوی چڑھ گیا");
@@ -5568,17 +6203,39 @@ function dzMarker(x,z){
 
 /* ---- Landslide: a mass of rock and snow sliding off the ridge into the valley ---- */
 function dzBuildSlide(x,z){
+  /* Was 26 boulders of radius 3-11 spawned near the valley floor, which at this
+     camera distance is barely a smudge. A landslide should read as a mass coming
+     OFF the mountain, so it is now ~130 pieces up to 26 units across, spread over a
+     500-unit front, and it starts high on the ridge rather than beside the town. */
   var grp=new THREE.Group();
-  var rockM=new THREE.MeshStandardMaterial({color:0x7a7168,roughness:1,flatShading:true});
-  var snowM=new THREE.MeshStandardMaterial({color:0xf2f6fa,roughness:0.9,flatShading:true});
-  for(var i=0;i<26;i++){
-    var r=rr(3,11);
-    var b=new THREE.Mesh(new THREE.IcosahedronGeometry(r,0),rng()<0.45?snowM:rockM);
-    b.position.set(rr(-46,46),rr(0,26),rr(-40,40));
-    b.userData.sp=rr(0.6,1.5);
+  var rockM=new THREE.MeshStandardMaterial({color:0x6f675d,roughness:1,flatShading:true});
+  var rockD=new THREE.MeshStandardMaterial({color:0x554f47,roughness:1,flatShading:true});
+  var snowM=new THREE.MeshStandardMaterial({color:0xf7fbff,roughness:0.9,flatShading:true});
+  for(var i=0;i<130;i++){
+    var r=rr(4,26);
+    var pick3=rng();
+    var b=new THREE.Mesh(new THREE.IcosahedronGeometry(r,0),
+      pick3<0.42?snowM:(pick3<0.72?rockM:rockD));
+    b.position.set(rr(-250,250),rr(-10,70),rr(-120,120));
+    b.rotation.set(rr(0,6.3),rr(0,6.3),rr(0,6.3));
+    b.userData.sp=rr(0.5,1.8);
     b.castShadow=true;grp.add(b);
   }
-  grp.position.set(x,terrainH(x,z)+6,z);
+  /* a dust cloud rolling ahead of the debris */
+  var dtex=canvasTex(64,64,function(ctx,w,h){
+    var gr=ctx.createRadialGradient(w/2,h/2,4,w/2,h/2,w/2);
+    gr.addColorStop(0,"rgba(214,206,192,0.60)");
+    gr.addColorStop(1,"rgba(206,198,184,0)");
+    ctx.fillStyle=gr;ctx.fillRect(0,0,w,h);
+  });
+  for(i=0;i<16;i++){
+    var pf=new THREE.Sprite(new THREE.SpriteMaterial({map:dtex,transparent:true,
+      opacity:0.5,depthWrite:false}));
+    pf.position.set(rr(-260,260),rr(10,60),rr(-130,130));
+    pf.scale.setScalar(rr(70,150));
+    grp.add(pf);
+  }
+  grp.position.set(x,terrainH(x,z)+14,z);
   scene.add(grp);DZ.grp=grp;
 }
 
@@ -5613,15 +6270,19 @@ function dzClear(reason){
    triggers are generous rather than punishing. */
 function dzMaybeTrigger(){
   if(DZ.on||!G.started)return;
-  var c=CITY.challenge;
-  if(c==="smog"){
-    /* Lahore: the river tops its banks during the monsoon. */
+  var hz=CITY.hazard;
+  if(hz==="flood"){
+    /* River cities: the channel tops its banks during the monsoon. */
     if(G.rainT>0&&rng()<0.5)dzStart("flood");
-  }else if(c==="isolation"){
-    /* Gilgit: slides come with the winter, off the ridges above the valley. */
+  }else if(hz==="slide"){
+    /* Mountain cities: slides come with the winter, off the ridges above town. */
     if((G.m===11||G.m===0||G.m===1)&&rng()<0.45){
-      var side=rng()<0.5?-1:1;
-      dzStart("slide",rr(-900,900),side*rr(560,820));
+      /* Start on a ridge line so it visibly comes down off the mountain. Which
+         ridge depends on the city, so read it off the config rather than assuming
+         the pair Gilgit happens to have. */
+      var rg=CITY.ridge&&CITY.ridge.length?CITY.ridge[Math.floor(rng()*CITY.ridge.length)]:null;
+      var rz=rg?rg.z*0.86:1100;
+      dzStart("slide",rr(-1100,1100),rz);
     }
   }
 }
@@ -5675,9 +6336,9 @@ function dzUpdate(dt,t){
        above, so it has already passed any small threshold by the time we get here
        and the debris was never created. */
     if(!DZ.grp)dzBuildSlide(DZ.x,DZ.z);
-    if(DZ.grp&&DZ.slid<150){
+    if(DZ.grp&&DZ.slid<620){
       /* Slide downhill toward the valley floor, tumbling as it goes. */
-      var step=dt*46;
+      var step=dt*105;
       DZ.slid+=step;
       DZ.grp.position.z+=(DZ.z>0?-1:1)*step;
       DZ.grp.position.y=terrainH(DZ.grp.position.x,DZ.grp.position.z)+6;
@@ -5692,18 +6353,83 @@ function dzUpdate(dt,t){
   if(DZ.age>18){DZ.age=8;pulseBtn(CITY.tool);}
 }
 
+/* Emergency responses used to deduct the cost and clear the event without putting
+   anything on the map, so it looked like nothing had been built. Each one now
+   leaves a real structure behind. */
+function buildResponse(kind,x,z){
+  var g=new THREE.Group();
+  var y=terrainH(x,z);
+  if(kind==="fst"){
+    var wall=new THREE.MeshStandardMaterial({color:0xc0392b,roughness:0.75});
+    var trim=new THREE.MeshStandardMaterial({color:0xf2efe6,roughness:0.6});
+    var hall=new THREE.Mesh(new THREE.BoxGeometry(34,15,22),wall);
+    hall.position.y=7.5;hall.castShadow=hall.receiveShadow=true;g.add(hall);
+    var roof=new THREE.Mesh(new THREE.BoxGeometry(37,2,25),trim);
+    roof.position.y=16;g.add(roof);
+    for(var d=0;d<3;d++){                       /* engine bay doors */
+      var dr=new THREE.Mesh(new THREE.BoxGeometry(8,10,1),trim);
+      dr.position.set(-11+d*11,5,11.4);g.add(dr);
+    }
+    var tower=new THREE.Mesh(new THREE.BoxGeometry(7,26,7),wall);
+    tower.position.set(21,13,-6);tower.castShadow=true;g.add(tower);
+    var light=new THREE.Mesh(new THREE.SphereGeometry(1.7,10,8),
+      new THREE.MeshStandardMaterial({color:0xff3b2f,emissive:new THREE.Color(0xff3b2f),
+        emissiveIntensity:0.9}));
+    light.position.set(21,27,-6);g.add(light);
+  }else if(kind==="dam"){
+    var conc=new THREE.MeshStandardMaterial({color:0xb9b6ad,roughness:0.9});
+    var wallM=new THREE.Mesh(new THREE.BoxGeometry(150,26,16),conc);
+    wallM.position.y=12;wallM.castShadow=wallM.receiveShadow=true;g.add(wallM);
+    for(var b2=0;b2<5;b2++){                    /* buttresses + sluice gates */
+      var bt=new THREE.Mesh(new THREE.BoxGeometry(9,22,26),conc);
+      bt.position.set(-60+b2*30,11,-10);bt.castShadow=true;g.add(bt);
+      var gate=new THREE.Mesh(new THREE.BoxGeometry(16,13,2),
+        new THREE.MeshStandardMaterial({color:0x4a5a66,roughness:0.5,metalness:0.4}));
+      gate.position.set(-45+b2*30,7,8.6);g.add(gate);
+    }
+    var deck=new THREE.Mesh(new THREE.BoxGeometry(156,2.5,20),
+      new THREE.MeshStandardMaterial({color:0x8f8c85,roughness:1}));
+    deck.position.y=26;g.add(deck);
+    g.rotation.y=0.18;
+  }else{                                        /* mountain road: cut + retaining wall */
+    var road=new THREE.Mesh(new THREE.BoxGeometry(120,1.6,20),
+      new THREE.MeshStandardMaterial({color:0x8d8a83,roughness:1}));
+    road.position.y=1.4;road.receiveShadow=true;g.add(road);
+    var rw=new THREE.MeshStandardMaterial({color:0x7c7466,roughness:1,flatShading:true});
+    for(var q2=0;q2<9;q2++){
+      var blk=new THREE.Mesh(new THREE.BoxGeometry(13,rr(4,8),5),rw);
+      blk.position.set(-54+q2*13.5,2.6,-11);blk.castShadow=true;g.add(blk);
+    }
+    for(q2=0;q2<7;q2++){                        /* guard posts on the drop side */
+      var pst=new THREE.Mesh(new THREE.CylinderGeometry(0.5,0.5,3.4,6),
+        new THREE.MeshStandardMaterial({color:0xf2efe6,roughness:0.7}));
+      pst.position.set(-48+q2*16,3,9.6);g.add(pst);
+    }
+  }
+  g.position.set(x,y,z);
+  scene.add(g);
+  spawnFX(x,z);
+  flyTo(x,z,520);
+  return g;
+}
+
 STEPS=[
  ["laying the coastline…",buildTerrain],
 
  ["filling the water…",function(){if(CITY.coast)buildSea();}],
- ["tracing the Lyari & Malir…",buildRivers],
+ [function(){return CITY.rivers.length?"tracing the river…":(CITY.lake?"filling the lake…":"reading the water table…");},buildRivers],
  ["paving the arteries…",buildRoads],
  ["raising the city…",buildBuildings],
  ["firing the kilns…",buildFactories],
  ["counting the grievances…",buildFires],
- ["raising the landmarks…",function(){if(CITY.monument==="minar")buildLahoreLandmarks();else if(CITY.monument==="mazar")buildLandmarks();}],
+ ["raising the landmarks…",function(){
+   var MON={minar:buildLahoreLandmarks,fort:buildGilgitFort,mazar:buildLandmarks,
+            faisal:buildFaisalMosque,khyber:buildKhyberGate,residency:buildZiaratResidency,
+            rukn:buildRuknAlam,qillo:buildPaccoQillo};
+   if(MON[CITY.monument])MON[CITY.monument]();
+  }],
  ["opening the shipping lane…",function(){if(CITY.coast)buildShips();}],
- ["planting neem & palms…",buildTrees],
+ [function(){return CITY.snow>0?"planting poplar & apricot…":"planting neem & palms…";},buildTrees],
  ["patching the potholes…",buildRoadDetail],
  ["scattering rocks & scrub…",buildGroundDetail],
  ["releasing the traffic…",buildTraffic],
@@ -5745,7 +6471,7 @@ function loop(){
     dzUpdate(dt,t);
     /* Karachi's emergency is the fire system that already exists, so it hands off
        rather than inventing a second event. */
-    if(CITY.challenge==="water"&&!DZ.on&&G.started){
+    if(CITY.hazard==="fire"&&!DZ.on&&G.started){
       var lit=0;for(var fi=0;fi<FIRES.length;fi++)if(FIRES[fi].on)lit++;
       if(lit>=3)dzStart("fire");
     }
