@@ -620,7 +620,7 @@ var CITIES={
  karachi:{
   en:"Karachi", ur:"کراچی", icon:"🌊",
   tagEn:"Coastal megacity · water & flooding", tagUr:"ساحلی شہر · پانی اور سیلاب",
-  challenge:"water", monument:"mazar",
+  challenge:"water", monument:"mazar", startTOD:20.4,
   coast:{base:880,a1:120,f1:0.00085,a2:60,f2:0.0021,p2:1.7,
          notch:{x:1120,w:170,d:380}, bulge:{x:-1330,w:200,d:300}},
   base:3.5, noise:4.5,
@@ -628,10 +628,9 @@ var CITIES={
   green:{lo:0.55,hi:0.80,amt:0.9,eastBias:true}, snowBand:[70,240], rockBand:[14,30], roadScale:1.0, minorKeep:1.0, density:1.0,
   hills:[{x:-1150,z:-560,h:30,rx:560,rz:430},{x:1850,z:-400,h:10,rx:700,rz:600}],
   ridge:null, snow:0, lake:null,
-  rivers:[
-   [[-1500,-980],[-1210,-640],[-930,-380],[-740,-70],[-750,250],[-880,520],[-980,720]],
-   [[1950,-880],[1680,-520],[1430,-190],[1280,120],[1200,420],[1150,660]]
-  ],
+  /* No river. Karachi's water story is the sea and the supply network, not a
+     watercourse through the middle of town. */
+  rivers:[], lake:null,
   districts:[
    {id:"south",  x:-260,z:660,r:430,rot:0.12},
    {id:"keamari",x:-1280,z:520,r:360,rot:-0.25},
@@ -651,7 +650,7 @@ var CITIES={
  lahore:{
   en:"Lahore", ur:"لاہور", icon:"🏛️",
   tagEn:"Inland plains · smog & air quality", tagUr:"میدانی شہر · دھواں اور فضا",
-  challenge:"smog", monument:"minar",
+  challenge:"smog", monument:"minar", startTOD:9.2,
   coast:null,                       /* landlocked — see coastZ() */
   base:6.0, noise:3.2,
   /* Punjab plains: green almost everywhere, no directional bias. Lahore is
@@ -663,6 +662,7 @@ var CITIES={
   /* The Ravi, swung south of its real course so it actually runs through the
      built-up area rather than skirting the far edge. Building placement already
      keeps 26 units clear of any river, so the city parts around it on its own. */
+  lake:null,
   rivers:[
    [[-2300,-780],[-1650,-600],[-1000,-430],[-400,-250],[250,-90],[900,80],[1550,300],[2200,580]]
   ],
@@ -688,7 +688,7 @@ var CITIES={
  gilgit:{
   en:"Gilgit", ur:"گلگت", icon:"🏔️",
   tagEn:"Mountain valley · isolation & winter", tagUr:"پہاڑی وادی · تنہائی اور سردی",
-  challenge:"isolation", monument:null,
+  challenge:"isolation", monument:null, startTOD:9.6,
   coast:null,
   base:34, noise:6.5,
   /* Alpine: thin green on the valley floor only, and snow starting just above it
@@ -706,9 +706,8 @@ var CITIES={
    {z:1250, w:680,h:250,wig:0.0009,amp:260,ph:2.1}
   ],
   snow:0.75,
-  rivers:[
-   [[-2300,240],[-1500,140],[-700,60],[100,20],[900,60],[1700,170],[2300,300]]
-  ],
+  /* A glacial lake on the valley floor instead of a river running the full width. */
+  rivers:[], lake:{x:820,z:300,rx:300,rz:210},
   districts:[
    {id:"central",x:-100,z:40,r:380,rot:0.02},
    {id:"south",  x:250,z:420,r:320,rot:0.08},
@@ -748,6 +747,10 @@ function applyCity(key){
   if(typeof TSTEPS!=="undefined"&&TSTEPS[0]){
     TSTEPS[0].t=CITY.en+" 2041"; TSTEPS[0].u=CITY.ur+" 2041";
   }
+  /* Karachi opens after dark — the skyline, the harbour lights and the fires all
+     read best at night. The smaller cities open in daylight, where their terrain
+     and low-rise character is the thing worth seeing. */
+  if(CITY.startTOD!==undefined)TOD=CITY.startTOD;
   var ct=CITYTOOL[key]||CITYTOOL.karachi;
   for(var pi=PALORDER.length-1;pi>=0;pi--)
     if(PALORDER[pi]==="fst"||PALORDER[pi]==="dam"||PALORDER[pi]==="mrd")PALORDER.splice(pi,1);
@@ -798,7 +801,7 @@ var RIVERS=[
  [[-1500,-980],[-1210,-640],[-930,-380],[-740,-70],[-750,250],[-880,520],[-980,720]],
  [[1950,-880],[1680,-520],[1430,-190],[1280,120],[1200,420],[1150,660]]
 ];
-var RIVPTS=[],RIVWAT=[];
+var RIVPTS=[],RIVWAT=[],WATERTEX=[];
 function riverInit(){
   for(var r=0;r<RIVERS.length;r++){
     var raw=RIVERS[r];
@@ -853,27 +856,107 @@ function buildTerrain(){
   scene.add(terrain);
 }
 function buildRivers(){
-  /* Rivers had exactly the two faults the roads had, and for the same reasons.
-     (1) A lift of 0.22 over a terrain grid 26.5 units across means the ribbon sits
-     under the interpolated ground almost everywhere — on Lahore, whose land sits at
-     y 6-17, the river was simply buried. (2) ribbon() emits triangles wound against
-     its own normals, so a FrontSide material is back-face culled when viewed from
-     above and draws nothing at all. Hence: no visible river. */
   var bedM=new THREE.MeshStandardMaterial({color:0xbfae86,roughness:1,side:THREE.DoubleSide,
     polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
-  /* Properly blue, not the old grey-teal — a river should read as water at a glance. */
-  var watM=new THREE.MeshStandardMaterial({color:0x2f7fb8,roughness:0.18,metalness:0.2,
-    side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3});
   for(var r=0;r<RIVPTS.length;r++){
     var pts=RIVPTS[r].map(function(p){return p.clone();});
     for(var i=0;i<pts.length;i++)pts[i].y=terrainH(pts[i].x,pts[i].z)+3.0;
-    var bed=new THREE.Mesh(ribbon(pts,52,0,true),bedM);
+    var bed=new THREE.Mesh(ribbon(pts,56,0,true),bedM);
     bed.receiveShadow=true;bed.renderOrder=1;scene.add(bed);
     var wpts=pts.map(function(q){var c=q.clone();c.y+=0.9;return c;});
-    var wat=new THREE.Mesh(ribbon(wpts,26,0,true),watM.clone());
-    wat.renderOrder=2;wat.userData.y0=wat.position.y;scene.add(wat);
+    /* A uniform-width ribbon reads as a road, which is exactly what it looked
+       like. Real channels pinch and widen, so the width is modulated along the
+       course with two out-of-phase sines plus noise. */
+    var wat=new THREE.Mesh(varRibbon(wpts,r),waterMat());
+    wat.renderOrder=2;wat.userData.y0=0;scene.add(wat);
     RIVWAT.push(wat);
   }
+  if(CITY.lake)buildLake(CITY.lake);
+}
+
+/* Light, translucent water with a scrolling normal-ish shimmer. Shares one
+   material factory so rivers and lakes always match. */
+function waterMat(){
+  var tex=canvasTex(128,128,function(ctx,w,h){
+    ctx.fillStyle="#8fd3ef";ctx.fillRect(0,0,w,h);
+    for(var i=0;i<90;i++){
+      ctx.strokeStyle="rgba(255,255,255,"+(0.05+Math.random()*0.14)+")";
+      ctx.lineWidth=1+Math.random()*2.4;
+      var y=Math.random()*h,x0=Math.random()*w,ln=12+Math.random()*46;
+      ctx.beginPath();ctx.moveTo(x0,y);
+      ctx.bezierCurveTo(x0+ln*0.3,y-3,x0+ln*0.7,y+3,x0+ln,y);ctx.stroke();
+    }
+    for(i=0;i<40;i++){
+      ctx.fillStyle="rgba(60,150,190,"+(0.05+Math.random()*0.10)+")";
+      ctx.beginPath();ctx.ellipse(Math.random()*w,Math.random()*h,
+        6+Math.random()*22,3+Math.random()*8,Math.random()*3,0,6.3);ctx.fill();
+    }
+  },3,10);
+  tex.encoding=THREE.sRGBEncoding;
+  var m=new THREE.MeshStandardMaterial({map:tex,color:0xbfeaf8,roughness:0.16,metalness:0.05,
+    transparent:true,opacity:0.92,side:THREE.DoubleSide,
+    polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3});
+  WATERTEX.push(tex);
+  return m;
+}
+
+/* Ribbon whose half-width varies along its length, so the channel meanders in
+   width as well as direction. */
+function varRibbon(pts,seed){
+  var pos=[],uv=[],idx=[],n=pts.length;
+  for(var i=0;i<n;i++){
+    var p=pts[i],dir=new THREE.Vector3();
+    if(i===0)dir.subVectors(pts[1],pts[0]);
+    else if(i===n-1)dir.subVectors(p,pts[i-1]);
+    else dir.subVectors(pts[i+1],pts[i-1]);
+    dir.y=0;dir.normalize();
+    var nx=-dir.z,nz=dir.x;
+    var f=i/(n-1);
+    var wdt=17+9*Math.sin(f*7.1+seed*2.3)+6*Math.sin(f*17.3+seed)
+            +7*fbm(p.x*0.004+seed*13,p.z*0.004);
+    wdt=Math.max(7,wdt);
+    pos.push(p.x+nx*wdt,p.y,p.z+nz*wdt);
+    pos.push(p.x-nx*wdt,p.y,p.z-nz*wdt);
+    uv.push(0,f*10,1,f*10);
+  }
+  for(i=0;i<n-1;i++){
+    var a=i*2,b=a+1,c=a+2,d=a+3;
+    idx.push(a,b,c, b,d,c);
+  }
+  var g=new THREE.BufferGeometry();
+  g.setAttribute("position",new THREE.Float32BufferAttribute(pos,3));
+  g.setAttribute("uv",new THREE.Float32BufferAttribute(uv,2));
+  g.setIndex(idx);g.computeVertexNormals();
+  return g;
+}
+
+/* An irregular lake: a circle pushed in and out by noise so it never reads as a
+   disc, laid flat on the terrain at its lowest sampled point. */
+function buildLake(L){
+  var seg=64,pos=[],uv=[],idx=[];
+  var y=1e9;
+  for(var a=0;a<seg;a++){
+    var th=a/seg*Math.PI*2;
+    var rr2=1+0.26*fbm(Math.cos(th)*2.4+11,Math.sin(th)*2.4-7)-0.13;
+    var px=L.x+Math.cos(th)*L.rx*rr2, pz=L.z+Math.sin(th)*L.rz*rr2;
+    y=Math.min(y,terrainH(px,pz));
+  }
+  y+=2.6;
+  pos.push(L.x,y,L.z);uv.push(0.5,0.5);
+  for(a=0;a<=seg;a++){
+    var t2=(a%seg)/seg*Math.PI*2;
+    var r2=1+0.26*fbm(Math.cos(t2)*2.4+11,Math.sin(t2)*2.4-7)-0.13;
+    pos.push(L.x+Math.cos(t2)*L.rx*r2,y,L.z+Math.sin(t2)*L.rz*r2);
+    uv.push(0.5+Math.cos(t2)*0.5*r2,0.5+Math.sin(t2)*0.5*r2);
+  }
+  for(a=1;a<=seg;a++)idx.push(0,a,a+1);
+  var g=new THREE.BufferGeometry();
+  g.setAttribute("position",new THREE.Float32BufferAttribute(pos,3));
+  g.setAttribute("uv",new THREE.Float32BufferAttribute(uv,2));
+  g.setIndex(idx);g.computeVertexNormals();
+  var m=new THREE.Mesh(g,waterMat());
+  m.renderOrder=2;scene.add(m);
+  RIVWAT.push(m);
 }
 /* sea */
 var seaU={time:{value:0},sunDir:{value:new THREE.Vector3(0.5,0.6,-0.3)},
@@ -4739,6 +4822,20 @@ function tryPlace(){
      go anywhere; a Mountain Road has to be laid on the slide itself, which is the
      one case where the learner has to actually look at the map. */
   if(TOOL==="fst"||TOOL==="dam"||TOOL==="mrd"){
+    /* A Fire Station is ordinary infrastructure — you should be able to build it
+       before anything is burning, and it then puts out whatever is alight. Only the
+       Dam and the Mountain Road are responses to a specific live event. */
+    if(TOOL==="fst"){
+      G.tre-=cost;
+      G.kpi.hap=clamp(G.kpi.hap+2,0,100);
+      if(DZ.on&&DZ.kind==="fire")dzClear("fixed");
+      else{
+        if(typeof FIRES!=="undefined")
+          for(var qf=0;qf<FIRES.length;qf++)if(FIRES[qf].on)douseFire(FIRES[qf]);
+        toast(["Fire Station open — the city is protected","فائر اسٹیشن کھل گیا — شہر محفوظ",0]);
+      }
+      setTool(null);updateHUD();return;
+    }
     if(!DZ.on){toast(["Nothing to respond to right now","ابھی کوئی ہنگامی صورت نہیں",1]);return;}
     if(TOOL==="mrd"){
       var dd=Math.hypot(x-DZ.x,z-DZ.z);
@@ -4756,10 +4853,15 @@ function tryPlace(){
     var R=nr.road;
     if(TOOL==="cor"){
       G.builds.cor++;R.bonus+=0.45;
-      var stripe=new THREE.Mesh(ribbon(R.pts,R.w*0.5,0.7),
-        new THREE.MeshBasicMaterial({color:0x2fd3a8,transparent:true,opacity:0.22,
-          blending:THREE.AdditiveBlending,depthWrite:false}));
-      stripe.renderOrder=3;scene.add(stripe);
+      /* Roads now sit 4.0 above sampled terrain, so a stripe at 0.7 was 3.3 units
+         UNDER the road surface — and ribbon() winds against its normals, so a
+         FrontSide material is back-face culled from above anyway. Nothing was
+         drawn. Sit it on the road with flatY and force DoubleSide. */
+      var cpts=R.pts.map(function(q){var c2=q.clone();c2.y+=0.9;return c2;});
+      var stripe=new THREE.Mesh(ribbon(cpts,R.w*0.55,0,true),
+        new THREE.MeshBasicMaterial({color:0x2fd3a8,transparent:true,opacity:0.5,
+          side:THREE.DoubleSide,blending:THREE.AdditiveBlending,depthWrite:false}));
+      stripe.renderOrder=4;scene.add(stripe);
       corridorBuses(R.idx);toast(T.cor);
     }else{
       G.builds.upg++;R.bonus+=0.5;
@@ -5081,6 +5183,9 @@ function tutEnd(){
   beginPlay();
 }
 function beginPlay(){
+  /* Idempotent: this is now called when the intro card is dismissed AND at the end
+     of the tutorial, whichever happens first. */
+  if(G.started)return;
   G.started=true;G.t=0;
   bigTitle("SHURU!","!شروع",false,true);
 }
@@ -5099,6 +5204,13 @@ function buildGame(){
   el("iClose").onclick=closeInfo;
   el("bStart").onclick=function(){
     el("start").classList.add("off");
+    /* Start the clock immediately. G.started used to be set only by tutEnd(), so
+       until a player finished or skipped all ten tutorial steps the month never
+       advanced, no KPI moved, no weather or emergency could fire and nothing they
+       built appeared to do anything — the game read as broken for the first minute
+       and then "started working" once the tutorial was dismissed. The tutorial now
+       runs over a live city, which is also how it reads better. */
+    beginPlay();
     tutStart();
   };
   el("tSkip").onclick=tutEnd;
@@ -5422,7 +5534,7 @@ function buildLahoreLandmarks(){
    ending spiral — but the event PERSISTS until it is dealt with and keeps
    nagging, so the fix still means something. Decorative disasters teach nothing.
 --------------------------------------------------------------------------- */
-var DZ={on:false,kind:null,x:0,z:0,age:0,grp:null,lastY:0,marker:null,slid:0};
+var DZ={on:false,kind:null,x:0,z:0,age:0,grp:null,lastY:0,marker:null,slid:0,pools:null};
 
 function dzTitle(en,ur){bigTitle(en,ur,true);}
 
@@ -5473,6 +5585,14 @@ function dzBuildSlide(x,z){
 function dzClear(reason){
   if(!DZ.on)return;
   if(DZ.grp){scene.remove(DZ.grp);DZ.grp=null;}
+  if(DZ.pools){
+    for(var pz2=0;pz2<DZ.pools.length;pz2++)scene.remove(DZ.pools[pz2].m);
+    DZ.pools=null;
+  }
+  for(var rw=0;rw<RIVWAT.length;rw++){
+    RIVWAT[rw].position.y=RIVWAT[rw].userData.y0||0;
+    RIVWAT[rw].material.color.setHex(0xbfeaf8);
+  }
   if(DZ.marker){scene.remove(DZ.marker);DZ.marker=null;}
   if(DZ.kind==="fire"&&typeof FIRES!=="undefined")
     for(var i=0;i<FIRES.length;i++)if(FIRES[i].on)douseFire(FIRES[i]);
@@ -5510,14 +5630,45 @@ function dzUpdate(dt,t){
   if(!DZ.on)return;
   DZ.age+=dt;
   if(DZ.kind==="flood"){
-    /* Swell the river: widen and lift the water, and push it muddy brown as it
-       tops the banks. Cheap, but it reads immediately from any camera angle. */
-    var sw=Math.min(1,DZ.age/6);
+    /* Floods spread outward across the land in sheets, they do not stretch the
+       river sideways. Scaling the channel looked exactly as rudimentary as it was.
+       Instead, irregular pools are seeded along the banks and grow, so the water
+       creeps into the city the way a real overflow does. */
+    var sw=Math.min(1,DZ.age/9);
+    if(!DZ.pools&&RIVPTS.length){
+      DZ.pools=[];
+      var src=RIVPTS[0];
+      for(var q=4;q<src.length-4;q+=2){
+        var bp=src[q];
+        for(var sdi=0;sdi<2;sdi++){
+          var ox=rr(-120,120),oz=rr(-120,120);
+          var px=bp.x+ox,pz=bp.z+oz;
+          var geo=new THREE.CircleGeometry(1,16);
+          geo.rotateX(-Math.PI/2);
+          var mm=new THREE.Mesh(geo,new THREE.MeshStandardMaterial({
+            color:0x9dc6d8,roughness:0.2,transparent:true,opacity:0,
+            side:THREE.DoubleSide,depthWrite:false,
+            polygonOffset:true,polygonOffsetFactor:-4,polygonOffsetUnits:-4}));
+          mm.position.set(px,terrainH(px,pz)+3.4,pz);
+          mm.renderOrder=3;scene.add(mm);
+          DZ.pools.push({m:mm,max:rr(38,104),ph:rr(0,6.3),lag:rr(0,0.45)});
+        }
+      }
+    }
+    if(DZ.pools)for(var pi2=0;pi2<DZ.pools.length;pi2++){
+      var P=DZ.pools[pi2];
+      var g2=Math.max(0,Math.min(1,(sw-P.lag)/(1-P.lag)));
+      /* ease-out so it rushes then settles, and a slow wobble at the edge */
+      var e=1-Math.pow(1-g2,2.2);
+      var rad=P.max*e*(1+0.04*Math.sin(t*1.1+P.ph));
+      P.m.scale.set(Math.max(0.001,rad),1,Math.max(0.001,rad));
+      P.m.material.opacity=0.72*e;
+    }
+    /* the channel itself rises and browns, but only slightly */
     for(var i=0;i<RIVWAT.length;i++){
       var w=RIVWAT[i];
-      w.scale.set(1+sw*2.6,1,1);
-      w.position.y=w.userData.y0+sw*2.4+Math.sin(t*1.4+i)*0.35;
-      w.material.color.setRGB(0.18+0.26*sw,0.50-0.18*sw,0.72-0.34*sw);
+      w.position.y=(w.userData.y0||0)+sw*1.6;
+      w.material.color.setRGB(0.75-0.22*sw,0.92-0.30*sw,0.97-0.38*sw);
     }
   }else if(DZ.kind==="slide"){
     /* Build on first update, not inside an age window — DZ.age is incremented
@@ -5588,6 +5739,9 @@ function loop(){
     updateSugPulse(t);
     updateStory(dt,t);
     updateFires(t);
+    /* Scroll the water texture so the river reads as flowing rather than as a
+       painted stripe. One offset shared by every water surface. */
+    for(var wi=0;wi<WATERTEX.length;wi++)WATERTEX[wi].offset.y-=dt*0.16;
     dzUpdate(dt,t);
     /* Karachi's emergency is the fire system that already exists, so it hands off
        rather than inventing a second event. */
