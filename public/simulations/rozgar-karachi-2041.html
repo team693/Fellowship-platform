@@ -171,6 +171,22 @@ body{font-family:"Bricolage Grotesque",system-ui,sans-serif;color:#EAF2F0}
   background:radial-gradient(1000px 640px at 50% 110%,rgba(14,50,60,.88),rgba(7,13,22,.92));
   backdrop-filter:blur(4px);transition:opacity .5s}
 .ov.off{opacity:0;pointer-events:none}
+/* Above #load (z-index 30): the loading screen is already on-screen when the
+   picker appears, and would otherwise swallow the clicks. It stays visible behind
+   as the branded backdrop. */
+#citysel{z-index:40}
+.panel.cityp{max-width:760px}
+.cityq{margin:10px 0 4px;font-size:14px;letter-spacing:.05em;opacity:.75}
+.citygrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin:16px 0 6px}
+.citybtn{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:13px 14px;
+  border:1px solid rgba(255,255,255,.14);border-radius:14px;background:rgba(255,255,255,.05);
+  color:#eef6f4;cursor:pointer;text-align:left;transition:border-color .15s,background .15s,transform .12s;font:inherit}
+.citybtn:hover{border-color:var(--mint);background:rgba(255,255,255,.09);transform:translateY(-2px)}
+.citybtn .cn{font:800 17px/1.1 "Bricolage Grotesque";letter-spacing:.01em}
+.citybtn .cu{font-family:"Noto Nastaliq Urdu";font-size:14px;opacity:.85;line-height:1.9}
+.citybtn .ct{font-size:11.5px;opacity:.62;line-height:1.35;margin-top:2px}
+.citybtn .ci{font-size:19px}
+.citynote{font-size:11.5px;opacity:.45;margin-top:10px}
 .panel{width:min(500px,92vw);text-align:center;padding:34px 30px 28px;background:rgba(10,22,34,.75);
   border:1px solid var(--hudline);border-radius:22px;box-shadow:0 30px 80px rgba(0,0,0,.5)}
 .panel h1{font-size:30px;font-weight:800;letter-spacing:.1em;margin-top:14px}
@@ -290,6 +306,15 @@ body{font-family:"Bricolage Grotesque",system-ui,sans-serif;color:#EAF2F0}
   </div>
 </div>
 <div id="dlabel-holder"></div>
+
+<div id="citysel" class="ov">
+  <div class="panel cityp">
+    <h1>ROZGAAR <span class="u ur">روزگار</span></h1>
+    <p class="cityq">Choose your city · اپنا شہر چنیں</p>
+    <div id="cityGrid" class="citygrid"></div>
+    <p class="citynote">More cities are on the way · مزید شہر جلد</p>
+  </div>
+</div>
 
 <div id="start" class="ov">
   <div class="panel">
@@ -620,6 +645,73 @@ var CITIES={
    east:{en:"EAST · GULSHAN",ur:"شرقی · گلشن"},korangi:{en:"KORANGI",ur:"کورنگی"},
    malir:{en:"MALIR",ur:"ملیر"}
   }
+ },
+ lahore:{
+  en:"Lahore", ur:"لاہور", icon:"🏛️",
+  tagEn:"Inland plains · smog & air quality", tagUr:"میدانی شہر · دھواں اور فضا",
+  challenge:"smog", monument:"minar",
+  coast:null,                       /* landlocked — see coastZ() */
+  base:6.0, noise:3.2,
+  hills:[{x:900,z:-700,h:9,rx:900,rz:600}],
+  ridge:null, snow:0,
+  /* The Ravi runs along the north-west, wide and slow. */
+  rivers:[
+   [[-2300,-980],[-1700,-820],[-1050,-700],[-380,-660],[300,-700],[980,-820],[1700,-1000]]
+  ],
+  districts:[
+   {id:"central",x:-120,z:-40,r:520,rot:0.03},
+   {id:"south",  x:120,z:640,r:470,rot:0.10},
+   {id:"west",   x:-1150,z:-180,r:500,rot:0.22},
+   {id:"east",   x:900,z:120,r:520,rot:-0.10},
+   {id:"korangi",x:1500,z:640,r:420,rot:0.14},
+   {id:"malir",  x:-1500,z:600,r:400,rot:-0.08},
+   {id:"keamari",x:-600,z:-760,r:360,rot:-0.20}
+  ],
+  names:{
+   central:{en:"CENTRAL · ANARKALI",ur:"وسطی · انارکلی"},
+   south:{en:"SOUTH · MODEL TOWN",ur:"جنوبی · ماڈل ٹاؤن"},
+   west:{en:"WEST · RAVI",ur:"غربی · راوی"},
+   east:{en:"EAST · CANTT",ur:"شرقی · چھاؤنی"},
+   korangi:{en:"DHA LAHORE",ur:"ڈی ایچ اے"},
+   malir:{en:"THOKAR",ur:"ٹھوکر"},
+   keamari:{en:"WALLED CITY",ur:"اندرونِ شہر"}
+  }
+ },
+ gilgit:{
+  en:"Gilgit", ur:"گلگت", icon:"🏔️",
+  tagEn:"Mountain valley · isolation & winter", tagUr:"پہاڑی وادی · تنہائی اور سردی",
+  challenge:"isolation", monument:null,
+  coast:null,
+  base:34, noise:6.5,
+  hills:[{x:-300,z:60,h:-16,rx:900,rz:520}],   /* the valley floor itself */
+  /* Two ranges hemming the valley in, north and south. A wandering Gaussian wall
+     rather than a backdrop, so the town genuinely sits between mountains. */
+  ridge:[
+   {z:-1250,w:620,h:300,wig:0.0011,amp:220,ph:0.4},
+   {z:1250, w:680,h:250,wig:0.0009,amp:260,ph:2.1}
+  ],
+  snow:0.75,
+  rivers:[
+   [[-2300,240],[-1500,140],[-700,60],[100,20],[900,60],[1700,170],[2300,300]]
+  ],
+  districts:[
+   {id:"central",x:-100,z:40,r:380,rot:0.02},
+   {id:"south",  x:250,z:420,r:320,rot:0.08},
+   {id:"west",   x:-900,z:-60,r:340,rot:0.16},
+   {id:"east",   x:800,z:120,r:340,rot:-0.09},
+   {id:"korangi",x:1300,z:400,r:280,rot:0.10},
+   {id:"malir",  x:-1350,z:330,r:280,rot:-0.06},
+   {id:"keamari",x:-450,z:-420,r:260,rot:-0.14}
+  ],
+  names:{
+   central:{en:"GILGIT BAZAAR",ur:"گلگت بازار"},
+   south:{en:"KONODAS",ur:"کونوداس"},
+   west:{en:"JUTIAL",ur:"جوٹیال"},
+   east:{en:"DANYORE",ur:"دنیور"},
+   korangi:{en:"SULTANABAD",ur:"سلطان آباد"},
+   malir:{en:"NOMAL ROAD",ur:"نومل روڈ"},
+   keamari:{en:"RIVERSIDE",ur:"دریا کنارہ"}
+  }
  }
 };
 var CITY=CITIES.karachi;
@@ -629,6 +721,18 @@ function applyCity(key){
   RIVPTS.length=0;
   DIST=CITY.districts;
   for(var k in CITY.names)if(DNAMES[k])DNAMES[k]=CITY.names[k];
+  /* Copy that named Karachi outright now has to follow the chosen city. */
+  STR.en.blurb=CITY.en+", 2026. Jobs are scarce — you have 16 years (about 7 minutes) "+
+    "to change that. Pick a project, follow the glowing suggestions, click the map. "+
+    "Red roads are jams; the advisor will nudge you. Explore freely; the city is yours.";
+  STR.ur.blurb=CITY.ur+"، ۲۰۲۶۔ روزگار کم ہے — آپ کے پاس سولہ سال ہیں۔ منصوبہ چنیں، "+
+    "نقشے پر کلک کریں۔ سرخ سڑکیں جام ہیں؛ مشیر رہنمائی کرے گا۔";
+  var sub=el("loadSub"); if(sub)sub.textContent="SOCIAL FOUNDATION · "+CITY.en.toUpperCase();
+  var hs=document.querySelector("#brand small");
+  if(hs)hs.textContent="HEAL® · "+CITY.en.toUpperCase();
+  if(typeof TSTEPS!=="undefined"&&TSTEPS[0]){
+    TSTEPS[0].t=CITY.en+" 2041"; TSTEPS[0].u=CITY.ur+" 2041";
+  }
 }
 
 /* ============================================================
@@ -1789,12 +1893,17 @@ function buildNightPoints(){
 ============================================================ */
 var TOD=8.6,SPEED=1,DAYLEN=140;
 var KEY=[
+/* Daylight was clipping. Sun 2.5 plus a 0.75 hemisphere fill on light sand albedo,
+   pushed through ACES, saturated the ground to paper-white — which flattened the
+   terrain variation into a single sheet and made mid-grey roads read as hard black
+   lines drawn on it. Dialled the key light and the fill back so the ground holds
+   tone; the scene reads as bright Karachi daylight rather than blown-out. */
  {t:0,   top:0x0a1626,hor:0x14212f,sun:0x30405a,sunI:0.0, hemi:0.14,fog:0x0c1722,exp:0.85,night:1},
  {t:4.9, top:0x0a1626,hor:0x14212f,sun:0x30405a,sunI:0.0, hemi:0.14,fog:0x0c1722,exp:0.85,night:1},
- {t:6.3, top:0x3a6390,hor:0xf2b070,sun:0xffb26a,sunI:1.5, hemi:0.42,fog:0xe6c09a,exp:1.0, night:0.28},
- {t:8.3, top:0x2f74a8,hor:0xd7e8ea,sun:0xfff3d8,sunI:2.5, hemi:0.75,fog:0xd2e2e6,exp:1.05,night:0},
- {t:16.2,top:0x2f74a8,hor:0xd7e8ea,sun:0xfff3d8,sunI:2.45,hemi:0.75,fog:0xd2e2e6,exp:1.05,night:0},
- {t:18.1,top:0x4a5a92,hor:0xf4956a,sun:0xff9550,sunI:1.6, hemi:0.4, fog:0xe2a986,exp:1.0, night:0.22},
+ {t:6.3, top:0x3a6390,hor:0xf2b070,sun:0xffb26a,sunI:1.18,hemi:0.34,fog:0xe6c09a,exp:0.96,night:0.28},
+ {t:8.3, top:0x2f74a8,hor:0xd7e8ea,sun:0xfff3d8,sunI:1.85,hemi:0.52,fog:0xd2e2e6,exp:0.97,night:0},
+ {t:16.2,top:0x2f74a8,hor:0xd7e8ea,sun:0xfff3d8,sunI:1.82,hemi:0.52,fog:0xd2e2e6,exp:0.97,night:0},
+ {t:18.1,top:0x4a5a92,hor:0xf4956a,sun:0xff9550,sunI:1.26,hemi:0.33,fog:0xe2a986,exp:0.96,night:0.22},
  {t:19.5,top:0x101c33,hor:0x2a3450,sun:0x40507a,sunI:0.0, hemi:0.16,fog:0x101c2c,exp:0.85,night:1},
  {t:24,  top:0x0a1626,hor:0x14212f,sun:0x30405a,sunI:0.0, hemi:0.14,fog:0x0c1722,exp:0.85,night:1}
 ];
@@ -3508,8 +3617,8 @@ function buildTerrain(){
        are deliberately small — this should read as texture underfoot, not as
        coloured zones competing with the buildings. */
     var n2=fbm(x*0.0012-13,z*0.0012+21);
-    c.lerp(cConc,smooth(0.56,0.84,n2)*0.42);
-    c.lerp(cRock,smooth(0.44,0.16,n2)*0.26);
+    c.lerp(cConc,smooth(0.56,0.84,n2)*0.54);
+    c.lerp(cRock,smooth(0.44,0.16,n2)*0.34);
     var shade=0.88+n*0.2+(n2-0.5)*0.07;
     colors.push(c.r*shade,c.g*shade,c.b*shade);
   }
@@ -5065,18 +5174,18 @@ function updateFires(t){
 STEPS=[
  ["laying the coastline…",buildTerrain],
 
- ["filling the Arabian Sea…",buildSea],
+ ["filling the water…",function(){if(CITY.coast)buildSea();}],
  ["tracing the Lyari & Malir…",buildRivers],
  ["paving the arteries…",buildRoads],
  ["raising the city…",buildBuildings],
  ["firing the kilns…",buildFactories],
  ["counting the grievances…",buildFires],
  ["carving Mazar-e-Quaid…",buildLandmarks],
- ["opening the shipping lane…",buildShips],
+ ["opening the shipping lane…",function(){if(CITY.coast)buildShips();}],
  ["planting neem & palms…",buildTrees],
  ["patching the potholes…",buildRoadDetail],
  ["releasing the traffic…",buildTraffic],
- ["waking the streets…",function(){buildPeds();buildGulls();buildNightPoints();}],
+ ["waking the streets…",function(){buildPeds();if(CITY.coast)buildGulls();buildNightPoints();}],
  ["breathing life into it…",buildKPIVisuals],
  ["gathering the monsoon…",function(){buildStorm();buildAccPool();}],
  ["catching the light…",function(){buildEnv();buildGame();}]
@@ -5165,7 +5274,31 @@ function loop(){
 applyQuality();
 applyTOD();
 loop();
-runLoader();
+
+/* The world is generated during the loading sequence, so the city has to be chosen
+   BEFORE runLoader() rather than after — otherwise the terrain, rivers, districts
+   and roads are already built and switching city would mean tearing the whole scene
+   down again. So: picker first, then build, then the usual intro card. */
+(function cityPicker(){
+  var grid=el("cityGrid"),keys=Object.keys(CITIES);
+  for(var i=0;i<keys.length;i++){
+    (function(k){
+      var C=CITIES[k];
+      var b=document.createElement("button");
+      b.className="citybtn";
+      b.innerHTML="<span class='ci'>"+C.icon+"</span>"+
+                  "<span class='cn'>"+C.en+"</span>"+
+                  "<span class='cu ur'>"+C.ur+"</span>"+
+                  "<span class='ct'>"+C.tagEn+"</span>";
+      b.onclick=function(){
+        applyCity(k);
+        el("citysel").classList.add("off");
+        runLoader();
+      };
+      grid.appendChild(b);
+    })(keys[i]);
+  }
+})();
 </script>
 </body>
 </html>
