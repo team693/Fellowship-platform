@@ -748,6 +748,11 @@ function applyCity(key){
   if(typeof TSTEPS!=="undefined"&&TSTEPS[0]){
     TSTEPS[0].t=CITY.en+" 2041"; TSTEPS[0].u=CITY.ur+" 2041";
   }
+  var ct=CITYTOOL[key]||CITYTOOL.karachi;
+  for(var pi=PALORDER.length-1;pi>=0;pi--)
+    if(PALORDER[pi]==="fst"||PALORDER[pi]==="dam"||PALORDER[pi]==="mrd")PALORDER.splice(pi,1);
+  PALORDER.push(ct);
+  CITY.tool=ct;
 }
 
 /* ============================================================
@@ -793,7 +798,7 @@ var RIVERS=[
  [[-1500,-980],[-1210,-640],[-930,-380],[-740,-70],[-750,250],[-880,520],[-980,720]],
  [[1950,-880],[1680,-520],[1430,-190],[1280,120],[1200,420],[1150,660]]
 ];
-var RIVPTS=[];
+var RIVPTS=[],RIVWAT=[];
 function riverInit(){
   for(var r=0;r<RIVERS.length;r++){
     var raw=RIVERS[r];
@@ -865,8 +870,9 @@ function buildRivers(){
     var bed=new THREE.Mesh(ribbon(pts,52,0,true),bedM);
     bed.receiveShadow=true;bed.renderOrder=1;scene.add(bed);
     var wpts=pts.map(function(q){var c=q.clone();c.y+=0.9;return c;});
-    var wat=new THREE.Mesh(ribbon(wpts,26,0,true),watM);
-    wat.renderOrder=2;scene.add(wat);
+    var wat=new THREE.Mesh(ribbon(wpts,26,0,true),watM.clone());
+    wat.renderOrder=2;wat.userData.y0=wat.position.y;scene.add(wat);
+    RIVWAT.push(wat);
   }
 }
 /* sea */
@@ -2325,9 +2331,17 @@ var TOOLS={
  schT:{ic:"🛠️",cost:8,en:"Technical Institute",ur:"ٹیکنیکل انسٹیٹیوٹ",fxE:"Education +9 · Jobs +3 directly",fxU:"تعلیم +9 · روزگار +3 براہِ راست"},
  schP:{ic:"🏫",cost:5,en:"Primary School",ur:"پرائمری اسکول",fxE:"Education +9 · lowest cost",fxU:"تعلیم +9 · کم خرچ"},
  itpS:{ic:"🏢",cost:14,en:"Software Park",ur:"سافٹ ویئر پارک",fxE:"Jobs +8 · needs Power ≥45 & Transit ≥35",fxU:"روزگار +8 · بجلی ≥45، ٹرانزٹ ≥35 درکار"},
- itpI:{ic:"🏭",cost:12,en:"Industrial Estate",ur:"صنعتی علاقہ",fxE:"Jobs +6 · no prerequisites · Green −3",fxU:"روزگار +6 · شرط نہیں · ہریالی −3"}
+ itpI:{ic:"🏭",cost:12,en:"Industrial Estate",ur:"صنعتی علاقہ",fxE:"Jobs +6 · no prerequisites · Green −3",fxU:"روزگار +6 · شرط نہیں · ہریالی −3"},
+ /* Emergency responses. One per city, shown only for that city, and only usable
+    while its disaster is actually running. */
+ fst:{ic:"🚒",cost:7,en:"Fire Station",ur:"فائر اسٹیشن",fxE:"Puts out the fires · place anywhere in the city",fxU:"آگ بجھائے · شہر میں کہیں بھی رکھیں"},
+ dam:{ic:"🌊",cost:11,en:"Dam / Barrage",ur:"ڈیم",fxE:"Stops the river overflowing · place anywhere",fxU:"دریا کا سیلاب روکے · کہیں بھی رکھیں"},
+ mrd:{ic:"⛰️",cost:8,en:"Mountain Road",ur:"پہاڑی سڑک",fxE:"Clears the slide — must be placed ON the marked site",fxU:"تودہ ہٹائے — نشان زدہ جگہ پر رکھیں"}
 };
 var PALORDER=["sel","cor","upg","sol","wat","par","sch","hos","itp"];
+/* The city's emergency tool is appended when the city is chosen, so the dock only
+   ever shows the one that is relevant. */
+var CITYTOOL={karachi:"fst",lahore:"dam",gilgit:"mrd"};
 var TOOL=null,ghost=null,ghostOK=false,ghostPt=new THREE.Vector3();
 function buildPalette(){
   var pal=el("pal"),order=["cor","upg","sol","wat","par","sch","itp"];
@@ -4721,6 +4735,20 @@ function tryPlace(){
   var sizable=isSizable(TOOL);
   var cost=Math.round(t.cost*(sizable?COSTM[SIZE]:1));
   if(G.tre<cost){toast(T.funds);return;}
+  /* Emergency responses. Dam and Fire Station protect the whole city so they can
+     go anywhere; a Mountain Road has to be laid on the slide itself, which is the
+     one case where the learner has to actually look at the map. */
+  if(TOOL==="fst"||TOOL==="dam"||TOOL==="mrd"){
+    if(!DZ.on){toast(["Nothing to respond to right now","ابھی کوئی ہنگامی صورت نہیں",1]);return;}
+    if(TOOL==="mrd"){
+      var dd=Math.hypot(x-DZ.x,z-DZ.z);
+      if(dd>150){toast(["Place it on the marked slide site","نشان زدہ جگہ پر رکھیں",1]);return;}
+    }
+    G.tre-=cost;
+    dzClear("fixed");
+    setTool(null);
+    return;
+  }
   if(TOOL==="cor"||TOOL==="upg"){
     var nr=nearestRoad(x,z,true);
     if(nr.d>=60){toast(T.road);return;}
@@ -4875,6 +4903,7 @@ function tick(){
   k.wat+=(tWat-k.wat)*0.035;k.gre+=(tGre-k.gre)*0.035;k.edu+=(tEdu-k.edu)*0.035;
   k.hea+=(tHea-k.hea)*0.035;
   refreshJams();
+  dzMaybeTrigger();
   /* Monsoon pacing. A game year is only ~26s (monthLen 2.2 x 12), and rain was set
      for BOTH July and August every single year — so the monsoon covered roughly a
      sixth of the calendar but, with the storm ramp in June, dominated the screen and
@@ -5386,6 +5415,132 @@ function buildLahoreLandmarks(){
   scene.add(bd);
 }
 
+/* ---------------------------------------------------------------------------
+   City emergencies. One per city, reactive: the event happens, a matching tool
+   unlocks, and placing it resolves the event.
+   Damage is deliberately mild — a small treasury and happiness knock, no run-
+   ending spiral — but the event PERSISTS until it is dealt with and keeps
+   nagging, so the fix still means something. Decorative disasters teach nothing.
+--------------------------------------------------------------------------- */
+var DZ={on:false,kind:null,x:0,z:0,age:0,grp:null,lastY:0,marker:null,slid:0};
+
+function dzTitle(en,ur){bigTitle(en,ur,true);}
+
+function dzStart(kind,x,z){
+  if(DZ.on)return;
+  DZ.on=true;DZ.kind=kind;DZ.x=x||0;DZ.z=z||0;DZ.age=0;DZ.slid=0;
+  G.tre-=2;                                  /* mild, not punishing */
+  if(kind==="flood"){
+    dzTitle("THE RAVI HAS BURST","دریائے راوی چڑھ گیا");
+    toast(["River flooding — build a Dam to hold it back","دریا میں سیلاب — ڈیم بنائیں",1]);
+  }else if(kind==="slide"){
+    dzTitle("LANDSLIDE","تودہ گر گیا");
+    toast(["Slide has cut the valley — lay a Mountain Road on the marked spot","تودے نے راستہ بند کیا — نشان زدہ جگہ سڑک بنائیں",1]);
+    dzMarker(x,z);
+  }else if(kind==="fire"){
+    dzTitle("FIRES IN THE CITY","شہر میں آگ");
+    toast(["Unrest is burning the city — build a Fire Station","بدامنی سے آگ — فائر اسٹیشن بنائیں",1]);
+  }
+  pulseBtn(CITY.tool);
+}
+
+function dzMarker(x,z){
+  /* A pulsing ring so the learner can actually find where to put the road. */
+  var g=new THREE.RingGeometry(26,34,32);
+  g.rotateX(-Math.PI/2);
+  var m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({color:0xff5347,transparent:true,
+    opacity:0.85,side:THREE.DoubleSide,depthWrite:false}));
+  m.position.set(x,terrainH(x,z)+3.2,z);m.renderOrder=5;
+  scene.add(m);DZ.marker=m;
+}
+
+/* ---- Landslide: a mass of rock and snow sliding off the ridge into the valley ---- */
+function dzBuildSlide(x,z){
+  var grp=new THREE.Group();
+  var rockM=new THREE.MeshStandardMaterial({color:0x7a7168,roughness:1,flatShading:true});
+  var snowM=new THREE.MeshStandardMaterial({color:0xf2f6fa,roughness:0.9,flatShading:true});
+  for(var i=0;i<26;i++){
+    var r=rr(3,11);
+    var b=new THREE.Mesh(new THREE.IcosahedronGeometry(r,0),rng()<0.45?snowM:rockM);
+    b.position.set(rr(-46,46),rr(0,26),rr(-40,40));
+    b.userData.sp=rr(0.6,1.5);
+    b.castShadow=true;grp.add(b);
+  }
+  grp.position.set(x,terrainH(x,z)+6,z);
+  scene.add(grp);DZ.grp=grp;
+}
+
+function dzClear(reason){
+  if(!DZ.on)return;
+  if(DZ.grp){scene.remove(DZ.grp);DZ.grp=null;}
+  if(DZ.marker){scene.remove(DZ.marker);DZ.marker=null;}
+  if(DZ.kind==="fire"&&typeof FIRES!=="undefined")
+    for(var i=0;i<FIRES.length;i++)if(FIRES[i].on)douseFire(FIRES[i]);
+  var was=DZ.kind;
+  DZ.on=false;DZ.kind=null;
+  if(reason==="fixed"){
+    if(was==="flood"){bigTitle("THE DAM HOLDS","ڈیم نے روک لیا",false,true);
+      toast(["Dam built — the river is under control","ڈیم بن گیا — دریا قابو میں",0]);}
+    if(was==="slide"){bigTitle("ROAD REOPENED","راستہ کھل گیا",false,true);
+      toast(["Slide cleared — the valley is connected again","تودہ صاف — وادی پھر جُڑ گئی",0]);}
+    if(was==="fire"){bigTitle("FIRES OUT","آگ بجھ گئی",false,true);
+      toast(["Fire Station open — the city is safer","فائر اسٹیشن کھل گیا — شہر محفوظ",0]);}
+    G.kpi.hap=clamp(G.kpi.hap+3,0,100);
+  }
+}
+
+/* Does this city's emergency want to fire right now? Reactive and mild, so the
+   triggers are generous rather than punishing. */
+function dzMaybeTrigger(){
+  if(DZ.on||!G.started)return;
+  var c=CITY.challenge;
+  if(c==="smog"){
+    /* Lahore: the river tops its banks during the monsoon. */
+    if(G.rainT>0&&rng()<0.5)dzStart("flood");
+  }else if(c==="isolation"){
+    /* Gilgit: slides come with the winter, off the ridges above the valley. */
+    if((G.m===11||G.m===0||G.m===1)&&rng()<0.45){
+      var side=rng()<0.5?-1:1;
+      dzStart("slide",rr(-900,900),side*rr(560,820));
+    }
+  }
+}
+
+function dzUpdate(dt,t){
+  if(!DZ.on)return;
+  DZ.age+=dt;
+  if(DZ.kind==="flood"){
+    /* Swell the river: widen and lift the water, and push it muddy brown as it
+       tops the banks. Cheap, but it reads immediately from any camera angle. */
+    var sw=Math.min(1,DZ.age/6);
+    for(var i=0;i<RIVWAT.length;i++){
+      var w=RIVWAT[i];
+      w.scale.set(1+sw*2.6,1,1);
+      w.position.y=w.userData.y0+sw*2.4+Math.sin(t*1.4+i)*0.35;
+      w.material.color.setRGB(0.18+0.26*sw,0.50-0.18*sw,0.72-0.34*sw);
+    }
+  }else if(DZ.kind==="slide"){
+    /* Build on first update, not inside an age window — DZ.age is incremented
+       above, so it has already passed any small threshold by the time we get here
+       and the debris was never created. */
+    if(!DZ.grp)dzBuildSlide(DZ.x,DZ.z);
+    if(DZ.grp&&DZ.slid<150){
+      /* Slide downhill toward the valley floor, tumbling as it goes. */
+      var step=dt*46;
+      DZ.slid+=step;
+      DZ.grp.position.z+=(DZ.z>0?-1:1)*step;
+      DZ.grp.position.y=terrainH(DZ.grp.position.x,DZ.grp.position.z)+6;
+      for(var k=0;k<DZ.grp.children.length;k++){
+        var b=DZ.grp.children[k];
+        b.rotation.x+=dt*b.userData.sp*2.2;b.rotation.z+=dt*b.userData.sp*1.6;
+      }
+    }
+    if(DZ.marker)DZ.marker.material.opacity=0.5+0.45*Math.sin(t*4);
+  }
+  /* Keep nagging, gently, so it cannot be ignored into the background. */
+  if(DZ.age>18){DZ.age=8;pulseBtn(CITY.tool);}
+}
+
 STEPS=[
  ["laying the coastline…",buildTerrain],
 
@@ -5433,6 +5588,13 @@ function loop(){
     updateSugPulse(t);
     updateStory(dt,t);
     updateFires(t);
+    dzUpdate(dt,t);
+    /* Karachi's emergency is the fire system that already exists, so it hands off
+       rather than inventing a second event. */
+    if(CITY.challenge==="water"&&!DZ.on&&G.started){
+      var lit=0;for(var fi=0;fi<FIRES.length;fi++)if(FIRES[fi].on)lit++;
+      if(lit>=3)dzStart("fire");
+    }
     for(var i=0;i<SMOKE.length;i++){
       var sm2=SMOKE[i];
       /* Factory plumes always smoke — that is the point of showing them.
