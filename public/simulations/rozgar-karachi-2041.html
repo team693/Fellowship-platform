@@ -624,6 +624,8 @@ var CITIES={
   coast:{base:880,a1:120,f1:0.00085,a2:60,f2:0.0021,p2:1.7,
          notch:{x:1120,w:170,d:380}, bulge:{x:-1330,w:200,d:300}},
   base:3.5, noise:4.5,
+  /* Karachi's original greenery: sparse, and biased east toward Gulshan. */
+  green:{lo:0.55,hi:0.80,amt:0.9,eastBias:true}, snowBand:[70,240], rockBand:[14,30],
   hills:[{x:-1150,z:-560,h:30,rx:560,rz:430},{x:1850,z:-400,h:10,rx:700,rz:600}],
   ridge:null, snow:0, lake:null,
   rivers:[
@@ -652,11 +654,17 @@ var CITIES={
   challenge:"smog", monument:"minar",
   coast:null,                       /* landlocked — see coastZ() */
   base:6.0, noise:3.2,
+  /* Punjab plains: green almost everywhere, no directional bias. Lahore is
+     canal-fed farmland and tree-lined avenues, not scrub. */
+  green:{lo:0.26,hi:0.60,amt:0.92,eastBias:false}, snowBand:[70,240], rockBand:[22,52],
   hills:[{x:900,z:-700,h:9,rx:900,rz:600}],
   ridge:null, snow:0,
   /* The Ravi runs along the north-west, wide and slow. */
+  /* The Ravi, swung south of its real course so it actually runs through the
+     built-up area rather than skirting the far edge. Building placement already
+     keeps 26 units clear of any river, so the city parts around it on its own. */
   rivers:[
-   [[-2300,-980],[-1700,-820],[-1050,-700],[-380,-660],[300,-700],[980,-820],[1700,-1000]]
+   [[-2300,-780],[-1650,-600],[-1000,-430],[-400,-250],[250,-90],[900,80],[1550,300],[2200,580]]
   ],
   districts:[
    {id:"central",x:-120,z:-40,r:520,rot:0.03},
@@ -683,6 +691,13 @@ var CITIES={
   challenge:"isolation", monument:null,
   coast:null,
   base:34, noise:6.5,
+  /* Alpine: thin green on the valley floor only, and snow starting just above it
+     rather than only on the distant peaks, so the town sits in snowy country. */
+  /* Snow starts above the valley floor, not on it: the town and its orchards stay
+     green and the white begins on the slopes climbing out. At snowBand [44,150]
+     the floor was 59% covered and greenery was buried entirely, which is not a
+     valley town — it is a snowfield with buildings in it. */
+  green:{lo:0.34,hi:0.66,amt:0.88,eastBias:false}, snowBand:[82,215], rockBand:[78,170],
   hills:[{x:-300,z:60,h:-16,rx:900,rz:520}],   /* the valley floor itself */
   /* Two ranges hemming the valley in, north and south. A wandering Gaussian wall
      rather than a backdrop, so the town genuinely sits between mountains. */
@@ -3617,10 +3632,13 @@ function buildTerrain(){
     var dc=z-coastZ(x);
     var n=fbm(x*0.004+7,z*0.004+3);
     c.copy(cScrub).lerp(cCity,smooth(1500,500,Math.abs(x))*smooth(1200,300,Math.abs(z-150)));
-    c.lerp(cGreen,smooth(0.55,0.8,n)*smooth(1100,1600,x)*0.9);
     var dr=distToRivers(x,z);
     c.lerp(cRiv,smooth(90,25,dr)*0.7);
-    c.lerp(cRock,smooth(14,30,h));
+    /* Rock by elevation, city-relative. This was hardcoded smooth(14,30,h), tuned
+       for Karachi where only hilltops clear 30. Gilgit's valley FLOOR sits at ~34,
+       so every vertex was lerped fully to rock and the greenery was wiped out
+       before snow was even applied — the valley came out bare stone. */
+    c.lerp(cRock,smooth(CITY.rockBand[0],CITY.rockBand[1],h));
     c.lerp(cWet,smooth(-140,-40,dc)*0.55);
     c.lerp(cSand,smooth(-60,-6,dc));
     /* A second, much lower-frequency octave breaks the map into broad districts:
@@ -3637,6 +3655,15 @@ function buildTerrain(){
     c.lerp(cRock,smooth(0.40,0.28,n2)*0.46);
     var n3=fbm(x*0.0026+41,z*0.0026-17);
     c.lerp(cDust,smooth(0.62,0.74,n3)*0.34);
+    /* Vegetation goes on LAST, after the ground types. It used to be applied early,
+       which meant the concrete and dust washes painted straight over it — Gilgit's
+       valley came out at ~1% green even once the rock band was fixed. Grass grows on
+       top of whatever the ground is; the render order should say so. */
+    var GW=CITY.green;
+    /* In a mountain city greenery belongs on the valley floor and thins as you climb
+       into rock and snow, so it is weighted by inverted altitude. Flat cities get 1. */
+    var gAlt=CITY.snow>0?smooth(CITY.snowBand[0],CITY.snowBand[0]*0.5,h):1;
+    c.lerp(cGreen,smooth(GW.lo,GW.hi,n)*(GW.eastBias?smooth(1100,1600,x):1)*GW.amt*gAlt);
     var shade=0.86+n*0.22+(n2-0.5)*0.09;
     /* Snow, for cities that have it. Coverage is driven by altitude and by slope,
        not painted on: high flat ground holds snow, steep faces shed it and stay
@@ -3646,7 +3673,10 @@ function buildTerrain(){
     if(CITY.snow>0){
       var slope=Math.abs(terrainH(x+26,z)-terrainH(x-26,z))
                +Math.abs(terrainH(x,z+26)-terrainH(x,z-26));
-      var alt=smooth(70,240,h+fbm(x*0.005+3,z*0.005-8)*90);
+      /* +-35, not +-70: the wider jitter was lifting valley-floor points over the
+         snow line, so snow crept onto the flat ground and squeezed out the greenery.
+         Enough to break the contour, not enough to bury the valley. */
+      var alt=smooth(CITY.snowBand[0],CITY.snowBand[1],h+fbm(x*0.005+3,z*0.005-8)*35);
       var flat=smooth(34,10,slope);
       var cover=clamp(alt*flat*CITY.snow*1.35,0,1);
       c.lerp(cSnowShade,cover*0.45);
