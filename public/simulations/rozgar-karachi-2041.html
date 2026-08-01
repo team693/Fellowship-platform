@@ -625,7 +625,7 @@ var CITIES={
          notch:{x:1120,w:170,d:380}, bulge:{x:-1330,w:200,d:300}},
   base:3.5, noise:4.5,
   /* Karachi's original greenery: sparse, and biased east toward Gulshan. */
-  green:{lo:0.55,hi:0.80,amt:0.9,eastBias:true}, snowBand:[70,240], rockBand:[14,30],
+  green:{lo:0.55,hi:0.80,amt:0.9,eastBias:true}, snowBand:[70,240], rockBand:[14,30], roadScale:1.0, minorKeep:1.0, density:1.0,
   hills:[{x:-1150,z:-560,h:30,rx:560,rz:430},{x:1850,z:-400,h:10,rx:700,rz:600}],
   ridge:null, snow:0, lake:null,
   rivers:[
@@ -656,7 +656,7 @@ var CITIES={
   base:6.0, noise:3.2,
   /* Punjab plains: green almost everywhere, no directional bias. Lahore is
      canal-fed farmland and tree-lined avenues, not scrub. */
-  green:{lo:0.26,hi:0.60,amt:0.92,eastBias:false}, snowBand:[70,240], rockBand:[22,52],
+  green:{lo:0.26,hi:0.60,amt:0.92,eastBias:false}, snowBand:[70,240], rockBand:[22,52], roadScale:0.95, minorKeep:0.9, density:0.95,
   hills:[{x:900,z:-700,h:9,rx:900,rz:600}],
   ridge:null, snow:0,
   /* The Ravi runs along the north-west, wide and slow. */
@@ -697,7 +697,7 @@ var CITIES={
      green and the white begins on the slopes climbing out. At snowBand [44,150]
      the floor was 59% covered and greenery was buried entirely, which is not a
      valley town — it is a snowfield with buildings in it. */
-  green:{lo:0.34,hi:0.66,amt:0.88,eastBias:false}, snowBand:[82,215], rockBand:[78,170],
+  green:{lo:0.34,hi:0.66,amt:0.88,eastBias:false}, snowBand:[82,215], rockBand:[78,170], roadScale:0.5, minorKeep:0.45, density:0.4,
   hills:[{x:-300,z:60,h:-16,rx:900,rz:520}],   /* the valley floor itself */
   /* Two ranges hemming the valley in, north and south. A wandering Gaussian wall
      rather than a backdrop, so the town genuinely sits between mountains. */
@@ -848,15 +848,25 @@ function buildTerrain(){
   scene.add(terrain);
 }
 function buildRivers(){
-  var bedM=new THREE.MeshStandardMaterial({color:0xcbb98f,roughness:1});
-  var watM=new THREE.MeshStandardMaterial({color:0x4b7d86,roughness:0.25,metalness:0.15});
+  /* Rivers had exactly the two faults the roads had, and for the same reasons.
+     (1) A lift of 0.22 over a terrain grid 26.5 units across means the ribbon sits
+     under the interpolated ground almost everywhere — on Lahore, whose land sits at
+     y 6-17, the river was simply buried. (2) ribbon() emits triangles wound against
+     its own normals, so a FrontSide material is back-face culled when viewed from
+     above and draws nothing at all. Hence: no visible river. */
+  var bedM=new THREE.MeshStandardMaterial({color:0xbfae86,roughness:1,side:THREE.DoubleSide,
+    polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
+  /* Properly blue, not the old grey-teal — a river should read as water at a glance. */
+  var watM=new THREE.MeshStandardMaterial({color:0x2f7fb8,roughness:0.18,metalness:0.2,
+    side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-3,polygonOffsetUnits:-3});
   for(var r=0;r<RIVPTS.length;r++){
     var pts=RIVPTS[r].map(function(p){return p.clone();});
-    for(var i=0;i<pts.length;i++)pts[i].y=0;
-    var bed=new THREE.Mesh(ribbon(pts,46,0.22),bedM);
-    bed.receiveShadow=true;scene.add(bed);
-    var wat=new THREE.Mesh(ribbon(pts,13,0.34),watM);
-    scene.add(wat);
+    for(var i=0;i<pts.length;i++)pts[i].y=terrainH(pts[i].x,pts[i].z)+3.0;
+    var bed=new THREE.Mesh(ribbon(pts,52,0,true),bedM);
+    bed.receiveShadow=true;bed.renderOrder=1;scene.add(bed);
+    var wpts=pts.map(function(q){var c=q.clone();c.y+=0.9;return c;});
+    var wat=new THREE.Mesh(ribbon(wpts,26,0,true),watM);
+    wat.renderOrder=2;scene.add(wat);
   }
 }
 /* sea */
@@ -964,6 +974,11 @@ function smoothPath(raw,step){
 }
 var ROADS=[];
 function addRoad(raw,w,major){
+  /* Per-city road character. Gilgit is a mountain town: its through-routes are
+     narrow and most of the minor grid simply does not exist, so it gets half-width
+     roads and under half the side streets. Karachi is unchanged at 1.0. */
+  w=w*(CITY.roadScale||1);
+  if(!major&&rng()>(CITY.minorKeep===undefined?1:CITY.minorKeep))return;
   var pts=smoothPath(raw,26);
   var curve=new THREE.CatmullRomCurve3(pts,false,"catmullrom",0.2);
   ROADS.push({idx:ROADS.length,pts:pts,curve:curve,len:curve.getLength(),w:w,major:major,
@@ -3505,6 +3520,10 @@ function setGarbage(n){
 /* ---- V4B: denser fabric, terrain detail, shore, AO, halos ---- */
 function placeDistrictBuildings(){
   var caps={south:460,central:640,west:780,east:600,korangi:380,keamari:260,malir:240};
+  /* Less-developed cities get proportionally fewer plots — Gilgit is a town, not a
+     metropolis, and at full Karachi density it read as a mountain megacity. */
+  var dScale=CITY.density===undefined?1:CITY.density;
+  for(var ck in caps)caps[ck]=Math.round(caps[ck]*dScale);
   var steps={south:23,central:19,west:16,east:21,korangi:23,keamari:24,malir:32};
   for(var d=0;d<DIST.length;d++){
     var D=DIST[d],cap=caps[D.id],step=steps[D.id],count=0;
@@ -3623,8 +3642,8 @@ function buildTerrain(){
       cScrub=new THREE.Color(0x9a8d61),cGreen=new THREE.Color(0x5f7d42),
       cRock=new THREE.Color(0x7d7263),cWet=new THREE.Color(0x8d7f61),
       cRiv=new THREE.Color(0x7d9152),cConc=new THREE.Color(0x93918b),
-      cDust=new THREE.Color(0xb08a55),cSnow=new THREE.Color(0xe8edf2),
-      cSnowShade=new THREE.Color(0xc2cddb);
+      cDust=new THREE.Color(0xb08a55),cSnow=new THREE.Color(0xf7fbff),
+      cSnowShade=new THREE.Color(0xd2dce8);
   var c=new THREE.Color();
   for(var i=0;i<p.count;i++){
     var x=p.getX(i),z=p.getZ(i),h=terrainH(x,z);
@@ -3679,8 +3698,11 @@ function buildTerrain(){
       var alt=smooth(CITY.snowBand[0],CITY.snowBand[1],h+fbm(x*0.005+3,z*0.005-8)*35);
       var flat=smooth(34,10,slope);
       var cover=clamp(alt*flat*CITY.snow*1.35,0,1);
-      c.lerp(cSnowShade,cover*0.45);
-      c.lerp(cSnow,cover*0.8);
+      /* Was topping out at 0.8 toward an off-white, which under the reduced key
+         light read as pale grey rather than snow. Full coverage now goes to actual
+         white; the shade tint stays for the transition band so it is not flat. */
+      c.lerp(cSnowShade,cover*0.40);
+      c.lerp(cSnow,Math.pow(cover,0.75)*0.97);
     }
     colors.push(c.r*shade,c.g*shade,c.b*shade);
   }
