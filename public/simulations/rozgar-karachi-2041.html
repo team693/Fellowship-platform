@@ -71,7 +71,8 @@ body{font-family:"Bricolage Grotesque",system-ui,sans-serif;color:#EAF2F0}
   width:64px;padding:7px 4px 6px;text-align:center;cursor:pointer;transition:transform .12s,border-color .15s}
 .tool:hover{transform:translateY(-2px)}
 .tool.sel{border-color:var(--mint);box-shadow:0 0 0 1px var(--mint)}
-.tool.no{opacity:.45;cursor:not-allowed}
+.tool.no{opacity:.42;cursor:not-allowed;filter:grayscale(1)}
+.tool.no .ct{background:#7a2f28;color:#ffd9d4}
 .tool .ic{font-size:19px;line-height:1.1}
 .tool .nm{font-size:8.6px;font-weight:700;letter-spacing:.04em;margin-top:2px;line-height:1.15}
 .tool .ct{position:absolute;top:-7px;right:-6px;background:var(--gold);color:#1a1408;font-size:9px;
@@ -1215,16 +1216,17 @@ function smoothPath(raw,step){
   return pts;
 }
 var ROADS=[];
-function addRoad(raw,w,major){
+function addRoad(raw,w,major,force){
   /* Per-city road character. Gilgit is a mountain town: its through-routes are
      narrow and most of the minor grid simply does not exist, so it gets half-width
      roads and under half the side streets. Karachi is unchanged at 1.0. */
   w=w*(CITY.roadScale||1);
-  if(!major&&rng()>(CITY.minorKeep===undefined?1:CITY.minorKeep))return;
+  if(!major&&!force&&rng()>(CITY.minorKeep===undefined?1:CITY.minorKeep))return;
   var pts=smoothPath(raw,26);
   var curve=new THREE.CatmullRomCurve3(pts,false,"catmullrom",0.2);
   ROADS.push({idx:ROADS.length,pts:pts,curve:curve,len:curve.getLength(),w:w,major:major,
     jam:0,jamBias:rr(0.15,0.6),bonus:0,spd:1,jamMesh:null,hot:null});
+  return ROADS[ROADS.length-1];
 }
 function distToRoads(x,z){
   var best=1e9;
@@ -1802,6 +1804,11 @@ function buildTraffic(){
   }
   var b1=vehBatch(bg,0x0E7E76,9);for(j=0;j<9;j++)spawn(b1,j,1,true);
   var b2=vehBatch(bg,0xEFE9DC,6);for(j=0;j<6;j++)spawn(b2,j,1,true);
+  /* A dedicated red fleet held back for bus corridors. Building a corridor used
+     to re-flag whichever ordinary bus happened to be free, which meant a
+     teal-on-teal bus somewhere off screen and no sense that anything arrived. */
+  var b3=vehBatch(bg,0xD93A2B,12);
+  for(j=0;j<12;j++){spawn(b3,j,1.1,true);VEH[VEH.length-1].corridor=true;}
   var r1=vehBatch(rg,0xE7C43C,26);for(j=0;j<26;j++)spawn(r1,j,rr(0.9,1.05));
   var r2=vehBatch(rg,0x2F8E5B,20);for(j=0;j<20;j++)spawn(r2,j,rr(0.9,1.05));
 }
@@ -1826,20 +1833,32 @@ function updateTraffic(dt){
     if(v.t>1)v.t-=1;if(v.t<0)v.t+=1;
     var p=R.curve.getPointAt(v.t),tg=R.curve.getTangentAt(v.t);
     var off=(R.w*0.22)*v.dir;
-    vDummy.position.set(p.x-tg.z*off,p.y+0.15,p.z+tg.x*off);
+    /* Corridor buses fall the last few metres into place so the service visibly
+       begins instead of a vehicle simply existing one frame later. */
+    var dh=0,ds=v.sc;
+    if(v.drop>0){v.drop=Math.max(0,v.drop-dt*1.7);dh=v.drop*v.drop*120;ds=v.sc*(1-v.drop*0.55);}
+    vDummy.position.set(p.x-tg.z*off,p.y+0.15+dh,p.z+tg.x*off);
     vDummy.rotation.set(0,Math.atan2(tg.x,tg.z)+(v.dir<0?Math.PI:0)-Math.PI/2,0);
-    vDummy.scale.set(v.sc,v.sc,v.sc);
+    vDummy.scale.set(ds,ds,ds);
     vDummy.updateMatrix();
     v.mesh.setMatrixAt(v.idx,vDummy.matrix);
   }
   for(i=0;i<vBatches.length;i++)vBatches[i].instanceMatrix.needsUpdate=true;
 }
 function corridorBuses(rIdx){
-  var moved=0;
-  for(var i=0;i<VEH.length&&moved<3;i++){
+  /* Four red buses, spaced evenly around the route rather than dropped at random
+     points where they can bunch up, each dropping in so you actually see the
+     service start. */
+  var want=4,moved=0;
+  for(var i=0;i<VEH.length&&moved<want;i++){
     var v=VEH[i];
-    if(v.bus&&!v.pin){v.pin=true;v.active=true;v.r=rIdx;v.t=rng();moved++;}
+    if(v.corridor&&!v.pin){
+      v.pin=true;v.active=true;v.r=rIdx;
+      v.t=moved/want;v.dir=1;v.drop=1;
+      moved++;
+    }
   }
+  return moved;
 }
 /* --- pedestrians --- */
 var PEDS=[],pBatches=[];
@@ -2138,11 +2157,13 @@ var G={y:2026,m:0,t:0,started:false,ended:false,rain:0,rainT:0,avgJam:0,
   fPrev:{jobs:32,hap:30,pow:38,wat:34,tra:26,gre:22,edu:30,hea:30},
   kpi:{jobs:32,pow:38,wat:34,tra:26,gre:22,edu:30,hea:30,hap:30},
   v:{schG:0,schT:0,schP:0,itpS:0,itpI:0},
-  builds:{cor:0,upg:0,sol:0,wat:0,par:0,sch:0,hos:0,itp:0}};
+  builds:{cor:0,upg:0,sol:0,wat:0,par:0,sch:0,hos:0,itp:0,fst:0,rd:0}};
 var monthLen=2.2;
 var T={
  cor:["New buses rolling — watch the red fade on this corridor","نئی بسیں چل پڑیں — اس راستے کی سرخی مدھم ہوتی دیکھیں"],
  upg:["Junction upgraded — hotspot clearing","چوراہا بہتر — رش کم ہو رہا ہے"],
+ rd:["Road laid — it links back to the network","سڑک بن گئی — نیٹ ورک سے جُڑ گئی"],
+ rdFar:["Too close to an existing road — tap further out","موجودہ سڑک کے بہت قریب — ذرا دور رکھیں"],
  sol:["Solar plant online — power rising","سولر پلانٹ چالو — بجلی بڑھ رہی ہے"],
  wat:["Water plant online — taps and drains improving","واٹر پلانٹ چالو — پانی اور نکاسی بہتر"],
  par:["Park opened — the neighbourhood breathes","پارک کھل گیا — محلے کو سانس ملی"],
@@ -2210,6 +2231,7 @@ var TOOLS={
  sel:{ic:"🖱️",cost:0,en:"Select",ur:"منتخب",fxE:"Free look — orbit, zoom, double-click to fly anywhere. No building.",fxU:"آزاد نظارہ — گھمائیں، زوم کریں، کہیں بھی ڈبل کلک۔ تعمیر نہیں۔"},
  cor:{ic:"🚌",cost:8, en:"Bus Corridor",ur:"بس کوریڈور",fxE:"Transit +11 · buses on this road · red jams fade",fxU:"ٹرانزٹ +11 · اس سڑک پر بسیں · سرخ رش کم"},
  upg:{ic:"🛣️",cost:6, en:"Road Upgrade",ur:"سڑک اپ گریڈ",fxE:"Clears one red hotspot on a main road",fxU:"بڑی سڑک کا ایک سرخ مقام صاف"},
+ rd:{ic:"🛤️",cost:5, en:"New Road",ur:"نئی سڑک",fxE:"Tap anywhere — links back to the nearest road · Transit +3",fxU:"کہیں بھی لگائیں — قریبی سڑک سے جڑ جائے گی · ٹرانزٹ +۳"},
  sol:{ic:"☀️",cost:10,en:"Solar Plant",ur:"سولر پلانٹ",fxE:"Power +13 · lights, factories & offices run",fxU:"بجلی +13 · روشنیاں، کارخانے، دفاتر چلیں"},
  wat:{ic:"💧",cost:9, en:"Water Plant",ur:"واٹر پلانٹ",fxE:"Water +13 · less flooding · greener city",fxU:"پانی +13 · سیلاب کم · شہر سرسبز"},
  par:{ic:"🌳",cost:4, en:"Park",ur:"پارک",fxE:"Green +9 · happiness up · cleaner air",fxU:"ہریالی +9 · خوشحالی · صاف فضا"},
@@ -2227,7 +2249,7 @@ var TOOLS={
  dam:{ic:"🌊",cost:11,en:"Dam / Barrage",ur:"ڈیم",fxE:"Stops the river overflowing · place anywhere",fxU:"دریا کا سیلاب روکے · کہیں بھی رکھیں"},
  mrd:{ic:"⛰️",cost:8,en:"Mountain Road",ur:"پہاڑی سڑک",fxE:"Clears the slide — must be placed ON the marked site",fxU:"تودہ ہٹائے — نشان زدہ جگہ پر رکھیں"}
 };
-var PALORDER=["sel","cor","upg","sol","wat","par","sch","hos","itp"];
+var PALORDER=["sel","rd","cor","upg","sol","wat","par","sch","hos","itp"];
 /* The city's emergency tool is appended when the city is chosen, so the dock only
    ever shows the one that is relevant. Keyed by the hazard, not by the city name,
    so adding a city is a matter of declaring which hazard it faces. */
@@ -2446,7 +2468,10 @@ function buildPalette(){
         if(k==="sel"){setTool(null);return;}
         if(TOOL&&parentOf(TOOL)===k){setTool(null);return;}
         if(PEND===k){PEND=null;selClasses();hideTip();hideSug();return;}
-        if(b.classList.contains("no"))return;
+        /* A button greys out when the treasury cannot cover it, but it used to
+           swallow the click without a word — which reads as "the game is broken",
+           not as "you are short of money". Say so. */
+        if(b.classList.contains("no")){toast(T.funds);pulseBtn(k);return;}
         if(t.variants){PEND=k;TOOL=null;canvas.classList.remove("tool");selClasses();showTip(k,true);showSug(k);}
         else setTool(k);
       };
@@ -2730,6 +2755,35 @@ var PH=null,PHDATA=[],GAR=null,GARN=150,BRK=null;
 var BLOB=null,blobUsed=0,BLOBCAP=0;
 var HALO=null,haloUsed=0;
 var DENS={};
+var ROADMAT=null;
+/* ---------------------------------------------------------------------------
+   Laying a road after the city has loaded.
+   The generated network is merged into one mesh for speed, which is the right
+   call for 26 fixed roads but means a new one cannot join it. Each player road
+   therefore gets its own small mesh sharing the same asphalt material.
+   One tap is the whole interaction: the road runs from the nearest existing
+   road to wherever you tapped, so the network always stays connected and you
+   can never strand a carriageway in the desert. The slight bow stops every new
+   road reading as a ruler line.
+--------------------------------------------------------------------------- */
+function layRoad(x,z){
+  var nr=nearestRoad(x,z,false);
+  if(!nr.road)return null;
+  var sp=nr.road.curve.getPointAt(clamp(nr.t,0,1));
+  var dx=x-sp.x,dz=z-sp.z,len=Math.hypot(dx,dz);
+  if(len<40)return null;
+  var bow=clamp(len*0.14,0,70)*(rng()<0.5?1:-1);
+  var raw=[[sp.x,sp.z],
+           [(sp.x+x)/2-dz/len*bow,(sp.z+z)/2+dx/len*bow],
+           [x,z]];
+  var R=addRoad(raw,15,false,true);
+  if(!R)return null;
+  var m=new THREE.Mesh(ribbon(R.pts,R.w,0,true),ROADMAT);
+  m.receiveShadow=true;scene.add(m);
+  R.mesh=m;
+  return R;
+}
+
 function buildRoads(){
   addRoad([[-420,700],[-160,560],[120,430],[450,300],[820,170],[1250,-30],[1720,-160]],30,true);
   /* The coastal road only exists where there is a coast. Inland, coastZ() returns
@@ -2816,6 +2870,7 @@ function buildRoads(){
     polygonOffset:true,polygonOffsetFactor:-2,polygonOffsetUnits:-2});
   var items=[];
   for(var r=0;r<ROADS.length;r++)items.push({g:ribbon(ROADS[r].pts,ROADS[r].w,0,true)});
+  ROADMAT=mat;                     /* reused by roads the player lays later */
   var mesh=new THREE.Mesh(mergeGeo(items),mat);
   mesh.receiveShadow=true;scene.add(mesh);
   /* raised medians on majors (yellow-black kerb) */
@@ -3435,7 +3490,9 @@ function initGhost(){
   scene.add(ghost);
 }
 function isCoverTool(k){return k==="par"||k==="hos"||k==="schG"||k==="schT"||k==="schP";}
-function isSizable(k){return k&&k!=="sel"&&k!=="cor"&&k!=="upg"&&!TOOLS[k].variants;}
+/* A road has no small/medium/large — it is a road. Without this it would pick up
+   the size multiplier on its cost and draw a sizing ring it does not use. */
+function isSizable(k){return k&&k!=="sel"&&k!=="cor"&&k!=="upg"&&k!=="rd"&&!TOOLS[k].variants;}
 /* --- tip with size chips --- */
 function showTip(k,expand){
   var t=TOOLS[k],h=el("palHint");
@@ -3909,6 +3966,8 @@ function updateGhost(){
   var cost=Math.round(TOOLS[TOOL].cost*(sizable?COSTM[SIZE]:1));
   var ok;
   if(TOOL==="cor"||TOOL==="upg"){var nr=nearestRoad(x,z,true);ok=nr.d<60;}
+  /* A new road only needs dry land — that is the point of it. */
+  else if(TOOL==="rd")ok=terrainH(x,z)>1.2&&nearestRoad(x,z,false).d>40;
   else ok=terrainH(x,z)>1.2;
   if(G.tre<cost)ok=false;
   ghostOK=ok;
@@ -3939,6 +3998,7 @@ function tryPlace(){
        Dam and the Mountain Road are responses to a specific live event. */
     if(TOOL==="fst"){
       G.tre-=cost;
+      G.builds.fst++;
       buildResponse("fst",x,z);
       G.kpi.hap=clamp(G.kpi.hap+2,0,100);
       if(DZ.on&&DZ.kind==="fire")dzClear("fixed");
@@ -3959,6 +4019,17 @@ function tryPlace(){
     dzClear("fixed");
     setTool(null);
     return;
+  }
+  if(TOOL==="rd"){
+    var R2=layRoad(x,z);
+    if(!R2){toast(T.rdFar);return;}
+    G.tre-=cost;
+    G.builds.rd++;
+    G.kpi.tra=clamp(G.kpi.tra+3,0,100);
+    refreshJams();updateHUD();
+    spawnFX(x,z);flyTo(x,z,560);
+    toast(T.rd);
+    hideSug();return;
   }
   if(TOOL==="cor"||TOOL==="upg"){
     var nr=nearestRoad(x,z,true);
@@ -3985,7 +4056,11 @@ function tryPlace(){
       toast(T.upg);
     }
     refreshJams();updateHUD();
-    if(R.hot){flyTo(R.hot.position.x,R.hot.position.z,540);spawnFX(R.hot.position.x,R.hot.position.z);}
+    /* Fly to the stretch that was actually worked on. This used to key off the
+       jam hotspot, so on a road with no hotspot nothing moved and nothing
+       sparkled — the upgrade looked like it had not happened. */
+    var fp=R.hot?R.hot.position:R.curve.getPointAt(clamp(nr.t,0,1));
+    flyTo(fp.x,fp.z,540);spawnFX(fp.x,fp.z);
     hideSug();return;
   }
   if(!ghostOK){toast(T.spot);return;}
@@ -4556,6 +4631,14 @@ function updateFires(t){
   var want=(nAmt>0.45&&G.started)?Math.round(unrest*FIRES.length):0;
   var emerg=DZ.on&&DZ.kind==="fire";
   if(emerg)want=FIRES.length;                     /* a declared emergency burns city-wide */
+  /* Each fire station covers a slice of the city, so blazes thin out as you build
+     them rather than switching off at some threshold. Three stations take a
+     full-blown emergency down to a couple of roofs. */
+  var stn=G.builds.fst||0;
+  if(stn>0)want=Math.round(want*Math.pow(0.55,stn));
+  /* Unrest fires belong to the night. Daylight puts them out — including a
+     declared emergency, which burns itself out by morning. */
+  if(nAmt<=0.45){want=0;if(emerg){dzClear("dawn");emerg=false;}}
   var live=0;
   for(var i=0;i<FIRES.length;i++)if(FIRES[i].on)live++;
   for(i=0;i<FIRES.length&&live<want;i++)if(!FIRES[i].on){igniteFire(FIRES[i]);live++;}
@@ -4565,11 +4648,8 @@ function updateFires(t){
     /* Two out-of-phase sines give an irregular flicker; a single one pulses too
        evenly and reads as a beacon rather than a fire. */
     var fk=0.62+0.38*Math.sin(t*7.3+fr.ph)*Math.sin(t*3.1+fr.ph*1.7);
-    /* Ordinary unrest fires are a night phenomenon and fade out with the dark,
-       which is what was asked for. A declared emergency is different: it can be
-       triggered at any hour and has to be visible when it is, so it keeps a
-       daylight floor instead of vanishing at dawn. */
-    var vis=emerg?Math.max(nAmt,0.62):nAmt;
+    /* Fires only ever burn at night now, so visibility just tracks darkness. */
+    var vis=nAmt;
     FLAMEB.setAlpha(fr.fi,(0.55+0.35*unrest)*fk*vis);
     FLAMEB.setSize(fr.fi,46+26*unrest+12*fk);
     fr.li.intensity=(1.5+1.6*unrest)*fk*vis;
@@ -5395,7 +5475,7 @@ function loop(){
     dzUpdate(dt,t);
     /* Karachi's emergency is the fire system that already exists, so it hands off
        rather than inventing a second event. */
-    if(CITY.hazard==="fire"&&!DZ.on&&G.started){
+    if(CITY.hazard==="fire"&&!DZ.on&&G.started&&nightAmt>0.45){
       var lit=0;for(var fi=0;fi<FIRES.length;fi++)if(FIRES[fi].on)lit++;
       if(lit>=3)dzStart("fire");
     }
