@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { AppHeader } from "@/components/app-header";
 import { SdgChips, SdgCoverage } from "@/components/sdg-badges";
+import { SdgWall } from "@/components/sdg-wall";
 import { requireUser, getProfile } from "@/lib/auth";
 import { ensureOpenAccessEnrollments } from "@/lib/access";
 import { getProgramStructure, type TopicProgress } from "@/lib/program";
@@ -97,7 +98,9 @@ export default async function FellowshipPage({
   return (
     <div className="min-h-dvh">
       <AppHeader profile={profile} />
-      <main className="mx-auto max-w-3xl px-6 py-10">
+      <SdgWall />
+      {/* The wall is fixed at z-0, so the reading column has to sit above it. */}
+      <main className="relative z-10 mx-auto max-w-3xl px-6 py-10">
         <Link href="/dashboard" className="text-sm text-ink-muted hover:text-ink">
           ← Dashboard
         </Link>

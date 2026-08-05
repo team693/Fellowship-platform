@@ -12,7 +12,9 @@ export function AppHeader({
 }) {
   const isAdmin = profile?.role === "admin";
   return (
-    <header className="border-b border-surface-muted bg-white">
+    // relative + z-20 so page background decoration (see SdgWall) passes behind
+    // the bar rather than over the nav, which sits wider than the reading column.
+    <header className="relative z-20 border-b border-surface-muted bg-white">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
         <div className="flex items-center gap-3">
           <HealLogo href="/dashboard" />
