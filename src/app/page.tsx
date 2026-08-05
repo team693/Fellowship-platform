@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { HealLogo } from "@/components/brand";
 import { GuestButton } from "@/components/guest-button";
+import { HeroMontage } from "@/components/hero-montage";
 import { TrustFooter } from "@/components/trust-footer";
 import { getCurrentUser } from "@/lib/auth";
 
@@ -9,91 +10,53 @@ export default async function LandingPage() {
 
   return (
     <div className="min-h-dvh bg-surface">
-      {/* Header */}
-      <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-        <HealLogo />
-        <nav className="flex items-center gap-3">
-          <Link href="/pricing" className="btn-ghost hidden sm:inline-flex">
-            Pricing
-          </Link>
-          {user ? (
-            <Link href="/dashboard" className="btn-primary">
-              Go to dashboard
+      {/* Header. Transparent and layered over the montage, so the imagery runs
+          to the top of the window the way the reference does. */}
+      <header className="absolute inset-x-0 top-0 z-30">
+        {/* A short scrim: the montage runs under the bar, and white type needs
+            something to sit on when a pale panel scrolls beneath it. */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/60 to-transparent" />
+        <div className="relative mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+          <HealLogo onDark />
+          <nav className="flex items-center gap-2 sm:gap-3">
+            <Link
+              href="/pricing"
+              className="hidden rounded-xl px-4 py-2 text-sm font-bold text-white/90 transition hover:bg-white/10 sm:inline-flex"
+            >
+              Pricing
             </Link>
-          ) : (
-            <>
-              <Link href="/login" className="btn-ghost">
-                Sign in
+            {user ? (
+              <Link
+                href="/dashboard"
+                className="rounded-xl bg-white px-4 py-2 text-sm font-bold text-ink transition hover:bg-mint-100"
+              >
+                Go to dashboard
               </Link>
-              <Link href="/login" className="btn-primary">
-                Get started
-              </Link>
-            </>
-          )}
-        </nav>
+            ) : (
+              <>
+                <Link
+                  href="/login"
+                  className="rounded-xl px-4 py-2 text-sm font-bold text-white/90 transition hover:bg-white/10"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  href="/login"
+                  className="rounded-xl bg-white px-4 py-2 text-sm font-bold text-ink transition hover:bg-mint-100"
+                >
+                  Get started
+                </Link>
+              </>
+            )}
+          </nav>
+        </div>
       </header>
 
       {/* Hero */}
-      <section className="relative overflow-hidden">
-        <div className="mx-auto grid max-w-6xl gap-10 px-6 pb-16 pt-10 lg:grid-cols-2 lg:pt-20">
-          <div className="flex flex-col justify-center">
-            <span className="badge w-fit bg-mint-100 text-mint-800">
-              IESP · Impact Simulations · Case Studies · UN SDGs
-            </span>
-            <h1 className="mt-4 text-4xl font-extrabold leading-[1.05] sm:text-5xl lg:text-6xl">
-              The Immersive Experience &amp; Simulation Program for{" "}
-              <span className="bg-heal-gradient bg-clip-text text-transparent">
-                real-world change
-              </span>
-            </h1>
-            <p className="mt-5 max-w-xl text-lg text-ink-soft">
-              Work through impact simulations, case studies, and real-world
-              applications mapped to the UN Sustainable Development Goals. Finish
-              and earn an Impact Certification anyone can independently verify.
-            </p>
-            <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/login" className="btn-primary px-5 py-3 text-base">
-                Become a Solutions Builder
-              </Link>
-              <GuestButton
-                className="btn-ghost px-5 py-3 text-base"
-                label="Explore as guest"
-              />
-            </div>
-            <p className="mt-4 text-sm text-ink-muted">
-              Sign in with email or Google to begin. A verifiable certificate is
-              waiting at the finish line.
-            </p>
-          </div>
-
-          {/* Decorative brand panel */}
-          <div className="relative flex items-center justify-center">
-            <div className="aspect-[4/5] w-full max-w-sm rounded-3xl bg-heal-gradient p-8 shadow-lift">
-              <div className="flex h-full flex-col justify-between text-white">
-                <div>
-                  <p className="font-mono text-xs uppercase tracking-widest text-white/70">
-                    Impact Certification
-                  </p>
-                  <p className="mt-6 font-display text-2xl font-bold">
-                    IESP Solutions Builder
-                  </p>
-                  <p className="mt-1 text-white/80">Heal Social Foundation</p>
-                </div>
-                <div className="rounded-2xl bg-white/10 p-4 backdrop-blur">
-                  <p className="text-sm text-white/80">Verify at</p>
-                  <p className="font-mono text-sm">/verify/&lt;id&gt;</p>
-                  <p className="mt-3 text-xs text-white/70">
-                    Independently checkable · immutable · QR-signed
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <HeroMontage />
 
       {/* Features */}
-      <section className="border-t border-surface-muted bg-surface-subtle">
+      <section id="topics" className="border-t border-surface-muted bg-surface-subtle">
         <div className="mx-auto grid max-w-6xl gap-6 px-6 py-16 md:grid-cols-3">
           {[
             {
@@ -117,6 +80,15 @@ export default async function LandingPage() {
               <p className="mt-2 text-ink-soft">{f.body}</p>
             </div>
           ))}
+          <div className="md:col-span-3 flex flex-wrap items-center justify-center gap-3 pt-2">
+            <Link href="/login" className="btn-primary px-5 py-3 text-base">
+              Become a Solutions Builder
+            </Link>
+            <GuestButton
+              className="btn-ghost px-5 py-3 text-base"
+              label="Explore as guest"
+            />
+          </div>
         </div>
       </section>
 
