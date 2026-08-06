@@ -12,44 +12,27 @@ export default async function LandingPage() {
     <div className="min-h-dvh bg-surface">
       {/* Header. Transparent and layered over the montage, so the imagery runs
           to the top of the window the way the reference does. */}
-      <header className="absolute inset-x-0 top-0 z-30">
-        {/* A short scrim: the montage runs under the bar, and white type needs
-            something to sit on when a pale panel scrolls beneath it. */}
-        <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black/60 to-transparent" />
-        <div className="relative mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
-          <HealLogo onDark />
-          <nav className="flex items-center gap-2 sm:gap-3">
-            <Link
-              href="/pricing"
-              className="hidden rounded-xl px-4 py-2 text-sm font-bold text-white/90 transition hover:bg-white/10 sm:inline-flex"
-            >
-              Pricing
+      <header className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+        <HealLogo />
+        <nav className="flex items-center gap-3">
+          <Link href="/pricing" className="btn-ghost hidden sm:inline-flex">
+            Pricing
+          </Link>
+          {user ? (
+            <Link href="/dashboard" className="btn-primary">
+              Go to dashboard
             </Link>
-            {user ? (
-              <Link
-                href="/dashboard"
-                className="rounded-xl bg-white px-4 py-2 text-sm font-bold text-ink transition hover:bg-mint-100"
-              >
-                Go to dashboard
+          ) : (
+            <>
+              <Link href="/login" className="btn-ghost">
+                Sign in
               </Link>
-            ) : (
-              <>
-                <Link
-                  href="/login"
-                  className="rounded-xl px-4 py-2 text-sm font-bold text-white/90 transition hover:bg-white/10"
-                >
-                  Sign in
-                </Link>
-                <Link
-                  href="/login"
-                  className="rounded-xl bg-white px-4 py-2 text-sm font-bold text-ink transition hover:bg-mint-100"
-                >
-                  Get started
-                </Link>
-              </>
-            )}
-          </nav>
-        </div>
+              <Link href="/login" className="btn-primary">
+                Get started
+              </Link>
+            </>
+          )}
+        </nav>
       </header>
 
       {/* Hero */}
