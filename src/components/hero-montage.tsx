@@ -54,7 +54,7 @@ const PANELS: Panel[] = [
     grow: 1,
     h: 86,
     align: "start",
-    pos: "50% 50%",
+    pos: "50% 40%",
   },
   {
     key: "health",
@@ -102,7 +102,7 @@ const PANELS: Panel[] = [
     grow: 0.95,
     h: 82,
     align: "start",
-    pos: "50% 45%",
+    pos: "50% 38%",
   },
 ];
 

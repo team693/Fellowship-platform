@@ -170,3 +170,41 @@ export function getProgramStructure<
     percent,
   };
 }
+
+/**
+ * The single module a learner should do next, for "continue where you left
+ * off" nudges. Priority order mirrors how the programme is meant to be walked:
+ * unfinished core first, then the topic they are mid-way through, then the
+ * first fresh topic while more are still needed. Null when nothing sensible
+ * remains (programme complete, or nothing published yet).
+ */
+export function getNextModule<
+  M extends ProgramModuleFields,
+  R extends ProgramRouteFields,
+>(structure: ProgramStructure<M, R>, progress: ProgramProgressFields[]): M | null {
+  const completed = new Set(
+    progress.filter((p) => p.status === "completed").map((p) => p.module_id),
+  );
+  const nextIn = (mods: M[]) =>
+    mods.find((m) => m.is_required && !completed.has(m.id)) ?? null;
+
+  const core = nextIn(structure.coreModules);
+  if (core) return core;
+
+  // A topic already in motion beats starting another one.
+  for (const t of structure.topics) {
+    if (t.isStarted && !t.isComplete) {
+      const m = nextIn(t.modules);
+      if (m) return m;
+    }
+  }
+  if (structure.topicsCompleted < structure.topicsRequired) {
+    for (const t of structure.topics) {
+      if (!t.isStarted && !t.isComplete) {
+        const m = nextIn(t.modules);
+        if (m) return m;
+      }
+    }
+  }
+  return null;
+}

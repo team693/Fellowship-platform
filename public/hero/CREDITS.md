@@ -7,11 +7,11 @@ any of them can be re-sourced or replaced.
 
 | File | Unsplash photo ID | Used for |
 |---|---|---|
-| `water.jpg` | `photo-1546531130-0f36255d9d49` | Water & Environment — filling a jerrycan at a tap |
+| `water.jpg` | `photo-1616680214084-22670de1bc82` | Water & Environment — young volunteers clearing a shoreline |
 | `health.jpg` | `photo-1706958580557-ddc88a349a16` | Public Health — hands and a stethoscope |
 | `safety.jpg` | `photo-1656855566586-65a283468fb3` | Urban Safety — arterial road after dark |
 | `economy.jpg` | `photo-1624812449802-99c34cb56654` | Economic Opportunity — Karachi bazaar |
-| `capstone.jpg` | `photo-1729855184497-494fdcb24d7d` | Solutions Capstone — a community workshop |
+| `capstone.jpg` | `photo-1741241858332-83de91895bab` | Solutions Capstone — students collaborating around a phone |
 
 Any photo can be swapped by dropping a replacement at the same path; the source
 files are 1400x2489 (9:16) and `next/image` resizes and re-encodes per device.

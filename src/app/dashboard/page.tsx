@@ -1,9 +1,10 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AppHeader } from "@/components/app-header";
+import { ProgressRing } from "@/components/progress-ring";
 import { requireUser, getProfile } from "@/lib/auth";
 import { ensureOpenAccessEnrollments } from "@/lib/access";
-import { getProgramStructure } from "@/lib/program";
+import { getNextModule, getProgramStructure } from "@/lib/program";
 import { createClient } from "@/lib/supabase/server";
 import type {
   Certificate,
@@ -59,10 +60,35 @@ export default async function DashboardPage() {
     ((certificates as Certificate[]) ?? []).map((c) => [c.fellowship_id, c]),
   );
 
+  // "Continue where you left off": the next module in the first programme that
+  // is underway but not finished. One nudge, not a feed.
+  let nextUp: {
+    fellowship: Fellowship;
+    module: Module;
+    percent: number;
+    started: boolean;
+  } | null = null;
+  for (const fellowship of fellowships) {
+    const fMods = modules.filter((m) => m.fellowship_id === fellowship.id);
+    const fProg = progress.filter((p) => p.fellowship_id === fellowship.id);
+    const structure = getProgramStructure(fMods, fProg, routes);
+    if (structure.isComplete) continue;
+    const mod = getNextModule(structure, fProg);
+    if (mod) {
+      nextUp = {
+        fellowship,
+        module: mod,
+        percent: structure.percent,
+        started: structure.percent > 0,
+      };
+      break;
+    }
+  }
+
   return (
     <div className="min-h-dvh">
       <AppHeader profile={profile} isGuest={isGuest} />
-      <main className="mx-auto max-w-6xl px-6 py-10">
+      <main className="mx-auto max-w-6xl px-6 py-8">
         {isGuest && (
           <div className="mb-6 flex flex-wrap items-center gap-3 rounded-2xl border border-gold-200 bg-gold-50 p-4">
             <span className="text-xl">👋</span>
@@ -85,10 +111,38 @@ export default async function DashboardPage() {
           </div>
         </div>
 
+        {nextUp && (
+          <Link
+            href={`/modules/${nextUp.module.id}`}
+            className="card-interactive rise-in mt-6 flex items-center gap-5 border-teal-100 bg-gradient-to-r from-teal-50/70 to-white"
+          >
+            <div className="relative grid shrink-0 place-items-center">
+              <ProgressRing percent={nextUp.percent} size={64} />
+              <span className="absolute text-sm font-bold text-teal-700">
+                {nextUp.percent}%
+              </span>
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-teal-700">
+                {nextUp.started ? "Continue where you left off" : "Start here"}
+              </p>
+              <p className="mt-0.5 truncate font-display text-lg font-bold">
+                {nextUp.module.title}
+              </p>
+              <p className="truncate text-sm text-ink-muted">
+                {nextUp.fellowship.title}
+              </p>
+            </div>
+            <span className="btn-primary hidden shrink-0 sm:inline-flex">
+              {nextUp.started ? "Continue" : "Begin"} →
+            </span>
+          </Link>
+        )}
+
         {(enrollments ?? []).length === 0 ? (
           <EmptyState />
         ) : (
-          <div className="mt-8 grid gap-6 md:grid-cols-2">
+          <div className="mt-6 grid gap-5 md:grid-cols-2">
             {fellowships.map((fellowship) => (
               <FellowshipCard
                 key={fellowship.id}
@@ -138,8 +192,17 @@ function FellowshipCard({
   const pct = structure.percent;
   const done = structure.isComplete;
 
+  // One line of context under the bar: where you are, what it earns you.
+  const momentum = done
+    ? "Complete — your certificate is ready."
+    : pct === 0
+      ? "Everything's ready. Week 1 takes about 40 minutes."
+      : pct < 50
+        ? "You're building momentum."
+        : "Over halfway to your Impact Certification.";
+
   return (
-    <div className="card flex flex-col">
+    <div className="card-interactive flex flex-col">
       <div
         className="-m-6 mb-4 h-2 rounded-t-2xl"
         style={{ backgroundColor: fellowship.cover_color ?? "#0f8b80" }}
@@ -167,10 +230,11 @@ function FellowshipCard({
         </div>
         <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-surface-muted">
           <div
-            className="h-full rounded-full bg-heal-gradient transition-all"
+            className="progress-fill h-full rounded-full bg-heal-gradient"
             style={{ width: `${pct}%` }}
           />
         </div>
+        <p className="mt-2 text-xs text-ink-muted">{momentum}</p>
       </div>
 
       <div className="mt-5 flex gap-2">

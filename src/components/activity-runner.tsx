@@ -4,6 +4,12 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import type { PublicActivity, PublicQuestion } from "@/lib/activity";
+import {
+  CheckMark,
+  ConfettiBurst,
+  ReviewMark,
+  ScoreCount,
+} from "@/components/celebrate";
 
 type Answers = Record<string, unknown>;
 
@@ -117,13 +123,31 @@ export function ActivityRunner({
       )}
 
       <ol className="space-y-5">
-        {activity.questions.map((q, i) => (
+        {activity.questions.map((q, i) => {
+          const verdict = result?.perQuestion?.[q.id];
+          return (
           <li
             key={q.id}
-            className="rounded-2xl border border-surface-muted bg-white p-5 shadow-card"
+            className={[
+              "rounded-2xl border bg-white p-5 shadow-card transition-colors duration-500",
+              verdict === true
+                ? "border-mint-200 bg-mint-50/40"
+                : verdict === false
+                  ? "border-coral-200 bg-coral-50/40"
+                  : "border-surface-muted",
+            ].join(" ")}
           >
             <div className="flex items-start gap-3">
-              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-surface-muted text-sm font-bold">
+              <span
+                className={[
+                  "grid h-7 w-7 shrink-0 place-items-center rounded-full text-sm font-bold transition-colors duration-500",
+                  verdict === true
+                    ? "bg-mint-500 text-white"
+                    : verdict === false
+                      ? "bg-coral-500 text-white"
+                      : "bg-surface-muted",
+                ].join(" ")}
+              >
                 {i + 1}
               </span>
               <div className="min-w-0 flex-1">
@@ -133,30 +157,42 @@ export function ActivityRunner({
                     q={q}
                     value={answers[q.id]}
                     onChange={(v) => setAnswer(q.id, v)}
-                    verdict={result?.perQuestion?.[q.id]}
+                    verdict={verdict}
+                    delay={i * 90}
                     locked={!!result}
                   />
                 </div>
               </div>
             </div>
           </li>
-        ))}
+          );
+        })}
       </ol>
 
       {/* Result / actions */}
-      <div className="mt-6 rounded-2xl border border-surface-muted bg-surface-subtle p-5">
+      <div
+        className={[
+          "relative mt-6 rounded-2xl border p-5 transition-colors duration-500",
+          result?.passed
+            ? "border-mint-200 bg-mint-50"
+            : "border-surface-muted bg-surface-subtle",
+        ].join(" ")}
+      >
+        {result?.passed && <ConfettiBurst />}
         {result ? (
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <p
                 className={`text-lg font-bold ${result.passed ? "text-mint-700" : "text-coral-600"}`}
               >
-                {result.passed ? "Passed 🎉" : "Not passed yet"} — {result.score}/100
+                {result.passed ? "Passed" : "Not passed yet"} —{" "}
+                <ScoreCount value={result.score} />
+                /100
               </p>
               <p className="text-sm text-ink-soft">
                 {result.passed
-                  ? "This activity is complete."
-                  : `You need ${result.passScore} to pass${result.essayOk ? "" : " (and a complete written answer)"}. Revise and try again.`}
+                  ? "This activity is complete. On to the next one."
+                  : `You're ${Math.max(result.passScore - result.score, 1)} short of the ${result.passScore} needed${result.essayOk ? "" : " (and the written answer needs completing)"} — closer than it feels. Revise and go again.`}
               </p>
             </div>
             <div className="flex gap-2">
@@ -181,7 +217,13 @@ export function ActivityRunner({
               Answer every question, then submit for grading.
             </p>
             <button className="btn-primary" onClick={submit} disabled={submitting}>
-              {submitting ? "Submitting…" : "Submit for grading"}
+              {submitting && (
+                <span
+                  aria-hidden
+                  className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white"
+                />
+              )}
+              {submitting ? "Grading…" : "Submit for grading"}
             </button>
           </div>
         )}
@@ -196,19 +238,25 @@ function QuestionInput({
   value,
   onChange,
   verdict,
+  delay = 0,
   locked,
 }: {
   q: PublicQuestion;
   value: unknown;
   onChange: (v: unknown) => void;
   verdict?: boolean;
+  /** ms stagger so a page of verdicts cascades down instead of slamming in */
+  delay?: number;
   locked: boolean;
 }) {
   const verdictMark =
-    verdict === undefined ? null : verdict ? (
-      <span className="ml-2 text-sm font-semibold text-mint-700">✓ correct</span>
-    ) : (
-      <span className="ml-2 text-sm font-semibold text-coral-600">✗ review</span>
+    verdict === undefined ? null : (
+      <span className="mt-2 inline-flex items-center gap-1.5 text-sm font-semibold">
+        {verdict ? <CheckMark delay={delay} /> : <ReviewMark delay={delay} />}
+        <span className={verdict ? "text-mint-700" : "text-coral-600"}>
+          {verdict ? "Correct" : "Worth another look"}
+        </span>
+      </span>
     );
 
   switch (q.type) {

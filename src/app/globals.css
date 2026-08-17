@@ -5,6 +5,9 @@
 @layer base {
   :root {
     --heal-ring: 15 139 128; /* teal-500 rgb for focus rings */
+    /* One easing curve for the whole site, so every hover, press and fill
+       shares the same physical character. */
+    --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
   }
 
   html {
@@ -40,11 +43,24 @@
 @layer components {
   .btn {
     @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5
-      text-sm font-semibold transition-colors focus:outline-none
+      text-sm font-semibold focus:outline-none
       disabled:cursor-not-allowed disabled:opacity-60;
+    transition:
+      color 150ms var(--ease-out-quart),
+      background-color 150ms var(--ease-out-quart),
+      border-color 150ms var(--ease-out-quart),
+      box-shadow 200ms var(--ease-out-quart),
+      transform 150ms var(--ease-out-quart);
+  }
+  /* Press feedback: every button gives a small, immediate physical response. */
+  .btn:active:not(:disabled) {
+    transform: scale(0.97);
   }
   .btn-primary {
     @apply btn bg-teal-600 text-white hover:bg-teal-700;
+  }
+  .btn-primary:hover:not(:disabled) {
+    box-shadow: 0 4px 14px rgba(15, 139, 128, 0.28);
   }
   .btn-coral {
     @apply btn bg-coral-500 text-white hover:bg-coral-600;
@@ -59,11 +75,29 @@
   .card {
     @apply rounded-2xl border border-surface-muted bg-white p-6 shadow-card;
   }
+  /* Cards that are links or wrap one: a quiet lift, nothing bouncy. */
+  .card-interactive {
+    @apply card;
+    transition:
+      box-shadow 220ms var(--ease-out-quart),
+      transform 220ms var(--ease-out-quart),
+      border-color 220ms var(--ease-out-quart);
+  }
+  .card-interactive:hover {
+    @apply border-teal-100;
+    transform: translateY(-2px);
+    box-shadow:
+      0 2px 4px rgba(11, 31, 29, 0.05),
+      0 12px 28px rgba(11, 31, 29, 0.09);
+  }
 
   .input {
     @apply w-full rounded-xl border border-surface-muted bg-white px-3.5 py-2.5
       text-sm text-ink placeholder:text-ink-muted focus:border-teal-400
       focus:outline-none focus:ring-2 focus:ring-teal-200;
+    transition:
+      border-color 150ms var(--ease-out-quart),
+      box-shadow 150ms var(--ease-out-quart);
   }
 
   .label {
@@ -72,5 +106,80 @@
 
   .badge {
     @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold;
+  }
+
+  /* Progress bars fill with an eased sweep instead of snapping into place —
+     the single cheapest "it feels alive" cue on every page that has one. */
+  .progress-fill {
+    transition: width 700ms var(--ease-out-quart);
+  }
+}
+
+@layer utilities {
+  /* Staggered entrance for lists of cards. Opt-in per element:
+     class="rise-in" style="--rise-delay: 40ms". Fades and lifts 8px once,
+     on load; cheap (compositor-only) and disabled for reduced motion. */
+  .rise-in {
+    animation: rise-in 480ms var(--ease-out-quart) both;
+    animation-delay: var(--rise-delay, 0ms);
+  }
+  @keyframes rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* One soft pulse to draw the eye to a just-changed value (a score, a
+     percentage) without demanding anything. */
+  .pulse-once {
+    animation: pulse-once 600ms var(--ease-out-quart) 1;
+  }
+  @keyframes pulse-once {
+    0% {
+      transform: scale(1);
+    }
+    35% {
+      transform: scale(1.06);
+    }
+    100% {
+      transform: scale(1);
+    }
+  }
+
+  /* Used by the win-feedback kit (src/components/celebrate.tsx). */
+  @keyframes pop-in {
+    from {
+      opacity: 0;
+      transform: scale(0.4);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  @keyframes draw-check {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .rise-in,
+    .pulse-once {
+      animation: none;
+    }
+    .btn,
+    .card-interactive,
+    .progress-fill {
+      transition: none;
+    }
+    .card-interactive:hover {
+      transform: none;
+    }
   }
 }

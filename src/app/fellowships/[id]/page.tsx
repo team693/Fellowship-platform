@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { AppHeader } from "@/components/app-header";
-import { SdgChips, SdgCoverage } from "@/components/sdg-badges";
-import { SdgWall } from "@/components/sdg-wall";
+import { SdgChips, SdgStrip } from "@/components/sdg-badges";
 import { requireUser, getProfile } from "@/lib/auth";
 import { ensureOpenAccessEnrollments } from "@/lib/access";
 import { getProgramStructure, type TopicProgress } from "@/lib/program";
@@ -98,9 +97,7 @@ export default async function FellowshipPage({
   return (
     <div className="min-h-dvh">
       <AppHeader profile={profile} />
-      <SdgWall />
-      {/* The wall is fixed at z-0, so the reading column has to sit above it. */}
-      <main className="relative z-10 mx-auto max-w-3xl px-6 py-10">
+      <main className="mx-auto max-w-3xl px-6 py-8">
         <Link href="/dashboard" className="text-sm text-ink-muted hover:text-ink">
           ← Dashboard
         </Link>
@@ -118,6 +115,11 @@ export default async function FellowshipPage({
             <strong className="text-ink-soft">{structure.topicsRequired}</strong>{" "}
             topics of your choice.
           </p>
+          {allSdgs.length > 0 && (
+            <div className="mt-4">
+              <SdgStrip allSdgs={allSdgs} coveredSdgs={coveredSdgs} />
+            </div>
+          )}
         </div>
 
         {/* Overall progress */}
@@ -134,7 +136,7 @@ export default async function FellowshipPage({
           </div>
           <div className="mt-2 h-2.5 overflow-hidden rounded-full bg-surface-muted">
             <div
-              className="h-full rounded-full bg-heal-gradient transition-all"
+              className="progress-fill h-full rounded-full bg-heal-gradient"
               style={{ width: `${structure.percent}%` }}
             />
           </div>
@@ -165,15 +167,8 @@ export default async function FellowshipPage({
           )}
         </div>
 
-        {/* SDG coverage */}
-        {allSdgs.length > 0 && (
-          <div className="mt-4 rounded-2xl border border-surface-muted bg-white p-5 shadow-card">
-            <SdgCoverage allSdgs={allSdgs} coveredSdgs={coveredSdgs} />
-          </div>
-        )}
-
         {/* ---- Week 1: compulsory core ---------------------------------- */}
-        <section className="mt-10">
+        <section className="mt-8">
           <div className="flex items-baseline justify-between gap-3">
             <h2 className="text-xl font-extrabold">Week 1 &middot; Core</h2>
             <span className="text-sm text-ink-muted">
@@ -205,7 +200,7 @@ export default async function FellowshipPage({
         </section>
 
         {/* ---- Weeks 2-4: topic catalogue -------------------------------- */}
-        <section className="mt-10">
+        <section className="mt-8">
           <div className="flex items-baseline justify-between gap-3">
             <h2 className="text-xl font-extrabold">Weeks 2&ndash;4 &middot; Topics</h2>
             <span className="text-sm font-semibold text-teal-700">
@@ -235,7 +230,7 @@ export default async function FellowshipPage({
         </section>
 
         {/* ---- Capstone -------------------------------------------------- */}
-        <section className="mt-10">
+        <section className="mt-8">
           <h2 className="text-xl font-extrabold">Capstone</h2>
           <p className="mt-1 text-sm text-ink-soft">
             Your final deliverable, built on your primary topic and published to
@@ -377,7 +372,7 @@ function ModuleRow({
     <li>
       <Link
         href={`/modules/${mod.id}`}
-        className="flex items-center gap-4 rounded-2xl border border-surface-muted bg-white p-4 shadow-card transition-colors hover:border-teal-300"
+        className="card-interactive flex items-center gap-4 !p-4"
       >
         <span
           className={`grid h-10 w-10 shrink-0 place-items-center rounded-full text-sm font-bold ${

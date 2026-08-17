@@ -40,7 +40,7 @@ export default async function LandingPage() {
 
       {/* Features */}
       <section id="topics" className="border-t border-surface-muted bg-surface-subtle">
-        <div className="mx-auto grid max-w-6xl gap-6 px-6 py-16 md:grid-cols-3">
+        <div className="mx-auto grid max-w-6xl gap-5 px-6 py-12 md:grid-cols-3">
           {[
             {
               title: "Immersive modules",
@@ -57,8 +57,12 @@ export default async function LandingPage() {
               body: "Every certificate carries a QR code linking to a public verification page — no login required to check it.",
               accent: "text-coral-500",
             },
-          ].map((f) => (
-            <div key={f.title} className="card">
+          ].map((f, i) => (
+            <div
+              key={f.title}
+              className="card-interactive rise-in"
+              style={{ "--rise-delay": `${i * 90}ms` } as React.CSSProperties}
+            >
               <h3 className={`text-lg font-bold ${f.accent}`}>{f.title}</h3>
               <p className="mt-2 text-ink-soft">{f.body}</p>
             </div>

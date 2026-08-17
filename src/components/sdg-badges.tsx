@@ -83,3 +83,60 @@ export function SdgCoverage({
     </div>
   );
 }
+
+/** Mix an SDG hex colour toward white, so the official palette reads muted. */
+function soften(hex: string, k: number): string {
+  const n = parseInt(hex.slice(1), 16);
+  const mix = (c: number) => Math.round(c + (255 - c) * k);
+  return `rgb(${mix((n >> 16) & 255)},${mix((n >> 8) & 255)},${mix(n & 255)})`;
+}
+
+/**
+ * One quiet line of SDG coverage: small flat tiles in softened official
+ * colours, covered goals filled and the rest ghosted, with a count at the end.
+ * Replaces both the decorative cube wall and the full coverage card — the same
+ * information at a fraction of the visual volume.
+ */
+export function SdgStrip({
+  allSdgs,
+  coveredSdgs,
+}: {
+  allSdgs: number[];
+  coveredSdgs: number[];
+}) {
+  if (!allSdgs || allSdgs.length === 0) return null;
+  const covered = new Set(coveredSdgs);
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+      <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-ink-muted">
+        UN SDGs
+      </span>
+      <span className="inline-flex gap-1">
+        {allSdgs.map((n) => {
+          const sdg = getSdg(n);
+          const done = covered.has(n);
+          return (
+            <span
+              key={n}
+              title={`SDG ${n}: ${sdg.title}${done ? " — covered" : ""}`}
+              className="grid h-5 w-5 place-items-center rounded-[5px] text-[10px] font-bold transition-transform duration-200 hover:-translate-y-0.5"
+              style={
+                done
+                  ? { backgroundColor: soften(sdg.color, 0.12), color: "#fff" }
+                  : {
+                      backgroundColor: soften(sdg.color, 0.82),
+                      color: soften(sdg.color, 0.05),
+                    }
+              }
+            >
+              {n}
+            </span>
+          );
+        })}
+      </span>
+      <span className="text-xs text-ink-muted">
+        {covered.size} of {allSdgs.length} covered
+      </span>
+    </div>
+  );
+}
